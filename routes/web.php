@@ -13,29 +13,67 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//Route::get('/', function () {
-//    return view('welcome');
+
+/* use command line*/
+#php artisan cache:clear
+#php artisan config:cache
+#php artisan view:clear
+#php artisan config:cache
+
+
+/*use browser*/
+Route::get('/clear-cache', function() {
+    $exitCode = Artisan::call('cache:clear');
+    return 'cache clear';
+});
+Route::get('/config-cache', function() {
+    $exitCode = Artisan::call('config:cache');
+    return 'config:cache';
+});
+Route::get('/view-cache', function() {
+    $exitCode = Artisan::call('view:cache');
+    return 'view:cache';
+});
+Route::get('/view-clear', function() {
+    $exitCode = Artisan::call('view:clear');
+    return 'view:clear';
+});
+
+
+// stock_sync
+Route::get('/stock_sync', 'StockSyncController@stock_sync')->name('stock_sync');
+Route::get('/warehouse_stock_sync', 'StockSyncController@warehouse_stock_sync')->name('warehouse_stock_sync');
+Route::get('/warehouse_store_stock_sync', 'StockSyncController@warehouse_store_stock_sync')->name('warehouse_store_stock_sync');
+
+// test
+Route::get('/test', 'HomeController@test')->name('test');
+Route::get('/manually_pos_sale_update', 'HomeController@manually_pos_sale_update')->name('manually_pos_sale_update');
+Route::get('/manually_stock_transfer_vat_update', 'HomeController@manually_stock_transfer_vat_update')->name('manually_stock_transfer_vat_update');
+Route::get('/manually_discount_update', 'HomeController@manually_discount_update')->name('manually_discount_update');
+Route::get('/manually_purchase_price_update', 'HomeController@manually_purchase_price_update')->name('manually_purchase_price_update');
+Route::get('/backup_database', 'HomeController@backup_database')->name('backup_database');
+
+
+Route::get('/', function () {
+    //return view('welcome');
+    return redirect()->route('login');
+});
+
+//Route::group(['middleware' => ['auth']], function() {
+    //Route::resource('roles','RoleController');
+    //Route::resource('users','UserController');
 //});
 
-Route::get('/', 'Admin\AuthController@ShowLoginForm')->name('admin.login');
-//Route::get('/', 'Frontend\FrontendController@index')->name('index');
 
-//Route::post('/registration','Frontend\FrontendController@register')->name('user.register');
-//Route::get('/get-verification-code/{id}', 'Frontend\VerificationController@getVerificationCode')->name('get-verification-code');
-//Route::post('/get-verification-code-store', 'Frontend\VerificationController@verification')->name('get-verification-code.store');
-//Route::get('/check-verification-code', 'Frontend\VerificationController@CheckVerificationCode')->name('check-verification-code');
-//
-////Forget Password
-//Route::get('/reset-password','Frontend\FrontendController@getPhoneNumber')->name('reset.password');
-//Route::post('/otp-store','Frontend\FrontendController@checkPhoneNumber')->name('phone.check');
-//Route::post('/change-password','Frontend\FrontendController@otpStore')->name('otp.store');
-//Route::post('/new-password/update/{id}','Frontend\FrontendController@passwordUpdate')->name('reset.password.update');
 
 Auth::routes();
 
+Route::get('/home', 'HomeController@index')->name('home');
 
-Route::group(['middleware' => ['auth', 'user']], function () {
-    //this route only for with out resource controller
-//    Route::get('/user/dashboard', 'User\DashboardController@index')->name('user.dashboard');
+Route::group(['middleware' => ['auth']], function() {
+    Route::get('change-password/{id}', 'UserController@changedPassword')->name('password.change_password');
+    Route::post('change-password-update', 'UserController@changedPasswordUpdated')->name('password.change_password_update');
+
+    Route::resource('roles', 'RoleController');
+    Route::resource('users', 'UserController');
 });
-

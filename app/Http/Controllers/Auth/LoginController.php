@@ -4,11 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
-use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
 {
@@ -30,44 +26,8 @@ class LoginController extends Controller
      *
      * @var string
      */
-    //protected $redirectTo = RouteServiceProvider::HOME;
+    protected $redirectTo = RouteServiceProvider::HOME;
 
-    protected $redirectTo;
-
-    protected function redirectTo() {
-        if (Auth::check() && Auth::user()->user_type == 'customer') {
-            //dd('okk');
-            //Toastr::success('Successfully Logged In',"Success");
-            return $this->redirectTo = route('user.dashboard');
-        }
-        else {
-            //return('/login');
-            return('/');
-        }
-    }
-
-
-
-//    protected function credentials(Request $request)
-//    {
-//        if(is_numeric($request->get('email'))){
-//            return ['phone'=>$request->get('email'),'password'=>$request->get('password')];
-//        }
-//        elseif (filter_var($request->get('email'), FILTER_VALIDATE_EMAIL)) {
-//            return ['email' => $request->get('email'), 'password'=>$request->get('password')];
-//        }
-//        return ['username' => $request->get('email'), 'password'=>$request->get('password')];
-//    }
-
-    protected function credentials(Request $request)
-    {
-        return ['phone' => $request->get('phone'), 'password'=>$request->get('password'),'banned'=>0];
-    }
-
-    public function username()
-    {
-        return 'phone';
-    }
     /**
      * Create a new controller instance.
      *

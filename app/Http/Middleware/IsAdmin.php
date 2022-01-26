@@ -16,6 +16,7 @@ class IsAdmin
      */
     public function handle($request, Closure $next)
     {
+        echo 'okkk';die();
         if (Auth::check() && (Auth::user()->user_type == 'admin' || Auth::user()->user_type == 'staff')) {
             return $next($request);
         }
