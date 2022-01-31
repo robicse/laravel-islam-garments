@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePartiesTable extends Migration
+class CreateCustomersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,15 @@ class CreatePartiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('parties', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->enum('type',['supplier','customer']);
-            $table->enum('customer_type',['Whole Sale','POS Sale'])->nullable();
+        Schema::create('customers', function (Blueprint $table) {
+            $table->id();
             $table->string('name');
-            $table->string('slug');
+            $table->enum('customer_type',['Whole Sale','POS Sale'])->nullable();
+            $table->string('code');
             $table->string('phone');
             $table->string('email')->nullable();
-            $table->longText('address')->nullable();
+            $table->string('address')->nullable();
+            $table->float('initial_due', 8,2)->default(0);
             $table->integer('status')->default(1);
             $table->timestamps();
         });
@@ -34,6 +34,6 @@ class CreatePartiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('parties');
+        Schema::dropIfExists('customers');
     }
 }
