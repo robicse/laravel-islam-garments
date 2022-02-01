@@ -95,7 +95,17 @@ Route::middleware('auth:api')->post('/customer_delete', 'API\CustomerController@
 Route::middleware('auth:api')->post('/pos_sale_customer_list_pagination_with_search', 'API\CustomerController@posSaleCustomerListPaginationWithSearch');
 Route::middleware('auth:api')->post('/whole_sale_customer_list_pagination_with_search', 'API\CustomerController@wholeSaleCustomerListPaginationWithSearch');
 
+// product unit
+Route::middleware('auth:api')->get('/product_unit_list', 'API\ProductUnitController@productUnitList');
+Route::middleware('auth:api')->post('/product_unit_create', 'API\ProductUnitController@productUnitCreate');
+Route::middleware('auth:api')->post('/product_unit_edit', 'API\ProductUnitController@productUnitEdit');
+Route::middleware('auth:api')->post('/product_unit_delete', 'API\ProductUnitController@productUnitDelete');
 
+// product Size
+Route::middleware('auth:api')->get('/product_size_list', 'API\ProductSizeController@productSizeList');
+Route::middleware('auth:api')->post('/product_size_create', 'API\ProductSizeController@productSizeCreate');
+Route::middleware('auth:api')->post('/product_size_edit', 'API\ProductSizeController@productSizeEdit');
+Route::middleware('auth:api')->post('/product_size_delete', 'API\ProductSizeController@productSizeDelete');
 
 
 // expense category

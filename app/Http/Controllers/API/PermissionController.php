@@ -21,7 +21,7 @@ class PermissionController extends Controller
     // final user create
 
     public function permissionListShow(){
-        $permissions = DB::table('permissions')->select('id','name')->get();
+        $permissions = DB::table('permissions')->select('id','name')->where('status',1)->get();
 
         if($permissions)
         {

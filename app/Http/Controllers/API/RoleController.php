@@ -22,6 +22,7 @@ class RoleController extends Controller
         try {
             $roles = DB::table('roles')
                 ->select('id','name')
+                ->where('status',1)
                 //->where('name','!=','admin')
                 ->get();
 

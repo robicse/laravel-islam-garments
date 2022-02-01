@@ -15,6 +15,7 @@ class CustomerCollection extends ResourceCollection
                     'id' => $data->id,
                     'customer_type' => $data->customer_type,
                     'name' => $data->name,
+                    'code' => $data->code,
                     'phone' => $data->phone,
                     'email' => $data->email,
                     'address' => $data->address,
