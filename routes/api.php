@@ -84,6 +84,7 @@ Route::middleware('auth:api')->post('/supplier_create', 'API\SupplierController@
 Route::middleware('auth:api')->post('/supplier_details', 'API\SupplierController@supplierDetails');
 Route::middleware('auth:api')->post('/supplier_update', 'API\SupplierController@supplierUpdate');
 Route::middleware('auth:api')->post('/supplier_delete', 'API\SupplierController@supplierDelete');
+Route::middleware('auth:api')->post('/supplier_image', 'API\SupplierController@supplierImage');
 
 // pos/whole customer
 Route::middleware('auth:api')->get('/customer_list', 'API\CustomerController@customerList');
@@ -94,6 +95,12 @@ Route::middleware('auth:api')->post('/customer_update', 'API\CustomerController@
 Route::middleware('auth:api')->post('/customer_delete', 'API\CustomerController@customerDelete');
 Route::middleware('auth:api')->post('/pos_sale_customer_list_pagination_with_search', 'API\CustomerController@posSaleCustomerListPaginationWithSearch');
 Route::middleware('auth:api')->post('/whole_sale_customer_list_pagination_with_search', 'API\CustomerController@wholeSaleCustomerListPaginationWithSearch');
+
+// product brand
+Route::middleware('auth:api')->get('/product_brand_list', 'API\ProductBrandController@productBrandList');
+Route::middleware('auth:api')->post('/product_brand_create', 'API\ProductBrandController@productBrandCreate');
+Route::middleware('auth:api')->post('/product_brand_edit', 'API\ProductBrandController@productBrandEdit');
+Route::middleware('auth:api')->post('/product_brand_delete', 'API\ProductBrandController@productBrandDelete');
 
 // product unit
 Route::middleware('auth:api')->get('/product_unit_list', 'API\ProductUnitController@productUnitList');
@@ -106,6 +113,14 @@ Route::middleware('auth:api')->get('/product_size_list', 'API\ProductSizeControl
 Route::middleware('auth:api')->post('/product_size_create', 'API\ProductSizeController@productSizeCreate');
 Route::middleware('auth:api')->post('/product_size_edit', 'API\ProductSizeController@productSizeEdit');
 Route::middleware('auth:api')->post('/product_size_delete', 'API\ProductSizeController@productSizeDelete');
+
+// product
+Route::middleware('auth:api')->post('/check_exists_product', 'API\ProductController@checkExistsProduct');
+Route::middleware('auth:api')->post('/product_create', 'API\ProductController@productCreate');
+Route::middleware('auth:api')->post('/product_edit', 'API\ProductController@productEdit');
+Route::middleware('auth:api')->post('/product_delete', 'API\ProductController@productDelete');
+Route::middleware('auth:api')->post('/product_image', 'API\ProductController@productImage');
+Route::middleware('auth:api')->post('/product_list_with_search', 'API\ProductController@productListWithSearch');
 
 
 // expense category

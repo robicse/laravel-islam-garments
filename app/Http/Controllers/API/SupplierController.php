@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\API;
 
 use App\ChartOfAccount;
+use App\Employee;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
 use App\Supplier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class SupplierController extends Controller
 {
@@ -20,7 +24,7 @@ class SupplierController extends Controller
     public function supplierList(){
         try {
             $suppliers = DB::table('suppliers')
-                ->select('id','code','name','phone','email','address','status')
+                ->select('id','code','name','phone','email','address','nid','status')
                 ->orderBy('id','desc')
                 ->get();
 
@@ -37,6 +41,7 @@ class SupplierController extends Controller
                 $nested_data['phone'] = $supplier->phone;
                 $nested_data['email'] = $supplier->email;
                 $nested_data['address'] = $supplier->address;
+                $nested_data['nid'] = $supplier->nid;
                 $nested_data['status'] = $supplier->status;
 
                 array_push($supplier_arr, $nested_data);
@@ -220,5 +225,46 @@ class SupplierController extends Controller
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
+    }
+
+    public function supplierImage(Request $request)
+    {
+        //return response()->json(['success'=>true,'response' => 'sdfsdf'], 200);
+        $supplier=Supplier::find($request->supplier_id);
+        //dd($request->all());
+        //return response()->json(['success'=>true,'response' => $supplier], 200);
+        $image = $request->file('nid');
+        return response()->json(['success'=>true,'response' => $request->all()], 200);
+        if (isset($image)) {
+            //make unique name for image
+            $currentDate = Carbon::now()->toDateString();
+            $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+            // delete old image.....
+            if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
+            {
+                Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
+
+            }
+
+//            resize image for hospital and upload
+            $proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+            Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+            // update image db
+            $supplier->nid = $imagename;
+            $supplier->update();
+
+            //$success['supplier'] = $supplier;
+            //return response()->json(['response' => $success], $this-> successStatus);
+            $response = APIHelpers::createAPIResponse(false,200,'',$supplier);
+            return response()->json($response,200);
+
+        }else{
+            //return response()->json(['response'=>'failed'], $this-> failStatus);
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+
     }
 }

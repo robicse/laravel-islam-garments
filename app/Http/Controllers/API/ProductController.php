@@ -219,6 +219,33 @@ class ProductController extends Controller
         }
     }
 
+    public function checkExistsProduct(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required',
+                'product_unit_id'=> 'required',
+                'product_size_id'=> 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+            $check_exists_product = DB::table("products")
+                ->where('id',$request->product_id)
+                ->pluck('id')->first();
+            if($check_exists_product == null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Found.',null);
+                return response()->json($response,404);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
     public function productCreate(Request $request){
         try {
             $fourRandomDigit = rand(1000,9999);
@@ -227,8 +254,6 @@ class ProductController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required|unique:products,name',
                 'product_unit_id'=> 'required',
-                //'barcode'=> 'required',
-                //'barcode' => 'required|unique:products,barcode',
                 'purchase_price'=> 'required',
                 'whole_sale_price'=> 'required',
                 'selling_price'=> 'required',
@@ -266,8 +291,11 @@ class ProductController extends Controller
             }
 
             $product = new Product();
+            $product->type = $request->type;
             $product->name = $request->name;
+            $product->code = $request->code;
             $product->product_unit_id = $request->product_unit_id;
+            $product->product_size_id = $request->product_size_id;
             $product->item_code = $request->item_code ? $request->item_code : NULL;
             //$product->barcode = $request->barcode;
             $product->barcode = $barcode;
@@ -286,7 +314,6 @@ class ProductController extends Controller
             $product->status = $request->status;
             $product->image = 'default.png';
             $product->save();
-            $insert_id = $product->id;
 
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse Added Successfully.',null);
             return response()->json($response,201);
@@ -303,8 +330,6 @@ class ProductController extends Controller
                 'product_id'=> 'required',
                 'name' => 'required|unique:products,name,'.$request->product_id,
                 'product_unit_id'=> 'required',
-                //'barcode'=> 'required',
-                //'barcode' => 'required|unique:products,barcode,'.$request->product_id,
                 'purchase_price'=> 'required',
                 'whole_sale_price'=> 'required',
                 'selling_price'=> 'required',
@@ -340,9 +365,11 @@ class ProductController extends Controller
             }
 
             $product = Product::find($request->product_id);
+            $product->type = $request->type;
             $product->name = $request->name;
+            $product->code = $request->code;
             $product->product_unit_id = $request->product_unit_id;
-            $product->item_code = $request->item_code ? $request->item_code : NULL;
+            $product->product_size_id = $request->product_size_id;
             $product->barcode = $request->barcode;
             $product->self_no = $request->self_no ? $request->self_no : NULL;
             $product->low_inventory_alert = $request->low_inventory_alert ? $request->low_inventory_alert : NULL;

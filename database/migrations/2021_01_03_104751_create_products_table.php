@@ -16,12 +16,14 @@ class CreateProductsTable extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->string('code');
+            $table->bigInteger('product_brand_id')->unsigned()->nullable();
             $table->bigInteger('product_unit_id')->unsigned();
+            $table->bigInteger('product_size_id')->unsigned();
             $table->string('item_code')->nullable();
             $table->string('barcode')->unique();
             $table->string('self_no')->nullable();
             $table->integer('low_inventory_alert')->nullable();
-            $table->bigInteger('product_brand_id')->unsigned()->nullable();
             $table->float('purchase_price',8,2);
             $table->float('whole_sale_price',8,2);
             $table->float('selling_price',8,2);
@@ -36,6 +38,7 @@ class CreateProductsTable extends Migration
             $table->timestamps();
             $table->foreign('product_brand_id')->references('id')->on('product_brands')->onDelete('cascade');
             $table->foreign('product_unit_id')->references('id')->on('product_units')->onDelete('cascade');
+            $table->foreign('product_size_id')->references('id')->on('product_sizes')->onDelete('cascade');
         });
     }
 
