@@ -220,8 +220,9 @@ class ProductController extends Controller
     }
 
     public function checkExistsProduct(Request $request){
-        try {
+//        try {
             $validator = Validator::make($request->all(), [
+                'type' => 'required',
                 'name' => 'required',
                 'product_unit_id'=> 'required',
                 'product_size_id'=> 'required',
@@ -233,21 +234,27 @@ class ProductController extends Controller
             }
 
             $check_exists_product = DB::table("products")
-                ->where('id',$request->product_id)
+                ->where('type',$request->type)
+                ->where('name',$request->name)
+                ->where('product_unit_id',$request->product_unit_id)
+                ->where('product_size_id',$request->product_size_id)
                 ->pluck('id')->first();
             if($check_exists_product == null){
-                $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Found.',null);
-                return response()->json($response,404);
+                $response = APIHelpers::createAPIResponse(false,200,'No Product Found.',null);
+                return response()->json($response,200);
+            }else{
+                $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
+                return response()->json($response,409);
             }
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function productCreate(Request $request){
-        try {
+//        try {
             $fourRandomDigit = rand(1000,9999);
             $barcode = time().$fourRandomDigit;
 
@@ -290,10 +297,19 @@ class ProductController extends Controller
                 }
             }
 
+            $get_product_code = Product::latest('id','desc')->pluck('code')->first();
+            if(!empty($get_product_code)){
+                $get_product_code_after_replace = str_replace("PC-","",$get_product_code);
+                $product_code = $get_product_code_after_replace+1;
+            }else{
+                $product_code = 1;
+            }
+            $final_product_code = 'PC-'.$product_code;
+
             $product = new Product();
             $product->type = $request->type;
             $product->name = $request->name;
-            $product->code = $request->code;
+            $product->code = $final_product_code;
             $product->product_unit_id = $request->product_unit_id;
             $product->product_size_id = $request->product_size_id;
             $product->item_code = $request->item_code ? $request->item_code : NULL;
@@ -317,11 +333,11 @@ class ProductController extends Controller
 
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse Added Successfully.',null);
             return response()->json($response,201);
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function productEdit(Request $request){
