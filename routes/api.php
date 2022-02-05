@@ -102,6 +102,12 @@ Route::middleware('auth:api')->post('/product_brand_create', 'API\ProductBrandCo
 Route::middleware('auth:api')->post('/product_brand_edit', 'API\ProductBrandController@productBrandEdit');
 Route::middleware('auth:api')->post('/product_brand_delete', 'API\ProductBrandController@productBrandDelete');
 
+// product category
+Route::middleware('auth:api')->get('/product_category_list', 'API\ProductCategoryController@productCategoryList');
+Route::middleware('auth:api')->post('/product_category_create', 'API\ProductCategoryController@productCategoryCreate');
+Route::middleware('auth:api')->post('/product_category_edit', 'API\ProductCategoryController@productCategoryEdit');
+Route::middleware('auth:api')->post('/product_category_delete', 'API\ProductCategoryController@productCategoryDelete');
+
 // product unit
 Route::middleware('auth:api')->get('/product_unit_list', 'API\ProductUnitController@productUnitList');
 Route::middleware('auth:api')->post('/product_unit_create', 'API\ProductUnitController@productUnitCreate');

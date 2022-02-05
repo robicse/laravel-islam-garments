@@ -111,11 +111,11 @@ class ProductController extends Controller
     }
 
     public function productListWithSearch(Request $request){
-        try {
+//        try {
             if($request->search){
                 $products = Product::where('name','like','%'.$request->search.'%')
                     ->orWhere('name','like','%'.$request->search.'%')
-                    ->orWhere('item_code','like','%'.$request->search.'%')
+                    ->orWhere('product_code','like','%'.$request->search.'%')
                     ->orWhere('barcode','like','%'.$request->search.'%')
                     ->orWhere('whole_sale_price','like','%'.$request->search.'%')
                     ->orWhere('selling_price','like','%'.$request->search.'%')
@@ -129,11 +129,11 @@ class ProductController extends Controller
             }else{
                 return new ProductCollection(Product::latest()->paginate(12));
             }
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function barcodeProductList(Request $request){
@@ -220,10 +220,11 @@ class ProductController extends Controller
     }
 
     public function checkExistsProduct(Request $request){
-//        try {
+        try {
             $validator = Validator::make($request->all(), [
                 'type' => 'required',
-                'name' => 'required',
+                //'name' => 'required',
+                'product_category_id'=> 'required',
                 'product_unit_id'=> 'required',
                 'product_size_id'=> 'required',
             ]);
@@ -235,8 +236,9 @@ class ProductController extends Controller
 
             $check_exists_product = DB::table("products")
                 ->where('type',$request->type)
-                ->where('name',$request->name)
+                //->where('name',$request->name)
                 ->where('product_unit_id',$request->product_unit_id)
+                ->where('product_category_id',$request->product_category_id)
                 ->where('product_size_id',$request->product_size_id)
                 ->pluck('id')->first();
             if($check_exists_product == null){
@@ -246,11 +248,11 @@ class ProductController extends Controller
                 $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
                 return response()->json($response,409);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productCreate(Request $request){
@@ -259,12 +261,11 @@ class ProductController extends Controller
             $barcode = time().$fourRandomDigit;
 
             $validator = Validator::make($request->all(), [
-                'name' => 'required|unique:products,name',
+                'product_category_id'=> 'required',
                 'product_unit_id'=> 'required',
                 'purchase_price'=> 'required',
                 'whole_sale_price'=> 'required',
                 'selling_price'=> 'required',
-                'date'=> 'required',
                 'status'=> 'required',
                 'vat_status'=> 'required',
             ]);
@@ -305,14 +306,18 @@ class ProductController extends Controller
                 $product_code = 1;
             }
             $final_product_code = 'PC-'.$product_code;
+            $date = date('Y-m-d');
+
+            $name = $request->product_category_id.'-'.$request->product_unit_id.'-'.$request->product_size_id;
 
             $product = new Product();
             $product->type = $request->type;
-            $product->name = $request->name;
-            $product->code = $final_product_code;
+            $product->product_category_id = $request->product_category_id;
             $product->product_unit_id = $request->product_unit_id;
             $product->product_size_id = $request->product_size_id;
-            $product->item_code = $request->item_code ? $request->item_code : NULL;
+            $product->name = $name;
+            $product->code = $final_product_code;
+            $product->product_code = $request->product_code ? $request->product_code : NULL;
             //$product->barcode = $request->barcode;
             $product->barcode = $barcode;
             $product->self_no = $request->self_no ? $request->self_no : NULL;
@@ -326,7 +331,7 @@ class ProductController extends Controller
             $product->vat_amount = $vat_amount;
             $product->vat_whole_amount = $vat_whole_amount;
             $product->note = $request->note ? $request->note : NULL;
-            $product->date = $request->date;
+            $product->date = $date;
             $product->status = $request->status;
             $product->image = 'default.png';
             $product->save();
