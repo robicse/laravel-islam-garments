@@ -21,6 +21,29 @@ use Intervention\Image\Facades\Image;
 class SupplierController extends Controller
 {
     // supplier
+    public function supplierActiveList(){
+        try {
+            $suppliers = DB::table('suppliers')
+                ->select('id','code','name','phone','email','address','nid','status')
+                ->where('status',1)
+                ->orderBy('id','desc')
+                ->get();
+
+            if($suppliers === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Suppliers Found.',null);
+                return response()->json($response,404);
+            }
+
+            $response = APIHelpers::createAPIResponse(false,200,'',$suppliers);
+            return response()->json($response,200);
+
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
     public function supplierList(){
         try {
             $suppliers = DB::table('suppliers')
@@ -188,6 +211,9 @@ class SupplierController extends Controller
             $update_supplier = $supplier->save();
 
             if($update_supplier){
+                $chart_of_account = ChartOfAccount::where('name_code',$supplier->code)->first();
+                $chart_of_account->head_name=$request->name;
+                $chart_of_account->save();
                 $response = APIHelpers::createAPIResponse(false,200,'Supplier Updated Successfully.',null);
                 return response()->json($response,200);
             }else{

@@ -18,8 +18,8 @@ class ProductCollection extends ResourceCollection
                 $size_name = ProductSize::where('id',$data->product_size_id)->pluck('name')->first();
                 return [
                     'id' => $data->id,
+                    'type' => $data->type,
                     'product_name' => $data->name,
-                    'image' => $data->image,
                     'category_id' => $data->product_category_id,
                     'category_name' => $category_name,
                     'unit_id' => $data->product_unit_id,
@@ -28,21 +28,7 @@ class ProductCollection extends ResourceCollection
                     'size_name' => $size_name,
                     'product_code' => $data->product_code,
                     'barcode' => $data->barcode,
-                    'self_no' => $data->self_no,
-                    'low_inventory_alert' => $data->low_inventory_alert,
-                    //'brand_id' => $data->brand_id,
-                    //'brand_name' => $data->brand_id,
-                    'purchase_price' => $data->purchase_price,
-                    'whole_sale_price' => $data->whole_sale_price,
-                    'selling_price' => $data->selling_price,
-                    'note' => $data->note,
-                    'date' => $data->date,
-                    'status' => $data->status,
-                    'vat_status' => $data->vat_status,
-                    'vat_percentage' => $data->vat_percentage,
-                    'vat_amount' => $data->vat_amount,
-                    'vat_whole_amount' => $data->vat_whole_amount,
-                    //'warehouse_current_stock' => warehouseCurrentStock($data->id),
+                    'purchase_price' => $data->purchase_price
                 ];
             })
         ];

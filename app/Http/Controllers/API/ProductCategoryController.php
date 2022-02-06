@@ -12,6 +12,23 @@ use Illuminate\Support\Facades\Validator;
 class ProductCategoryController extends Controller
 {
     // product category
+    public function productCategoryActiveList(){
+        try {
+            $product_categories = DB::table('product_categories')->select('id','name','status')->where('status',1)->get();
+            if($product_categories === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Product Size Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$product_categories);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
     public function productCategoryList(){
         try {
             $product_categories = DB::table('product_categories')->select('id','name','status')->get();

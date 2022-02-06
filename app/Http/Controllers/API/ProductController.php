@@ -111,7 +111,7 @@ class ProductController extends Controller
     }
 
     public function productListWithSearch(Request $request){
-//        try {
+        try {
             if($request->search){
                 $products = Product::where('name','like','%'.$request->search.'%')
                     ->orWhere('name','like','%'.$request->search.'%')
@@ -129,11 +129,11 @@ class ProductController extends Controller
             }else{
                 return new ProductCollection(Product::latest()->paginate(12));
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function barcodeProductList(Request $request){
@@ -247,6 +247,41 @@ class ProductController extends Controller
             }else{
                 $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
                 return response()->json($response,409);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    public function productInfoForStockIn(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'type' => 'required',
+                //'name' => 'required',
+                'product_category_id'=> 'required',
+                'product_unit_id'=> 'required',
+                'product_size_id'=> 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+            $product_info = Product::where('type',$request->type)
+                ->where('product_category_id',$request->product_category_id)
+                ->where('product_unit_id',$request->product_unit_id)
+                ->where('product_size_id',$request->product_size_id)
+                ->latest()
+                ->paginate(1);
+
+            if(count($product_info) === 0){
+                $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
+                return response()->json($response,404);
+            }else{
+                return new ProductCollection($product_info);
             }
         } catch (\Exception $e) {
             //return $e->getMessage();

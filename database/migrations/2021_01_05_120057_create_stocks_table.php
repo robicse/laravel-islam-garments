@@ -19,8 +19,6 @@ class CreateStocksTable extends Migration
             $table->bigInteger('user_id');
             $table->bigInteger('warehouse_id')->unsigned()->nullable();
             $table->bigInteger('store_id')->unsigned()->nullable();
-            $table->bigInteger('product_unit_id')->unsigned();
-            $table->bigInteger('product_brand_id')->unsigned()->nullable();
             $table->bigInteger('product_id')->unsigned();
             $table->enum('stock_type', ['whole_purchase','pos_purchase','purchase_return','from_warehouse_to_store','from_store_to_store','whole_sale','pos_sale','sale_return']);
             $table->enum('stock_where', ['warehouse','store']);
@@ -34,8 +32,6 @@ class CreateStocksTable extends Migration
             $table->timestamps();
             $table->foreign('warehouse_id')->references('id')->on('warehouses')->onDelete('cascade');
             $table->foreign('store_id')->references('id')->on('stores')->onDelete('cascade');
-            $table->foreign('product_unit_id')->references('id')->on('product_units')->onDelete('cascade');
-            $table->foreign('product_brand_id')->references('id')->on('product_brands')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }

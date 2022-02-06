@@ -16,8 +16,6 @@ class CreateProductPurchaseDetailsTable extends Migration
         Schema::create('product_purchase_details', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('product_purchase_id')->unsigned();
-            $table->bigInteger('product_unit_id')->unsigned();
-            $table->bigInteger('product_brand_id')->unsigned()->nullable();
             $table->bigInteger('product_id')->unsigned();
             $table->string('barcode');
             $table->integer('qty');
@@ -26,8 +24,6 @@ class CreateProductPurchaseDetailsTable extends Migration
             $table->float('sub_total', 8,2);
             $table->timestamps();
             $table->foreign('product_purchase_id')->references('id')->on('product_purchases')->onDelete('cascade');
-            $table->foreign('product_unit_id')->references('id')->on('product_units')->onDelete('cascade');
-            $table->foreign('product_brand_id')->references('id')->on('product_brands')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }

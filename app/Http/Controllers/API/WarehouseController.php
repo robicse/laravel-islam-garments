@@ -14,6 +14,24 @@ use Illuminate\Support\Facades\Validator;
 class WarehouseController extends Controller
 {
     // product warehouse
+    public function warehouseActiveList(){
+        try {
+            $warehouses = DB::table('warehouses')->select('id','name','phone','email','address','status')->where('status',1)->get();
+            if($warehouses === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$warehouses);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    // product warehouse
     public function warehouseList(){
         try {
             $warehouses = DB::table('warehouses')->select('id','name','phone','email','address','status')->get();

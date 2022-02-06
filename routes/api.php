@@ -48,6 +48,7 @@ Route::middleware('auth:api')->get('/warehouse_list', 'API\WarehouseController@w
 Route::middleware('auth:api')->post('/warehouse_create', 'API\WarehouseController@warehouseCreate');
 Route::middleware('auth:api')->post('/warehouse_edit', 'API\WarehouseController@warehouseEdit');
 Route::middleware('auth:api')->post('/warehouse_delete', 'API\WarehouseController@warehouseDelete');
+Route::middleware('auth:api')->get('/warehouse_active_list', 'API\WarehouseController@warehouseActiveList');
 
 
 // store
@@ -85,6 +86,7 @@ Route::middleware('auth:api')->post('/supplier_details', 'API\SupplierController
 Route::middleware('auth:api')->post('/supplier_update', 'API\SupplierController@supplierUpdate');
 Route::middleware('auth:api')->post('/supplier_delete', 'API\SupplierController@supplierDelete');
 Route::middleware('auth:api')->post('/supplier_image', 'API\SupplierController@supplierImage');
+Route::middleware('auth:api')->get('/supplier_active_list', 'API\SupplierController@supplierActiveList');
 
 // pos/whole customer
 Route::middleware('auth:api')->get('/customer_list', 'API\CustomerController@customerList');
@@ -107,18 +109,21 @@ Route::middleware('auth:api')->get('/product_category_list', 'API\ProductCategor
 Route::middleware('auth:api')->post('/product_category_create', 'API\ProductCategoryController@productCategoryCreate');
 Route::middleware('auth:api')->post('/product_category_edit', 'API\ProductCategoryController@productCategoryEdit');
 Route::middleware('auth:api')->post('/product_category_delete', 'API\ProductCategoryController@productCategoryDelete');
+Route::middleware('auth:api')->get('/product_category_active_list', 'API\ProductCategoryController@productCategoryActiveList');
 
 // product unit
 Route::middleware('auth:api')->get('/product_unit_list', 'API\ProductUnitController@productUnitList');
 Route::middleware('auth:api')->post('/product_unit_create', 'API\ProductUnitController@productUnitCreate');
 Route::middleware('auth:api')->post('/product_unit_edit', 'API\ProductUnitController@productUnitEdit');
 Route::middleware('auth:api')->post('/product_unit_delete', 'API\ProductUnitController@productUnitDelete');
+Route::middleware('auth:api')->get('/product_unit_active_list', 'API\ProductUnitController@productUnitActiveList');
 
 // product Size
 Route::middleware('auth:api')->get('/product_size_list', 'API\ProductSizeController@productSizeList');
 Route::middleware('auth:api')->post('/product_size_create', 'API\ProductSizeController@productSizeCreate');
 Route::middleware('auth:api')->post('/product_size_edit', 'API\ProductSizeController@productSizeEdit');
 Route::middleware('auth:api')->post('/product_size_delete', 'API\ProductSizeController@productSizeDelete');
+Route::middleware('auth:api')->get('/product_size_active_list', 'API\ProductSizeController@productSizeActiveList');
 
 // product
 Route::middleware('auth:api')->post('/check_exists_product', 'API\ProductController@checkExistsProduct');
@@ -127,6 +132,18 @@ Route::middleware('auth:api')->post('/product_edit', 'API\ProductController@prod
 Route::middleware('auth:api')->post('/product_delete', 'API\ProductController@productDelete');
 Route::middleware('auth:api')->post('/product_image', 'API\ProductController@productImage');
 Route::middleware('auth:api')->post('/product_list_with_search', 'API\ProductController@productListWithSearch');
+Route::middleware('auth:api')->post('/product_info_for_stock_in', 'API\ProductController@productInfoForStockIn');
+
+// payment type
+Route::middleware('auth:api')->get('/payment_type_active_list', 'API\PaymentTypeController@paymentTypeActiveList');
+
+// warehouse stock in
+//Route::middleware('auth:api')->get('/product_pos_purchase_list', 'API\ProductPurchaseController@productPOSPurchaseList');
+//Route::middleware('auth:api')->post('/product_pos_purchase_details', 'API\ProductPurchaseController@productPOSPurchaseDetails');
+//Route::middleware('auth:api')->post('/product_pos_purchase_list_pagination_with_search', 'API\ProductPurchaseController@productPOSPurchaseListPaginationWithSearch');
+Route::middleware('auth:api')->post('/warehouse_stock_in_create', 'API\ProductPurchaseController@warehouseStockInCreate');
+//Route::middleware('auth:api')->post('/product_pos_purchase_edit', 'API\ProductPurchaseController@productPOSPurchaseEdit');
+//Route::middleware('auth:api')->post('/product_pos_purchase_delete', 'API\ProductPurchaseController@productPOSPurchaseDelete');
 
 
 // expense category
@@ -150,7 +167,7 @@ Route::middleware('auth:api')->post('/product_list_with_search', 'API\ProductCon
 // chart of account
 //Route::middleware('auth:api')->get('/chart_of_account_list', 'API\AccountController@chartOfAccountList');
 //Route::middleware('auth:api')->post('/chart_of_account_list_by_head_name', 'API\AccountController@chartOfAccountListByName');
-//Route::middleware('auth:api')->get('/chart_of_account_active_list', 'API\AccountController@chartOfAccountActiveList');
+Route::middleware('auth:api')->get('/chart_of_account_active_list', 'API\AccountController@chartOfAccountActiveList');
 //Route::middleware('auth:api')->get('/chart_of_account_is_transaction_list', 'API\AccountController@chartOfAccountIsTransactionList');
 //Route::middleware('auth:api')->get('/chart_of_account_is_cash_book_list', 'API\AccountController@chartOfAccountIsCashBookList');
 //Route::middleware('auth:api')->get('/chart_of_account_is_general_ledger_list', 'API\AccountController@chartOfAccountIsGeneralLedgerList');

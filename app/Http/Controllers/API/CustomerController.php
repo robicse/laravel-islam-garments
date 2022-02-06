@@ -106,16 +106,17 @@ class CustomerController extends Controller
                 }else{
                     $head_code="1020300001";
                 }
-                $head_name = $request->name.'-'.$request->code;
+                $head_name = $request->name;
 
                 $parent_head_name = 'Account Receivable';
                 $head_level = 3;
                 $head_type = 'A';
 
                 $coa = new ChartOfAccount();
-                $coa->head_code             = $head_code;
-                $coa->head_name             = $head_name;
                 $coa->parent_head_name      = $parent_head_name;
+                $coa->head_name             = $head_name;
+                $coa->head_code             = $head_code;
+                $coa->name_code             = $final_customer_code;
                 $coa->head_type             = $head_type;
                 $coa->head_level            = $head_level;
                 $coa->is_active             = '1';
@@ -266,16 +267,17 @@ class CustomerController extends Controller
                 }else{
                     $head_code="1020300001";
                 }
-                $head_name = $request->name.'-'.$request->code;
+                $head_name = $request->name;
 
                 $parent_head_name = 'Account Receivable';
                 $head_level = 3;
                 $head_type = 'A';
 
                 $coa = new ChartOfAccount();
-                $coa->head_code             = $head_code;
-                $coa->head_name             = $head_name;
                 $coa->parent_head_name      = $parent_head_name;
+                $coa->head_name             = $head_name;
+                $coa->head_code             = $head_code;
+                $coa->name_code             = $final_customer_code;
                 $coa->head_type             = $head_type;
                 $coa->head_level            = $head_level;
                 $coa->is_active             = '1';
@@ -428,6 +430,10 @@ class CustomerController extends Controller
             $update_customer = $customer->save();
 
             if($update_customer){
+                $chart_of_account = ChartOfAccount::where('name_code',$customer->code)->first();
+                $chart_of_account->head_name=$request->name;
+                $chart_of_account->save();
+
                 $response = APIHelpers::createAPIResponse(false,200,'Customer Updated Successfully.',null);
                 return response()->json($response,200);
             }else{
