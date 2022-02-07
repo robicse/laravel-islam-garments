@@ -6,6 +6,8 @@ use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductCollection;
 use App\Product;
+use App\ProductCategory;
+use App\ProductUnit;
 use App\ProductVat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -343,7 +345,10 @@ class ProductController extends Controller
             $final_product_code = 'PC-'.$product_code;
             $date = date('Y-m-d');
 
-            $name = $request->product_category_id.'-'.$request->product_unit_id.'-'.$request->product_size_id;
+            $product_category = ProductCategory::where('id',$request->product_category_id)->pluck('name')->first();
+            $product_unit = ProductUnit::where('id',$request->product_unit_id)->pluck('name')->first();
+            $product_size = ProductCategory::where('id',$request->product_size_id)->pluck('name')->first();
+            $name = $product_category.'-'.$product_unit.'-'.$product_size;
 
             $product = new Product();
             $product->type = $request->type;

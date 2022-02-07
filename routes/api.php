@@ -138,12 +138,16 @@ Route::middleware('auth:api')->post('/product_info_for_stock_in', 'API\ProductCo
 Route::middleware('auth:api')->get('/payment_type_active_list', 'API\PaymentTypeController@paymentTypeActiveList');
 
 // warehouse stock in
-//Route::middleware('auth:api')->get('/product_pos_purchase_list', 'API\ProductPurchaseController@productPOSPurchaseList');
-//Route::middleware('auth:api')->post('/product_pos_purchase_details', 'API\ProductPurchaseController@productPOSPurchaseDetails');
-//Route::middleware('auth:api')->post('/product_pos_purchase_list_pagination_with_search', 'API\ProductPurchaseController@productPOSPurchaseListPaginationWithSearch');
-Route::middleware('auth:api')->post('/warehouse_stock_in_create', 'API\ProductPurchaseController@warehouseStockInCreate');
+//Route::middleware('auth:api')->get('/product_purchase_list', 'API\ProductPurchaseController@productPurchaseList');
+Route::middleware('auth:api')->post('/product_purchase_details', 'API\ProductPurchaseController@productPurchaseDetails');
+Route::middleware('auth:api')->post('/product_purchase_list_pagination_with_search', 'API\ProductPurchaseController@productPurchaseListPaginationWithSearch');
+Route::middleware('auth:api')->post('/product_purchase_create', 'API\ProductPurchaseController@productPurchaseCreate');
 //Route::middleware('auth:api')->post('/product_pos_purchase_edit', 'API\ProductPurchaseController@productPOSPurchaseEdit');
 //Route::middleware('auth:api')->post('/product_pos_purchase_delete', 'API\ProductPurchaseController@productPOSPurchaseDelete');
+
+// warehouse stock list
+Route::middleware('auth:api')->post('/stock_transaction_list_with_search', 'API\StockController@stockTransactionListWithSearch');
+Route::middleware('auth:api')->post('/warehouse_current_stock_by_id', 'API\StockController@warehouseCurrentStockById');
 
 
 // expense category
