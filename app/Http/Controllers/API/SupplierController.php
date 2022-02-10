@@ -253,23 +253,22 @@ class SupplierController extends Controller
         }
     }
 
+
     public function supplierImage(Request $request)
     {
-        //return response()->json(['success'=>true,'response' => 'sdfsdf'], 200);
         $supplier=Supplier::find($request->supplier_id);
-        //dd($request->all());
-        //return response()->json(['success'=>true,'response' => $supplier], 200);
-        $image = $request->file('nid');
-        return response()->json(['success'=>true,'response' => $request->all()], 200);
+        //dd($supplier);
+        $image = $request->file('nid_image');
+        //dd($image);
         if (isset($image)) {
             //make unique name for image
             $currentDate = Carbon::now()->toDateString();
             $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
 
             // delete old image.....
-            if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
+            if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid))
             {
-                Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
+                Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid);
 
             }
 
@@ -281,16 +280,54 @@ class SupplierController extends Controller
             $supplier->nid = $imagename;
             $supplier->update();
 
-            //$success['supplier'] = $supplier;
-            //return response()->json(['response' => $success], $this-> successStatus);
-            $response = APIHelpers::createAPIResponse(false,200,'',$supplier);
-            return response()->json($response,200);
+            $success['supplier'] = $supplier;
+            return response()->json(['response' => $success], 200);
 
         }else{
-            //return response()->json(['response'=>'failed'], $this-> failStatus);
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
+            return response()->json(['response'=>'failed'], 400);
         }
 
     }
+
+//    public function supplierImage(Request $request)
+//    {
+//        //return response()->json(['success'=>true,'response' => 'sdfsdf'], 200);
+////        return response()->json(['success'=>true,'response' => $request->all()], 200);
+//        $supplier=Supplier::find($request->supplier_id);
+//        //dd($request->all());
+//        //return response()->json(['success'=>true,'response' => $supplier], 200);
+//        $image = $request->file('nid');
+//        return response()->json(['success'=>true,'response' => $image], 200);
+//        if (isset($image)) {
+//            //make unique name for image
+//            $currentDate = Carbon::now()->toDateString();
+//            $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+//
+//            // delete old image.....
+//            if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
+//            {
+//                Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
+//
+//            }
+//
+////            resize image for hospital and upload
+//            $proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+//            Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+//
+//            // update image db
+//            $supplier->nid = $imagename;
+//            $supplier->update();
+//
+//            //$success['supplier'] = $supplier;
+//            //return response()->json(['response' => $success], $this-> successStatus);
+//            $response = APIHelpers::createAPIResponse(false,200,'',$supplier);
+//            return response()->json($response,200);
+//
+//        }else{
+//            //return response()->json(['response'=>'failed'], $this-> failStatus);
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
+//
+//    }
 }
