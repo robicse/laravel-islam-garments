@@ -24,7 +24,7 @@ class SupplierController extends Controller
     public function supplierActiveList(){
         try {
             $suppliers = DB::table('suppliers')
-                ->select('id','code','name','phone','email','address','nid','status')
+                ->select('id','name','phone','email','address','nid_front','nid_back','status')
                 ->where('status',1)
                 ->orderBy('id','desc')
                 ->get();
@@ -47,7 +47,7 @@ class SupplierController extends Controller
     public function supplierList(){
         try {
             $suppliers = DB::table('suppliers')
-                ->select('id','code','name','phone','email','address','nid','status')
+                ->select('id','code','name')
                 ->orderBy('id','desc')
                 ->get();
 
@@ -64,7 +64,8 @@ class SupplierController extends Controller
                 $nested_data['phone'] = $supplier->phone;
                 $nested_data['email'] = $supplier->email;
                 $nested_data['address'] = $supplier->address;
-                $nested_data['nid'] = $supplier->nid;
+                $nested_data['nid_front'] = $supplier->nid_front;
+                $nested_data['nid_back'] = $supplier->nid_back;
                 $nested_data['status'] = $supplier->status;
 
                 array_push($supplier_arr, $nested_data);
@@ -82,7 +83,7 @@ class SupplierController extends Controller
 
     public function supplierCreate(Request $request){
 
-        try {
+//        try {
             // required
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
@@ -111,6 +112,59 @@ class SupplierController extends Controller
             $supplier->email = $request->email;
             $supplier->address = $request->address;
             //$supplier->initial_due = $request->initial_due;
+
+            $image = $request->file('nid_front');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_front))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_front);
+
+                }
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->nid_front = $imagename;
+
+            }else{
+                $supplier->nid_front = 'default.png';
+            }
+
+            $image = $request->file('nid_back');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_back))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_back);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->nid_back = $imagename;
+
+            }else{
+                $supplier->nid_back = 'default.png';
+            }
+
             $supplier->save();
             $insert_id = $supplier->id;
 
@@ -127,7 +181,7 @@ class SupplierController extends Controller
                 }else{
                     $head_code="5010100001";
                 }
-                $head_name = $request->name.'-'.$request->code;
+                $head_name = $request->name.'-'.$final_supplier_code;
 
                 $parent_head_name = 'Account Payable';
                 $head_level = 3;
@@ -136,6 +190,7 @@ class SupplierController extends Controller
                 $coa = new ChartOfAccount();
                 $coa->head_code             = $head_code;
                 $coa->head_name             = $head_name;
+                $coa->name_code             = $final_supplier_code;
                 $coa->parent_head_name      = $parent_head_name;
                 $coa->head_type             = $head_type;
                 $coa->head_level            = $head_level;
@@ -154,11 +209,11 @@ class SupplierController extends Controller
                 $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
                 return response()->json($response,500);
             }
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function supplierDetails(Request $request){
@@ -207,12 +262,68 @@ class SupplierController extends Controller
             $supplier->address = $request->address;
             $supplier->status = $request->status;
             //$supplier->initial_due = $request->initial_due;
-            $supplier->save();
+
+            $image = $request->file('nid_front');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_front))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_front);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->nid_front = $imagename;
+
+            }else{
+                $supplier->nid_front = Supplier::where('id',$request->supplier_id)->pluck('nid_front')->first();
+            }
+
+            $image = $request->file('nid_back');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_back))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_back);
+
+                }
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->nid_back = $imagename;
+
+            }else{
+                $supplier->nid_back = Supplier::where('id',$request->supplier_id)->pluck('nid_back')->first();
+            }
+
             $update_supplier = $supplier->save();
+
+
+
+
 
             if($update_supplier){
                 $chart_of_account = ChartOfAccount::where('name_code',$supplier->code)->first();
-                $chart_of_account->head_name=$request->name;
+                $chart_of_account->head_name=$request->name.'-'.$supplier->code;
                 $chart_of_account->save();
                 $response = APIHelpers::createAPIResponse(false,200,'Supplier Updated Successfully.',null);
                 return response()->json($response,200);
@@ -273,7 +384,8 @@ class SupplierController extends Controller
             }
 
 //            resize image for hospital and upload
-            $proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+            //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+            $proImage = Image::make($image)->save($image->getClientOriginalExtension());
             Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
 
             // update image db

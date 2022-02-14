@@ -56,6 +56,7 @@ Route::middleware('auth:api')->get('/store_list', 'API\StoreController@storeList
 Route::middleware('auth:api')->post('/store_create', 'API\StoreController@storeCreate');
 Route::middleware('auth:api')->post('/store_edit', 'API\StoreController@storeEdit');
 Route::middleware('auth:api')->post('/store_delete', 'API\StoreController@storeDelete');
+Route::middleware('auth:api')->get('/store_active_list', 'API\StoreController@storeActiveList');
 
 
 
@@ -148,6 +149,10 @@ Route::middleware('auth:api')->post('/product_purchase_create', 'API\ProductPurc
 // warehouse stock list
 Route::middleware('auth:api')->post('/stock_transaction_list_with_search', 'API\StockController@stockTransactionListWithSearch');
 Route::middleware('auth:api')->post('/warehouse_current_stock_by_id', 'API\StockController@warehouseCurrentStockById');
+
+// store stock list
+Route::middleware('auth:api')->post('/warehouse_to_store_stock_create', 'API\StockTransferController@warehouseToStoreStockCreate');
+Route::middleware('auth:api')->post('/store_current_stock_by_id', 'API\StockController@storeCurrentStockById');
 
 
 // expense category

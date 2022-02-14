@@ -15,8 +15,7 @@ class StoreController extends Controller
     public function storeList(){
         try {
             $stores = DB::table('stores')
-                ->leftJoin('warehouses','stores.warehouse_id','warehouses.id')
-                ->select('stores.id','stores.name as store_name','stores.phone','stores.email','stores.address','stores.status','warehouses.id as warehouse_id','warehouses.name as warehouse_name')
+                ->select('stores.id','stores.name as store_name','stores.phone','stores.email','stores.address','stores.status')
                 ->get();
             if($stores === null){
                 $response = APIHelpers::createAPIResponse(true,404,'No Store Found.',null);
@@ -25,7 +24,26 @@ class StoreController extends Controller
                 $response = APIHelpers::createAPIResponse(false,200,'',$stores);
                 return response()->json($response,200);
             }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
 
+    public function storeActiveList(){
+        try {
+            $stores = DB::table('stores')
+                ->select('stores.id','stores.name as store_name','stores.phone','stores.email','stores.address','stores.status')
+                ->where('status',1)
+                ->get();
+            if($stores === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Store Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$stores);
+                return response()->json($response,200);
+            }
         } catch (\Exception $e) {
             //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
@@ -38,7 +56,6 @@ class StoreController extends Controller
         try {
             // required and unique
             $validator = Validator::make($request->all(), [
-                'warehouse_id' => 'required',
                 'name' => 'required',
                 'phone' => 'required|unique:stores,name',
                 'status'=> 'required',
@@ -50,7 +67,6 @@ class StoreController extends Controller
             }
 
             $store = new Store();
-            $store->warehouse_id = $request->warehouse_id;
             $store->name = $request->name;
             $store->phone = $request->phone;
             $store->email = $request->email ? $request->email : NULL;
@@ -72,13 +88,12 @@ class StoreController extends Controller
         try {
             $check_exists_store = DB::table("stores")->where('id',$request->store_id)->pluck('id')->first();
             if($check_exists_store == null){
-                $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Found.',null);
+                $response = APIHelpers::createAPIResponse(true,404,'No Store Found.',null);
                 return response()->json($response,404);
             }
 
             // required and unique
             $validator = Validator::make($request->all(), [
-                'warehouse_id' => 'required',
                 'name' => 'unique:stores,name,'.$request->store_id,
                 'phone' => 'required',
                 'status'=> 'required',
@@ -90,7 +105,6 @@ class StoreController extends Controller
             }
 
             $store = Store::find($request->store_id);
-            $store->warehouse_id = $request->warehouse_id;
             $store->name = $request->name;
             $store->phone = $request->phone;
             $store->email = $request->email ? $request->email : NULL;

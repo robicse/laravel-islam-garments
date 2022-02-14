@@ -29,7 +29,8 @@ class ProductCollection extends ResourceCollection
                     'product_code' => $data->product_code,
                     'barcode' => $data->barcode,
                     'purchase_price' => $data->purchase_price,
-                    'qty' => 0
+                    'qty' => 0,
+                    'image' => $data->image
                 ];
             })
         ];

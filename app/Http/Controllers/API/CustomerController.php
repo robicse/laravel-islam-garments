@@ -267,7 +267,7 @@ class CustomerController extends Controller
                 }else{
                     $head_code="1020300001";
                 }
-                $head_name = $request->name;
+                $head_name = $request->name.'-'.$final_customer_code;
 
                 $parent_head_name = 'Account Receivable';
                 $head_level = 3;
@@ -431,7 +431,7 @@ class CustomerController extends Controller
 
             if($update_customer){
                 $chart_of_account = ChartOfAccount::where('name_code',$customer->code)->first();
-                $chart_of_account->head_name=$request->name;
+                $chart_of_account->head_name=$request->name.'-'.$customer->code;
                 $chart_of_account->save();
 
                 $response = APIHelpers::createAPIResponse(false,200,'Customer Updated Successfully.',null);

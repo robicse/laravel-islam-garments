@@ -31,6 +31,7 @@ class ProductPurchaseController extends Controller
     public function productPurchaseCreate(Request $request){
 //        try {
 //        return response()->json(['success'=>true,'response' => 'come here'], 200);
+//        return response()->json(['success'=>true,'response' => $request->all()], 200);
             $this->validate($request, [
                 'date'=> 'required',
                 'warehouse_id'=> 'required',
@@ -45,6 +46,11 @@ class ProductPurchaseController extends Controller
                 'paid_amount'=> 'required',
                 'due_amount'=> 'required',
             ]);
+
+            $products = json_decode($request->products);
+//            return response()->json(['success1'=>true,'response' => $products], 200);
+
+
 
             $get_invoice_no = ProductPurchase::latest()->pluck('invoice_no')->first();
             if(!empty($get_invoice_no)){
@@ -97,7 +103,8 @@ class ProductPurchaseController extends Controller
             if($insert_id)
             {
                 // for postman also api workable
-                $products = json_decode($request->products);
+
+
                 foreach ($products as $data) {
                     $product_id =  $data->product_id;
                     $product_code =  $data->product_code;

@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Facades\Image;
 
 class ProductController extends Controller
 {
@@ -293,7 +294,7 @@ class ProductController extends Controller
     }
 
     public function productCreate(Request $request){
-//        try {
+        try {
             $fourRandomDigit = rand(1000,9999);
             $barcode = time().$fourRandomDigit;
 
@@ -373,29 +374,45 @@ class ProductController extends Controller
             $product->note = $request->note ? $request->note : NULL;
             $product->date = $date;
             $product->status = $request->status;
-            $product->image = 'default.png';
+            $image = $request->file('image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $image_name = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+    //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
+
+                // update image db
+                $product->image = $image_name;
+            }else{
+                $product->image = 'default.png';
+            }
             $product->save();
 
-            $response = APIHelpers::createAPIResponse(false,201,'Warehouse Added Successfully.',null);
+            $response = APIHelpers::createAPIResponse(false,201,'Product Added Successfully.',$product->id,null);
             return response()->json($response,201);
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productEdit(Request $request){
         try {
             $validator = Validator::make($request->all(), [
                 'product_id'=> 'required',
-                'name' => 'required|unique:products,name,'.$request->product_id,
-                'product_unit_id'=> 'required',
-                'purchase_price'=> 'required',
-                'whole_sale_price'=> 'required',
-                'selling_price'=> 'required',
-                'date'=> 'required',
-                'status'=> 'required',
+//                'name' => 'required|unique:products,name,'.$request->product_id,
+//                'product_category_id'=> 'required',
+//                'product_unit_id'=> 'required',
+//                'purchase_price'=> 'required',
+//                'whole_sale_price'=> 'required',
+//                'selling_price'=> 'required',
+//                'date'=> 'required',
+//                'status'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -409,43 +426,28 @@ class ProductController extends Controller
                 return response()->json($response,404);
             }
 
-            $image = Product::where('id',$request->product_id)->pluck('image')->first();
-
-            $product_vat = ProductVat::latest()->first();
-            $vat_percentage = 0;
-            $vat_amount = 0;
-            $vat_whole_amount = 0;
-            if($product_vat && ($request->vat_status == 1)){
-                $vat_percentage = $product_vat->vat_percentage;
-                if($request->selling_price > 0){
-                    $vat_amount = $request->selling_price*$vat_percentage/100;
-                }
-                if($request->whole_sale_price > 0){
-                    $vat_whole_amount = $request->whole_sale_price*$vat_percentage/100;
-                }
-            }
-
             $product = Product::find($request->product_id);
-            $product->type = $request->type;
-            $product->name = $request->name;
-            $product->code = $request->code;
-            $product->product_unit_id = $request->product_unit_id;
-            $product->product_size_id = $request->product_size_id;
-            $product->barcode = $request->barcode;
-            $product->self_no = $request->self_no ? $request->self_no : NULL;
-            $product->low_inventory_alert = $request->low_inventory_alert ? $request->low_inventory_alert : NULL;
-            $product->product_brand_id = $request->product_brand_id ? $request->product_brand_id : NULL;
+            $product->product_code = $request->product_code ? $request->product_code : NULL;
             $product->purchase_price = $request->purchase_price;
-            $product->whole_sale_price = $request->whole_sale_price;
-            $product->selling_price = $request->selling_price;
-            $product->vat_status = $request->vat_status;
-            $product->vat_percentage = $vat_percentage;
-            $product->vat_amount = $vat_amount;
-            $product->vat_whole_amount = $vat_whole_amount;
+            $product->whole_sale_price = $request->purchase_price;
+            $product->selling_price = $request->purchase_price;
             $product->note = $request->note ? $request->note : NULL;
-            $product->date = $request->date;
-            $product->status = $request->status;
-            $product->image = $image;
+            $image = $request->file('image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $image_name = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
+
+                // update image db
+                $product->image = $image_name;
+            }else{
+                $product->image = Product::where('id',$request->product_id)->pluck('image')->first();
+            }
             $update_product = $product->save();
 
             if($update_product){
