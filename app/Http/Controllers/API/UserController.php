@@ -67,11 +67,12 @@ class UserController extends Controller
             // required and unique
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
+                'email' => 'unique:users,email',
                 'phone' => 'unique:users,phone',
                 'password' => 'required|same:confirm_password',
                 'roles' => 'required',
                 'status'=> 'required',
-                'warehouse_id'=> 'required',
+                //'warehouse_id'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -135,11 +136,12 @@ class UserController extends Controller
                 $validator = Validator::make($request->all(), [
                     'user_id' => 'required',
                     'name' => 'required',
+                    'email' => 'required|unique:users,email,'.$request->user_id,
                     'phone' => 'required|unique:users,phone,'.$request->user_id,
                     'password' => 'same:confirm_password',
                     'roles' => 'required',
                     'status' => 'required',
-                    'warehouse_id' => 'required',
+                    //'warehouse_id' => 'required',
                 ]);
             }else{
                 $validator = Validator::make($request->all(), [

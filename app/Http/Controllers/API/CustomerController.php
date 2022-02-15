@@ -13,11 +13,14 @@ use App\Party;
 use App\VoucherType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class CustomerController extends Controller
 {
@@ -90,6 +93,108 @@ class CustomerController extends Controller
             $customer->email = $request->email;
             $customer->address = $request->address;
             $customer->initial_due = 0;
+
+            $image = $request->file('nid_front');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_front))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_front);
+
+                }
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->nid_front = $imagename;
+
+            }else{
+                $customer->nid_front = 'default.png';
+            }
+
+            $image = $request->file('nid_back');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_back))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_back);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->nid_back = $imagename;
+
+            }else{
+                $customer->nid_back = 'default.png';
+            }
+
+            $image = $request->file('image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->image = $imagename;
+
+            }else{
+                $customer->image = 'default.png';
+            }
+
+            $image = $request->file('bank_detail_image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->bank_detail_image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->bank_detail_image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->bank_detail_image = $imagename;
+
+            }else{
+                $customer->bank_detail_image = 'default.png';
+            }
             $customer->save();
             $insert_id = $customer->id;
 
@@ -251,6 +356,107 @@ class CustomerController extends Controller
             $customer->email = $request->email;
             $customer->address = $request->address;
             $customer->initial_due = $request->initial_due;
+            $image = $request->file('nid_front');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$customer->nid_front))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$customer->nid_front);
+
+                }
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->nid_front = $imagename;
+
+            }else{
+                $customer->nid_front = 'default.png';
+            }
+
+            $image = $request->file('nid_back');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$customer->nid_back))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$customer->nid_back);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->nid_back = $imagename;
+
+            }else{
+                $customer->nid_back = 'default.png';
+            }
+
+            $image = $request->file('image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$customer->image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$customer->image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->image = $imagename;
+
+            }else{
+                $customer->image = 'default.png';
+            }
+
+            $image = $request->file('bank_detail_image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$customer->bank_detail_image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$customer->bank_detail_image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->bank_detail_image = $imagename;
+
+            }else{
+                $customer->bank_detail_image = 'default.png';
+            }
             $customer->save();
             $insert_id = $customer->id;
 
@@ -313,7 +519,7 @@ class CustomerController extends Controller
 //                    $chart_of_account_transactions->ref_id = $insert_id;
 //                    $chart_of_account_transactions->transaction_type = 'Initial Due';
 //                    $chart_of_account_transactions->user_id = $user_id;
-//                    $chart_of_account_transactions->warehouse_id = $warehouse_id;
+//                    $chart_of_account_transactions->warehouse_id = NULL;
 //                    $chart_of_account_transactions->store_id = NULL;
 //                    $chart_of_account_transactions->voucher_type_id = 2;
 //                    $chart_of_account_transactions->voucher_no = $final_voucher_no;
@@ -324,11 +530,11 @@ class CustomerController extends Controller
 //                    $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
 //
 //                    if($chart_of_account_transactions_insert_id) {
-//
-//                        // customer account
+
 //                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
+//                        $chart_of_account_transaction_details->warehouse_id = NULL;
 //                        $chart_of_account_transaction_details->store_id = NULL;
+//                        $chart_of_account_transaction_details->payment_type_id = 2;
 //                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
 //                        $chart_of_account_transaction_details->chart_of_account_id = $coa->id;
 //                        $chart_of_account_transaction_details->chart_of_account_number = $coa->head_code;
@@ -343,11 +549,31 @@ class CustomerController extends Controller
 //                        $chart_of_account_transaction_details->transaction_date = $date;
 //                        $chart_of_account_transaction_details->transaction_date_time = $date_time;
 //                        $chart_of_account_transaction_details->save();
-//
-//                        // Account Receivable
+
+                        // customer account
+//                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+//                        $chart_of_account_transaction_details->warehouse_id = NULL;
+//                        $chart_of_account_transaction_details->store_id = NULL;
+//                        $chart_of_account_transaction_details->payment_type_id = 2;
+//                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+//                        $chart_of_account_transaction_details->chart_of_account_id = $coa->id;
+//                        $chart_of_account_transaction_details->chart_of_account_number = $coa->head_code;
+//                        $chart_of_account_transaction_details->chart_of_account_name = $coa->head_name;
+//                        $chart_of_account_transaction_details->chart_of_account_parent_name = $coa->parent_head_name;
+//                        $chart_of_account_transaction_details->chart_of_account_type = $coa->head_type;
+//                        $chart_of_account_transaction_details->debit = NULL;
+//                        $chart_of_account_transaction_details->credit = $request->initial_due;
+//                        $chart_of_account_transaction_details->description = 'Initial Due';
+//                        $chart_of_account_transaction_details->year = $year;
+//                        $chart_of_account_transaction_details->month = $month;
+//                        $chart_of_account_transaction_details->transaction_date = $date;
+//                        $chart_of_account_transaction_details->transaction_date_time = $date_time;
+//                        $chart_of_account_transaction_details->save();
+
+                        // Account Receivable
 //                        $cash_chart_of_account_info = ChartOfAccount::where('head_name', 'Account Receivable')->first();
 //                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
+//                        $chart_of_account_transaction_details->warehouse_id = NULL;
 //                        $chart_of_account_transaction_details->store_id = NULL;
 //                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
 //                        $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
@@ -363,7 +589,6 @@ class CustomerController extends Controller
 //                        $chart_of_account_transaction_details->transaction_date = $date;
 //                        $chart_of_account_transaction_details->transaction_date_time = $date_time;
 //                        $chart_of_account_transaction_details->save();
-//
 //                    }
 //                }
 
@@ -426,6 +651,107 @@ class CustomerController extends Controller
             $customer->email = $request->email;
             $customer->address = $request->address;
             $customer->initial_due = $request->initial_due;
+            $image = $request->file('nid_front');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_front))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_front);
+
+                }
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->nid_front = $imagename;
+
+            }else{
+                $customer->nid_front = Customer::where('id',$customer->id)->pluck('nid_front')->first();
+            }
+
+            $image = $request->file('nid_back');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_back))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_back);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->nid_back = $imagename;
+
+            }else{
+                $customer->nid_back = Customer::where('id',$customer->id)->pluck('nid_back')->first();
+            }
+
+            $image = $request->file('image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->image = $imagename;
+
+            }else{
+                $customer->image = Customer::where('id',$customer->id)->pluck('image')->first();
+            }
+
+            $image = $request->file('bank_detail_image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->bank_detail_image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->bank_detail_image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $customer->bank_detail_image = $imagename;
+
+            }else{
+                $customer->bank_detail_image = Customer::where('id',$customer->id)->pluck('bank_detail_image')->first();
+            }
             $customer->save();
             $update_customer = $customer->save();
 

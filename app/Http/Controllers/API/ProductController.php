@@ -371,6 +371,8 @@ class ProductController extends Controller
             $product->vat_percentage = $vat_percentage;
             $product->vat_amount = $vat_amount;
             $product->vat_whole_amount = $vat_whole_amount;
+            $product->color = $request->color ? $request->color : NULL;
+            $product->design = $request->design ? $request->design : NULL;
             $product->note = $request->note ? $request->note : NULL;
             $product->date = $date;
             $product->status = $request->status;
@@ -431,6 +433,8 @@ class ProductController extends Controller
             $product->purchase_price = $request->purchase_price;
             $product->whole_sale_price = $request->purchase_price;
             $product->selling_price = $request->purchase_price;
+            $product->color = $request->color ? $request->color : NULL;
+            $product->design = $request->design ? $request->design : NULL;
             $product->note = $request->note ? $request->note : NULL;
             $image = $request->file('image');
             if (isset($image)) {

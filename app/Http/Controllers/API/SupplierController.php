@@ -47,7 +47,7 @@ class SupplierController extends Controller
     public function supplierList(){
         try {
             $suppliers = DB::table('suppliers')
-                ->select('id','code','name')
+                ->select('id','code','name','phone','email','address','initial_due','nid_front','nid_back','image','bank_detail_image','note','status')
                 ->orderBy('id','desc')
                 ->get();
 
@@ -64,8 +64,12 @@ class SupplierController extends Controller
                 $nested_data['phone'] = $supplier->phone;
                 $nested_data['email'] = $supplier->email;
                 $nested_data['address'] = $supplier->address;
+                $nested_data['initial_due'] = $supplier->initial_due;
                 $nested_data['nid_front'] = $supplier->nid_front;
                 $nested_data['nid_back'] = $supplier->nid_back;
+                $nested_data['image'] = $supplier->image;
+                $nested_data['bank_detail_image'] = $supplier->bank_detail_image;
+                $nested_data['note'] = $supplier->note;
                 $nested_data['status'] = $supplier->status;
 
                 array_push($supplier_arr, $nested_data);
@@ -83,7 +87,7 @@ class SupplierController extends Controller
 
     public function supplierCreate(Request $request){
 
-//        try {
+        try {
             // required
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
@@ -111,7 +115,8 @@ class SupplierController extends Controller
             $supplier->phone = $request->phone;
             $supplier->email = $request->email;
             $supplier->address = $request->address;
-            //$supplier->initial_due = $request->initial_due;
+            $supplier->initial_due = $request->initial_due;
+            $supplier->note = $request->note;
 
             $image = $request->file('nid_front');
             //dd($image);
@@ -165,6 +170,56 @@ class SupplierController extends Controller
                 $supplier->nid_back = 'default.png';
             }
 
+            $image = $request->file('image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->image = $imagename;
+
+            }else{
+                $supplier->image = 'default.png';
+            }
+
+            $image = $request->file('bank_detail_image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->bank_detail_image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->bank_detail_image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->bank_detail_image = $imagename;
+
+            }else{
+                $supplier->bank_detail_image = 'default.png';
+            }
+
             $supplier->save();
             $insert_id = $supplier->id;
 
@@ -209,11 +264,11 @@ class SupplierController extends Controller
                 $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
                 return response()->json($response,500);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function supplierDetails(Request $request){
@@ -261,7 +316,8 @@ class SupplierController extends Controller
             $supplier->email = $request->email;
             $supplier->address = $request->address;
             $supplier->status = $request->status;
-            //$supplier->initial_due = $request->initial_due;
+            $supplier->initial_due = $request->initial_due;
+            $supplier->note = $request->note;
 
             $image = $request->file('nid_front');
             //dd($image);
@@ -313,6 +369,56 @@ class SupplierController extends Controller
 
             }else{
                 $supplier->nid_back = Supplier::where('id',$request->supplier_id)->pluck('nid_back')->first();
+            }
+
+            $image = $request->file('image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->image = $imagename;
+
+            }else{
+                $supplier->image = Supplier::where('id',$request->supplier_id)->pluck('image')->first();
+            }
+
+            $image = $request->file('bank_detail_image');
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                // delete old image.....
+                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->bank_detail_image))
+                {
+                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->bank_detail_image);
+
+                }
+
+                //resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
+
+                // update image db
+                $supplier->bank_detail_image = $imagename;
+
+            }else{
+                $supplier->bank_detail_image = Supplier::where('id',$request->supplier_id)->pluck('bank_detail_image')->first();
             }
 
             $update_supplier = $supplier->save();

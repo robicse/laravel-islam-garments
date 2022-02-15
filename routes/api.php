@@ -119,6 +119,13 @@ Route::middleware('auth:api')->post('/product_unit_edit', 'API\ProductUnitContro
 Route::middleware('auth:api')->post('/product_unit_delete', 'API\ProductUnitController@productUnitDelete');
 Route::middleware('auth:api')->get('/product_unit_active_list', 'API\ProductUnitController@productUnitActiveList');
 
+// product sub unit
+Route::middleware('auth:api')->get('/product_sub_unit_list', 'API\ProductSubUnitController@productSubUnitList');
+Route::middleware('auth:api')->post('/product_sub_unit_create', 'API\ProductSubUnitController@productSubUnitCreate');
+Route::middleware('auth:api')->post('/product_sub_unit_edit', 'API\ProductSubUnitController@productSubUnitEdit');
+Route::middleware('auth:api')->post('/product_sub_unit_delete', 'API\ProductSubUnitController@productSubUnitDelete');
+Route::middleware('auth:api')->get('/product_sub_unit_active_list', 'API\ProductSubUnitController@productSubUnitActiveList');
+
 // product Size
 Route::middleware('auth:api')->get('/product_size_list', 'API\ProductSizeController@productSizeList');
 Route::middleware('auth:api')->post('/product_size_create', 'API\ProductSizeController@productSizeCreate');
