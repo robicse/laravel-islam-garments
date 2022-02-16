@@ -27,6 +27,7 @@ class ProductCollection extends ResourceCollection
                     'size_id' => $data->product_size_id,
                     'size_name' => $size_name,
                     'product_code' => $data->product_code,
+                    'name' => $data->name,
                     'barcode' => $data->barcode,
                     'purchase_price' => $data->purchase_price,
                     'color' => $data->color,

@@ -141,6 +141,7 @@ Route::middleware('auth:api')->post('/product_delete', 'API\ProductController@pr
 Route::middleware('auth:api')->post('/product_image', 'API\ProductController@productImage');
 Route::middleware('auth:api')->post('/product_list_with_search', 'API\ProductController@productListWithSearch');
 Route::middleware('auth:api')->post('/product_info_for_stock_in', 'API\ProductController@productInfoForStockIn');
+Route::middleware('auth:api')->get('/product_active_list', 'API\ProductController@productActiveList');
 
 // payment type
 Route::middleware('auth:api')->get('/payment_type_active_list', 'API\PaymentTypeController@paymentTypeActiveList');
@@ -184,9 +185,9 @@ Route::middleware('auth:api')->post('/store_current_stock_by_id', 'API\StockCont
 //Route::middleware('auth:api')->get('/chart_of_account_list', 'API\AccountController@chartOfAccountList');
 //Route::middleware('auth:api')->post('/chart_of_account_list_by_head_name', 'API\AccountController@chartOfAccountListByName');
 Route::middleware('auth:api')->get('/chart_of_account_active_list', 'API\AccountController@chartOfAccountActiveList');
-//Route::middleware('auth:api')->get('/chart_of_account_is_transaction_list', 'API\AccountController@chartOfAccountIsTransactionList');
+Route::middleware('auth:api')->get('/chart_of_account_is_transaction_list', 'API\AccountController@chartOfAccountIsTransactionList');
 //Route::middleware('auth:api')->get('/chart_of_account_is_cash_book_list', 'API\AccountController@chartOfAccountIsCashBookList');
-//Route::middleware('auth:api')->get('/chart_of_account_is_general_ledger_list', 'API\AccountController@chartOfAccountIsGeneralLedgerList');
+Route::middleware('auth:api')->get('/chart_of_account_is_general_ledger_list', 'API\AccountController@chartOfAccountIsGeneralLedgerList');
 //Route::middleware('auth:api')->post('/chart_of_account_details', 'API\AccountController@chartOfAccountDetails');
 //Route::middleware('auth:api')->post('/chart_of_account_generate_head_code', 'API\AccountController@chartOfAccountGenerateHeadCode');
 //Route::middleware('auth:api')->post('/chart_of_account_parent_head_details', 'API\AccountController@chartOfAccountParentHeadDetails');
@@ -202,7 +203,7 @@ Route::middleware('auth:api')->get('/chart_of_account_active_list', 'API\Account
 //Route::middleware('auth:api')->post('/chart_of_account_transaction_delete', 'API\AccountController@chartOfAccountTransactionDelete');
 
 // ledger
-//Route::middleware('auth:api')->post('/ledger', 'API\AccountController@ledger');
-//Route::middleware('auth:api')->post('/cash_book_report', 'API\AccountController@cashBookReport');
-//Route::middleware('auth:api')->post('/ledger_report', 'API\AccountController@ledgerReport');
+Route::middleware('auth:api')->post('/ledger', 'API\AccountController@ledger');
+Route::middleware('auth:api')->post('/cash_book_report', 'API\AccountController@cashBookReport');
+Route::middleware('auth:api')->post('/ledger_report', 'API\AccountController@ledgerReport');
 //Route::middleware('auth:api')->post('/balance_sheet', 'API\AccountController@balanceSheet');

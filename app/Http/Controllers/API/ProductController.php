@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductCollection;
 use App\Product;
 use App\ProductCategory;
+use App\ProductSize;
 use App\ProductUnit;
 use App\ProductVat;
 use Illuminate\Http\Request;
@@ -23,6 +24,24 @@ class ProductController extends Controller
     public $failStatus = 402;
     public $ExistsStatus = 403;
     public $validationStatus = 404;
+
+    // product category
+    public function productActiveList(){
+        try {
+            $products = DB::table('products')->select('id','name','status')->where('status',1)->get();
+            if($products === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$products);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
 
     public function productListBarcode(){
         try {
@@ -230,6 +249,7 @@ class ProductController extends Controller
                 'product_category_id'=> 'required',
                 'product_unit_id'=> 'required',
                 'product_size_id'=> 'required',
+                'product_code'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -243,6 +263,7 @@ class ProductController extends Controller
                 ->where('product_unit_id',$request->product_unit_id)
                 ->where('product_category_id',$request->product_category_id)
                 ->where('product_size_id',$request->product_size_id)
+                ->where('product_code',$request->product_code)
                 ->pluck('id')->first();
             if($check_exists_product == null){
                 $response = APIHelpers::createAPIResponse(false,200,'No Product Found.',null);
@@ -313,14 +334,14 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
 
-            $item_code = isset($request->item_code) ? $request->item_code : '';
-            if($item_code){
-                $check_exists = Product::where('item_code',$item_code)->pluck('id')->first();
-                if($check_exists){
-                    $response = APIHelpers::createAPIResponse(true,409,'This Item Code Is Already exists!',null);
-                    return response()->json($response,409);
-                }
-            }
+//            $item_code = isset($request->item_code) ? $request->item_code : '';
+//            if($item_code){
+//                $check_exists = Product::where('item_code',$item_code)->pluck('id')->first();
+//                if($check_exists){
+//                    $response = APIHelpers::createAPIResponse(true,409,'This Item Code Is Already exists!',null);
+//                    return response()->json($response,409);
+//                }
+//            }
 
             $product_vat = ProductVat::latest()->first();
             $vat_percentage = 0;
@@ -348,8 +369,9 @@ class ProductController extends Controller
 
             $product_category = ProductCategory::where('id',$request->product_category_id)->pluck('name')->first();
             $product_unit = ProductUnit::where('id',$request->product_unit_id)->pluck('name')->first();
-            $product_size = ProductCategory::where('id',$request->product_size_id)->pluck('name')->first();
-            $name = $product_category.'-'.$product_unit.'-'.$product_size;
+            $product_size = ProductSize::where('id',$request->product_size_id)->pluck('name')->first();
+            $product_code = $request->product_code;
+            $name = $product_category.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
 
             $product = new Product();
             $product->type = $request->type;
@@ -358,7 +380,7 @@ class ProductController extends Controller
             $product->product_size_id = $request->product_size_id;
             $product->name = $name;
             $product->code = $final_product_code;
-            $product->product_code = $request->product_code ? $request->product_code : NULL;
+            $product->product_code = $request->product_code;
             //$product->barcode = $request->barcode;
             $product->barcode = $barcode;
             $product->self_no = $request->self_no ? $request->self_no : NULL;
@@ -429,13 +451,13 @@ class ProductController extends Controller
             }
 
             $product = Product::find($request->product_id);
-            $product->product_code = $request->product_code ? $request->product_code : NULL;
+            $product->product_code = $request->product_code ? $request->product_code : $product->product_code;
             $product->purchase_price = $request->purchase_price;
             $product->whole_sale_price = $request->purchase_price;
             $product->selling_price = $request->purchase_price;
-            $product->color = $request->color ? $request->color : NULL;
-            $product->design = $request->design ? $request->design : NULL;
-            $product->note = $request->note ? $request->note : NULL;
+            $product->color = $request->color ? $request->color : '';
+            $product->design = $request->design ? $request->design : '';
+            $product->note = $request->note ? $request->note : '';
             $image = $request->file('image');
             if (isset($image)) {
                 //make unique name for image

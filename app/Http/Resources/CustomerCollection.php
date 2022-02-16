@@ -20,6 +20,11 @@ class CustomerCollection extends ResourceCollection
                     'email' => $data->email,
                     'address' => $data->address,
                     'initial_due' => $data->initial_due,
+                    'nid_front' => $data->nid_front,
+                    'nid_back' => $data->nid_back,
+                    'image' => $data->image,
+                    'bank_detail_image' => $data->bank_detail_image,
+                    'note' => $data->note,
                     'status' => $data->status,
                 ];
             })
