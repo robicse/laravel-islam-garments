@@ -149,6 +149,7 @@ Route::middleware('auth:api')->get('/payment_type_active_list', 'API\PaymentType
 // warehouse stock in
 //Route::middleware('auth:api')->get('/product_purchase_list', 'API\ProductPurchaseController@productPurchaseList');
 Route::middleware('auth:api')->post('/product_purchase_details', 'API\ProductPurchaseController@productPurchaseDetails');
+Route::middleware('auth:api')->post('/product_purchase_details_print', 'API\ProductPurchaseController@productPurchaseDetailsPrint');
 Route::middleware('auth:api')->post('/product_purchase_list_pagination_with_search', 'API\ProductPurchaseController@productPurchaseListPaginationWithSearch');
 Route::middleware('auth:api')->post('/product_purchase_create', 'API\ProductPurchaseController@productPurchaseCreate');
 //Route::middleware('auth:api')->post('/product_pos_purchase_edit', 'API\ProductPurchaseController@productPOSPurchaseEdit');
@@ -158,16 +159,23 @@ Route::middleware('auth:api')->post('/product_purchase_create', 'API\ProductPurc
 Route::middleware('auth:api')->post('/stock_transaction_list_with_search', 'API\StockController@stockTransactionListWithSearch');
 Route::middleware('auth:api')->post('/warehouse_current_stock_by_id', 'API\StockController@warehouseCurrentStockById');
 
-// store stock list
+// stock transfer
+Route::middleware('auth:api')->post('/warehouse_current_stock_list_pagination_product_name', 'API\PaginationController@warehouseCurrentStockListPaginationProductName');
 Route::middleware('auth:api')->post('/warehouse_to_store_stock_create', 'API\StockTransferController@warehouseToStoreStockCreate');
+Route::middleware('auth:api')->post('/stock_transfer_list_with_search', 'API\StockTransferController@stockTransferListWithSearch');
+Route::middleware('auth:api')->post('/stock_transfer_details', 'API\StockTransferController@stockTransferDetails');
+Route::middleware('auth:api')->post('/stock_transfer_details_print', 'API\StockTransferController@stockTransferDetailsPrint');
+
+// store stock list
 Route::middleware('auth:api')->post('/store_current_stock_by_id', 'API\StockController@storeCurrentStockById');
 
 
 // expense category
-//Route::middleware('auth:api')->get('/expense_category_list', 'API\AccountController@expenseCategoryList');
-//Route::middleware('auth:api')->post('/expense_category_create', 'API\AccountController@expenseCategoryCreate');
-//Route::middleware('auth:api')->post('/expense_category_edit', 'API\AccountController@expenseCategoryEdit');
-//Route::middleware('auth:api')->post('/expense_category_delete', 'API\AccountController@expenseCategoryDelete');
+Route::middleware('auth:api')->get('/expense_category_list', 'API\ExpenseCategoryController@expenseCategoryList');
+Route::middleware('auth:api')->get('/expense_category_active_list', 'API\ExpenseCategoryController@expenseCategoryActiveList');
+Route::middleware('auth:api')->post('/expense_category_create', 'API\ExpenseCategoryController@expenseCategoryCreate');
+Route::middleware('auth:api')->post('/expense_category_edit', 'API\ExpenseCategoryController@expenseCategoryEdit');
+Route::middleware('auth:api')->post('/expense_category_delete', 'API\ExpenseCategoryController@expenseCategoryDelete');
 
 // shop expense
 //Route::middleware('auth:api')->get('/store_expense_list', 'API\AccountController@storeExpenseList');
@@ -207,3 +215,6 @@ Route::middleware('auth:api')->post('/ledger', 'API\AccountController@ledger');
 Route::middleware('auth:api')->post('/cash_book_report', 'API\AccountController@cashBookReport');
 Route::middleware('auth:api')->post('/ledger_report', 'API\AccountController@ledgerReport');
 //Route::middleware('auth:api')->post('/balance_sheet', 'API\AccountController@balanceSheet');
+
+// dashboard history
+Route::middleware('auth:api')->get('/dashboard_count_information', 'API\DashboardController@dashboardInformation');

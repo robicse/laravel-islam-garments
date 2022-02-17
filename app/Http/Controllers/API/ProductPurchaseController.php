@@ -570,7 +570,7 @@ class ProductPurchaseController extends Controller
     }
 
     public function productPurchaseDetails(Request $request){
-//        try {
+        try {
             $product_purchase_details = DB::table('product_purchases')
                 ->join('product_purchase_details','product_purchases.id','product_purchase_details.product_purchase_id')
                 ->join('products','product_purchase_details.product_id','products.id')
@@ -598,8 +598,6 @@ class ProductPurchaseController extends Controller
             $product_purchase_detail_arr = [];
             if(count($product_purchase_details) > 0){
                 foreach ($product_purchase_details as $product_purchase_detail){
-    //                $current_qty = warehouseProductCurrentStock($product_purchase_detail->warehouse_id,$product_purchase_detail->product_id);
-
                     $nested_data['product_id'] = $product_purchase_detail->product_id;
                     $nested_data['product_name'] = $product_purchase_detail->product_name;
                     $nested_data['product_code'] = $product_purchase_detail->product_code;
@@ -612,11 +610,65 @@ class ProductPurchaseController extends Controller
                     $nested_data['qty'] = $product_purchase_detail->qty;
                     $nested_data['product_purchase_detail_id'] = $product_purchase_detail->product_purchase_detail_id;
                     $nested_data['purchase_price'] = $product_purchase_detail->purchase_price;
-                    //$nested_data['current_qty'] = $current_qty;
-
 
                     array_push($product_purchase_detail_arr,$nested_data);
+                }
 
+                $response = APIHelpers::createAPIResponse(false,200,'',$product_purchase_detail_arr);
+                return response()->json($response,200);
+            }else{
+                $response = APIHelpers::createAPIResponse(true,404,'No Purchase Found.',null);
+                return response()->json($response,404);
+            }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    public function productPurchaseDetailsPrint(Request $request){
+        try {
+            $product_purchase_details = DB::table('product_purchases')
+                ->join('product_purchase_details','product_purchases.id','product_purchase_details.product_purchase_id')
+                ->join('products','product_purchase_details.product_id','products.id')
+                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
+                ->leftJoin('product_units','products.product_unit_id','product_units.id')
+                ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
+                ->where('product_purchases.id',$request->product_purchase_id)
+                ->select(
+                    'product_purchases.warehouse_id',
+                    'products.id as product_id',
+                    'products.name as product_name',
+                    'products.product_code',
+                    'product_units.id as product_unit_id',
+                    'product_categories.name as product_category_name',
+                    'product_categories.id as product_category_id',
+                    'product_units.name as product_unit_name',
+                    'product_sizes.id as product_size_id',
+                    'product_sizes.name as product_size_name',
+                    'product_purchase_details.qty',
+                    'product_purchase_details.id as product_purchase_detail_id',
+                    'product_purchase_details.purchase_price'
+                )
+                ->get();
+
+            $product_purchase_detail_arr = [];
+            if(count($product_purchase_details) > 0){
+                foreach ($product_purchase_details as $product_purchase_detail){
+                    $nested_data['product_id'] = $product_purchase_detail->product_id;
+                    $nested_data['product_name'] = $product_purchase_detail->product_name;
+                    $nested_data['product_code'] = $product_purchase_detail->product_code;
+                    $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
+                    $nested_data['product_category_name'] = $product_purchase_detail->product_category_name;
+                    $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
+                    $nested_data['product_unit_name'] = $product_purchase_detail->product_unit_name;
+                    $nested_data['product_size_id'] = $product_purchase_detail->product_size_id;
+                    $nested_data['product_size_name'] = $product_purchase_detail->product_size_name;
+                    $nested_data['qty'] = $product_purchase_detail->qty;
+                    $nested_data['product_purchase_detail_id'] = $product_purchase_detail->product_purchase_detail_id;
+                    $nested_data['purchase_price'] = $product_purchase_detail->purchase_price;
+
+                    array_push($product_purchase_detail_arr,$nested_data);
                 }
 
                 $supplier_details = DB::table('suppliers')
@@ -625,16 +677,14 @@ class ProductPurchaseController extends Controller
                     ->select('suppliers.id as supplier_id','suppliers.name as supplier_name','suppliers.phone as supplier_phone','suppliers.address as supplier_address')
                     ->first();
 
-                $response = APIHelpers::createAPIResponse(false,200,'',$product_purchase_detail_arr);
-                return response()->json($response,200);
+                return response()->json(['success' => true,'code' => 200,'data' => $product_purchase_detail_arr, 'info' => $supplier_details], 200);
             }else{
                 $response = APIHelpers::createAPIResponse(true,404,'No Purchase Found.',null);
                 return response()->json($response,404);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 }
