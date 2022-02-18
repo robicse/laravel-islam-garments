@@ -24,6 +24,8 @@ class DashboardController extends Controller
             'storeTotalCurrentStockAmount' => storeProductCurrentStockAmount() != null ? storeProductCurrentStockAmount() : 0,
             'todaySale' => todaySale() != null ? todaySale() : 0,
             'totalSale' => totalSale() != null ? totalSale() : 0,
+            'warehouseWiseInformation' => warehouseWiseInformation() != null ? warehouseWiseInformation() : 0,
+            'storeWiseInformation' => storeWiseInformation() != null ? storeWiseInformation() : 0,
         ];
 
         return response()->json(['success'=>true,'response' => $info], 200);
