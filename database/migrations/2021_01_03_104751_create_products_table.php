@@ -19,6 +19,7 @@ class CreateProductsTable extends Migration
             $table->string('code');
             $table->bigInteger('product_brand_id')->unsigned()->nullable();
             $table->bigInteger('product_unit_id')->unsigned();
+            $table->bigInteger('product_sub_unit_id')->nullable();
             $table->bigInteger('product_size_id')->unsigned();
             $table->string('item_code')->nullable();
             $table->string('barcode')->unique();

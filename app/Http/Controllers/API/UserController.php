@@ -27,7 +27,7 @@ class UserController extends Controller
                 ->leftJoin('warehouses','users.warehouse_id','warehouses.id')
                 ->leftJoin('stores','users.store_id','stores.id')
                 ->where('roles.id','!=',8)
-                ->select('users.id','users.name','users.phone','users.email','users.status','roles.name as role','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name')
+                ->select('users.id','users.name','users.phone','users.email','users.status','users.user_for','roles.name as role','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name')
                 ->get();
             if($users === null){
                 $response = APIHelpers::createAPIResponse(true,404,'No User Found.',null);
@@ -45,25 +45,6 @@ class UserController extends Controller
 
     public function userCreate(Request $request){
         try {
-//            $validator = Validator::make($request->all(), [
-//                'name' => 'required',
-//                'phone' => 'required|unique:users,phone',
-//                'password' => 'required|same:confirm_password',
-//                'roles' => 'required',
-//                'status' => 'required',
-//                'warehouse_id' => 'required',
-//            ]);
-//
-//            if ($validator->fails()) {
-//                $response = [
-//                    'success' => false,
-//                    'data' => 'Validation Error.',
-//                    'message' => $validator->errors()
-//                ];
-//
-//                return response()->json($response, $this->validationStatus);
-//            }
-
             // required and unique
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
@@ -72,7 +53,6 @@ class UserController extends Controller
                 'password' => 'required|same:confirm_password',
                 'roles' => 'required',
                 'status'=> 'required',
-                //'warehouse_id'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -84,6 +64,11 @@ class UserController extends Controller
             $input['password'] = Hash::make($input['password']);
 
             $user = User::create($input);
+            if($input['user_for'] === "Warehouse"){
+                $input['store_id'] = NULL;
+            }else{
+                $input['warehouse_id'] = NULL;
+            }
             $user->assignRole($request->input('roles'));
 
             $response = APIHelpers::createAPIResponse(false,201,'User Added Successfully.',null);
@@ -103,7 +88,6 @@ class UserController extends Controller
                 return response()->json($response,404);
             }
 
-            //$users = DB::table("users")->where('id',$request->user_id)->select('id','name','phone','email','status')->first();
             $users = DB::table("users")
                 ->join('model_has_roles','model_has_roles.model_id','users.id')
                 ->join('roles','model_has_roles.role_id','roles.id')
@@ -122,7 +106,6 @@ class UserController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -141,7 +124,7 @@ class UserController extends Controller
                     'password' => 'same:confirm_password',
                     'roles' => 'required',
                     'status' => 'required',
-                    //'warehouse_id' => 'required',
+                    'user_for' => 'required',
                 ]);
             }else{
                 $validator = Validator::make($request->all(), [
@@ -150,7 +133,7 @@ class UserController extends Controller
                     'phone' => 'required|unique:users,phone,'.$request->user_id,
                     'roles' => 'required',
                     'status' => 'required',
-                    'warehouse_id' => 'required',
+                    'user_for' => 'required',
                 ]);
             }
 
@@ -161,7 +144,6 @@ class UserController extends Controller
                 return response()->json($response,400);
             }
 
-            //$check_exists_party = DB::table("users")->where('id',$request->user_id)->pluck('id')->first();
             $check_exists_user = DB::table("users")->where('id',$request->user_id)->first();
 
             if($check_exists_user){
@@ -171,6 +153,12 @@ class UserController extends Controller
                     //$input = array_except($input,array('password'));
                     //$input = Arr::get($input,array('password'));
                     $input['password'] = $check_exists_user->password;
+                }
+
+                if($input['user_for'] === "Warehouse"){
+                    $input['store_id'] = NULL;
+                }else{
+                    $input['warehouse_id'] = NULL;
                 }
 
                 $user = User::find($request->user_id);
