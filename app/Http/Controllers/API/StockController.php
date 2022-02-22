@@ -16,6 +16,38 @@ use Illuminate\Support\Facades\Validator;
 
 class StockController extends Controller
 {
+//    public function checkWarehouseProductCurrentQty(Request $request){
+//        try {
+//        $validator = Validator::make($request->all(), [
+//            'type' => 'required',
+//            'product_category_id'=> 'required',
+//            'product_unit_id'=> 'required',
+//            'product_size_id'=> 'required',
+//            'warehouse_id'=> 'required',
+//        ]);
+//
+//        if ($validator->fails()) {
+//            $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+//            return response()->json($response,400);
+//        }
+//
+//
+//        $check_exists_product = checkExistsProduct($request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+//
+//        if($check_exists_product === null){
+//            $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Product Found.',null);
+//            return response()->json($response,404);
+//        }else{
+//            $current_stock = WarehouseCurrentStock::where('warehouse_id',$request->warehouse_id)->where('product_id',$check_exists_product)->pluck('current_stock')->first();
+//            $response = APIHelpers::createAPIResponse(false,200,'',$current_stock);
+//            return response()->json($response,200);
+//        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
+//    }
 
     public function stockTransactionListWithSearch(Request $request){
         try {

@@ -17,6 +17,7 @@ class CreateProductPurchaseDetailsTable extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('product_purchase_id')->unsigned();
             $table->bigInteger('product_id')->unsigned();
+            $table->string('product_name')->nullable();
             $table->string('barcode');
             $table->integer('qty');
             $table->float('price', 8,2);

@@ -8,6 +8,7 @@ use App\Http\Resources\ProductCollection;
 use App\Product;
 use App\ProductCategory;
 use App\ProductSize;
+use App\ProductSubUnit;
 use App\ProductUnit;
 use App\ProductVat;
 use Illuminate\Http\Request;
@@ -242,14 +243,12 @@ class ProductController extends Controller
     }
 
     public function checkExistsProduct(Request $request){
-        try {
+//        try {
             $validator = Validator::make($request->all(), [
                 'type' => 'required',
-                //'name' => 'required',
                 'product_category_id'=> 'required',
                 'product_unit_id'=> 'required',
                 'product_size_id'=> 'required',
-                'product_code'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -257,14 +256,8 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
 
-            $check_exists_product = DB::table("products")
-                ->where('type',$request->type)
-                //->where('name',$request->name)
-                ->where('product_unit_id',$request->product_unit_id)
-                ->where('product_category_id',$request->product_category_id)
-                ->where('product_size_id',$request->product_size_id)
-                ->where('product_code',$request->product_code)
-                ->pluck('id')->first();
+            $check_exists_product = checkExistsProduct($request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+
             if($check_exists_product == null){
                 $response = APIHelpers::createAPIResponse(false,200,'No Product Found.',null);
                 return response()->json($response,200);
@@ -272,11 +265,11 @@ class ProductController extends Controller
                 $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
                 return response()->json($response,409);
             }
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function productInfoForStockIn(Request $request){
@@ -368,15 +361,27 @@ class ProductController extends Controller
             $date = date('Y-m-d');
 
             $product_category = ProductCategory::where('id',$request->product_category_id)->pluck('name')->first();
-            $product_unit = ProductUnit::where('id',$request->product_unit_id)->pluck('name')->first();
             $product_size = ProductSize::where('id',$request->product_size_id)->pluck('name')->first();
+            $product_unit = ProductUnit::where('id',$request->product_unit_id)->pluck('name')->first();
+            $product_sub_unit = ProductSubUnit::where('id',$request->product_sub_unit_id)->pluck('name')->first();
             $product_code = $request->product_code;
-            $name = $product_category.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
+
+            if(!empty($product_sub_unit) && !empty($product_code)){
+                $name = $product_category.'-'.$product_sub_unit.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
+            }elseif(empty($product_sub_unit) && !empty($product_code)){
+                $name = $product_category.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
+            }elseif(!empty($product_sub_unit) && empty($product_code)){
+                $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit.'-'.$product_size;
+            }else{
+                $name = $product_category.'-'.$product_unit.'-'.$product_size;
+            }
+
 
             $product = new Product();
             $product->type = $request->type;
             $product->product_category_id = $request->product_category_id;
             $product->product_unit_id = $request->product_unit_id;
+            $product->product_sub_unit_id = $request->product_sub_unit_id ? $request->product_sub_unit_id : NULL;
             $product->product_size_id = $request->product_size_id;
             $product->name = $name;
             $product->code = $final_product_code;
@@ -398,21 +403,40 @@ class ProductController extends Controller
             $product->note = $request->note ? $request->note : NULL;
             $product->date = $date;
             $product->status = $request->status;
-            $image = $request->file('image');
-            if (isset($image)) {
+            // front image
+            $front_image = $request->file('front_image');
+            if (isset($front_image)) {
                 //make unique name for image
                 $currentDate = Carbon::now()->toDateString();
-                $image_name = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+                $image_name = $currentDate.'-'.uniqid().'.'.$front_image->getClientOriginalExtension();
 
     //            resize image for hospital and upload
                 //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($front_image)->save($front_image->getClientOriginalExtension());
                 Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
 
                 // update image db
-                $product->image = $image_name;
+                $product->front_image = $image_name;
             }else{
-                $product->image = 'default.png';
+                $product->front_image = 'default.png';
+            }
+
+            // back image
+            $back_image = $request->file('back_image');
+            if (isset($back_image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $image_name = $currentDate.'-'.uniqid().'.'.$back_image->getClientOriginalExtension();
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($back_image)->save($back_image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
+
+                // update image db
+                $product->back_image = $image_name;
+            }else{
+                $product->back_image = 'default.png';
             }
             $product->save();
 
@@ -458,22 +482,59 @@ class ProductController extends Controller
             $product->color = $request->color ? $request->color : '';
             $product->design = $request->design ? $request->design : '';
             $product->note = $request->note ? $request->note : '';
-            $image = $request->file('image');
-            if (isset($image)) {
+
+            // front image
+            $front_image = $request->file('front_image');
+            if (isset($front_image)) {
                 //make unique name for image
                 $currentDate = Carbon::now()->toDateString();
-                $image_name = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+                $image_name = $currentDate.'-'.uniqid().'.'.$front_image->getClientOriginalExtension();
 
                 //            resize image for hospital and upload
                 //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($front_image)->save($front_image->getClientOriginalExtension());
                 Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
 
                 // update image db
-                $product->image = $image_name;
+                $product->front_image = $image_name;
             }else{
-                $product->image = Product::where('id',$request->product_id)->pluck('image')->first();
+                $product->front_image = Product::where('id',$request->product_id)->pluck('front_image')->first();
             }
+
+            // back image
+            $back_image = $request->file('back_image');
+            if (isset($back_image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $image_name = $currentDate.'-'.uniqid().'.'.$back_image->getClientOriginalExtension();
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($back_image)->save($back_image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
+
+                // update image db
+                $product->back_image = $image_name;
+            }else{
+                $product->back_image = Product::where('id',$request->product_id)->pluck('back_image')->first();
+            }
+
+//            $image = $request->file('image');
+//            if (isset($image)) {
+//                //make unique name for image
+//                $currentDate = Carbon::now()->toDateString();
+//                $image_name = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+//
+//                //            resize image for hospital and upload
+//                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+//                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+//                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
+//
+//                // update image db
+//                $product->image = $image_name;
+//            }else{
+//                $product->image = Product::where('id',$request->product_id)->pluck('image')->first();
+//            }
             $update_product = $product->save();
 
             if($update_product){

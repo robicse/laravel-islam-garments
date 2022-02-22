@@ -31,8 +31,11 @@ class ProductSubUnitController extends Controller
     }
 
     public function productSubUnitList(){
-        try {
-            $product_sub_units = DB::table('product_sub_units')->select('id','name','status')->get();
+//        try {
+            $product_sub_units = DB::table('product_sub_units')
+                ->join('product_units','product_sub_units.product_unit_id','product_units.id')
+                ->select('product_units.name as unit_name','product_sub_units.id','product_sub_units.name as sub_unit_name','product_sub_units.status')
+                ->get();
             if($product_sub_units === null){
                 $response = APIHelpers::createAPIResponse(true,404,'No Product Sub Unit Found.',null);
                 return response()->json($response,404);
@@ -40,11 +43,11 @@ class ProductSubUnitController extends Controller
                 $response = APIHelpers::createAPIResponse(false,200,'',$product_sub_units);
                 return response()->json($response,200);
             }
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function productSubUnitCreate(Request $request){

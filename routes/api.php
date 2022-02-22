@@ -90,6 +90,8 @@ Route::middleware('auth:api')->post('/supplier_image', 'API\SupplierController@s
 Route::middleware('auth:api')->get('/supplier_active_list', 'API\SupplierController@supplierActiveList');
 
 // pos/whole customer
+Route::middleware('auth:api')->get('/pos_sale_customer_active_list', 'API\CustomerController@posCustomerActiveList');
+Route::middleware('auth:api')->get('/whole_sale_customer_active_list', 'API\CustomerController@wholeCustomerActiveList');
 Route::middleware('auth:api')->get('/customer_list', 'API\CustomerController@customerList');
 Route::middleware('auth:api')->post('/pos_customer_create', 'API\CustomerController@posCustomerCreate');
 Route::middleware('auth:api')->post('/whole_customer_create', 'API\CustomerController@wholeCustomerCreate');
@@ -147,7 +149,6 @@ Route::middleware('auth:api')->get('/product_active_list', 'API\ProductControlle
 Route::middleware('auth:api')->get('/payment_type_active_list', 'API\PaymentTypeController@paymentTypeActiveList');
 
 // warehouse stock in
-//Route::middleware('auth:api')->get('/product_purchase_list', 'API\ProductPurchaseController@productPurchaseList');
 Route::middleware('auth:api')->post('/product_purchase_details', 'API\ProductPurchaseController@productPurchaseDetails');
 Route::middleware('auth:api')->post('/product_purchase_details_print', 'API\ProductPurchaseController@productPurchaseDetailsPrint');
 Route::middleware('auth:api')->post('/product_purchase_list_pagination_with_search', 'API\ProductPurchaseController@productPurchaseListPaginationWithSearch');
@@ -160,6 +161,7 @@ Route::middleware('auth:api')->post('/stock_transaction_list_with_search', 'API\
 Route::middleware('auth:api')->post('/warehouse_current_stock_by_id', 'API\StockController@warehouseCurrentStockById');
 
 // stock transfer
+//Route::middleware('auth:api')->post('/check_warehouse_product_current_qty', 'API\StockController@checkWarehouseProductCurrentQty');
 Route::middleware('auth:api')->post('/warehouse_current_stock_list_pagination_product_name', 'API\PaginationController@warehouseCurrentStockListPaginationProductName');
 Route::middleware('auth:api')->post('/warehouse_to_store_stock_create', 'API\StockTransferController@warehouseToStoreStockCreate');
 Route::middleware('auth:api')->post('/stock_transfer_list_with_search', 'API\StockTransferController@stockTransferListWithSearch');
@@ -168,6 +170,21 @@ Route::middleware('auth:api')->post('/stock_transfer_details_print', 'API\StockT
 
 // store stock list
 Route::middleware('auth:api')->post('/store_current_stock_by_id', 'API\StockController@storeCurrentStockById');
+
+
+// product sale whole
+//Route::middleware('auth:api')->get('/product_sale_invoice_no', 'API\ProductSaleController@productSaleInvoiceNo');
+//Route::middleware('auth:api')->get('/product_whole_sale_list', 'API\ProductSaleController@productWholeSaleList');
+//Route::middleware('auth:api')->post('/product_whole_sale_list_with_search', 'API\ProductSaleController@productWholeSaleListWithSearch');
+//Route::middleware('auth:api')->get('/product_whole_sale_list_pagination', 'API\ProductSaleController@productWholeSaleListPagination');
+//Route::middleware('auth:api')->post('/product_whole_sale_list_pagination_with_search', 'API\ProductSaleController@productWholeSaleListPaginationWithSearch');
+//Route::middleware('auth:api')->post('/product_whole_sale_details', 'API\ProductSaleController@productWholeSaleDetails');
+Route::middleware('auth:api')->post('/product_whole_sale_create', 'API\ProductSaleController@productWholeSaleCreate');
+//Route::middleware('auth:api')->post('/product_whole_sale_edit', 'API\ProductSaleController@productWholeSaleEdit');
+//Route::middleware('auth:api')->post('/product_whole_sale_delete', 'API\ProductSaleController@productWholeSaleDelete');
+//Route::middleware('auth:api')->post('/product_whole_sale_single_product_remove', 'API\ProductSaleController@productWholeSaleSingleProductRemove');
+Route::middleware('auth:api')->post('/product_whole_sale_list_search', 'API\ProductSaleController@productWholeSaleListSearch');
+
 
 
 // expense category

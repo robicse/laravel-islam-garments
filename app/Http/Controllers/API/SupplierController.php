@@ -49,7 +49,7 @@ class SupplierController extends Controller
     public function supplierList(){
         try {
             $suppliers = DB::table('suppliers')
-                ->select('id','code','name','phone','email','address','initial_due','nid_front','nid_back','image','bank_detail_image','note','status')
+                ->select('id','code','name','shop_name','phone','email','address','initial_due','nid_front','nid_back','image','bank_detail_image','note','status')
                 ->orderBy('id','desc')
                 ->get();
 
@@ -61,6 +61,7 @@ class SupplierController extends Controller
             $supplier_arr = [];
             foreach ($suppliers as $supplier) {
                 $nested_data['id'] = $supplier->id;
+                $nested_data['shop_name'] = $supplier->shop_name;
                 $nested_data['code'] = $supplier->code;
                 $nested_data['name'] = $supplier->name;
                 $nested_data['phone'] = $supplier->phone;
@@ -113,6 +114,7 @@ class SupplierController extends Controller
 
             $supplier = new Supplier();
             $supplier->name = $request->name;
+            $supplier->shop_name = $request->shop_name;
             $supplier->code = $final_supplier_code;
             $supplier->phone = $request->phone;
             $supplier->email = $request->email;
@@ -396,6 +398,7 @@ class SupplierController extends Controller
 
             $supplier = Supplier::find($request->supplier_id);
             $supplier->name = $request->name;
+            $supplier->shop_name = $request->shop_name;
             $supplier->phone = $request->phone;
             $supplier->email = $request->email;
             $supplier->address = $request->address;

@@ -35,7 +35,8 @@ class CreateProductsTable extends Migration
             $table->text('note')->nullable();
             $table->string('date');
             $table->integer('status')->default(1);
-            $table->string('image')->default('default.jpg');
+            $table->string('front_image')->default('default.png');
+            $table->string('back_image')->default('default.png');
             $table->timestamps();
             $table->foreign('product_brand_id')->references('id')->on('product_brands')->onDelete('cascade');
             $table->foreign('product_unit_id')->references('id')->on('product_units')->onDelete('cascade');

@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\ProductCategory;
 use App\ProductSize;
+use App\ProductSubUnit;
 use App\ProductUnit;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -15,6 +16,11 @@ class ProductCollection extends ResourceCollection
             'data' => $this->collection->map(function($data) {
                 $category_name = ProductCategory::where('id',$data->product_category_id)->pluck('name')->first();
                 $unit_name = ProductUnit::where('id',$data->product_unit_id)->pluck('name')->first();
+                if(!empty($data->product_sub_unit_id)){
+                    $sub_unit_name = ProductSubUnit::where('id',$data->product_sub_unit_id)->pluck('name')->first();
+                }else{
+                    $sub_unit_name = '';
+                }
                 $size_name = ProductSize::where('id',$data->product_size_id)->pluck('name')->first();
                 return [
                     'id' => $data->id,
@@ -24,6 +30,7 @@ class ProductCollection extends ResourceCollection
                     'category_name' => $category_name,
                     'unit_id' => $data->product_unit_id,
                     'unit_name' => $unit_name,
+                    'sub_unit_name' => $sub_unit_name,
                     'size_id' => $data->product_size_id,
                     'size_name' => $size_name,
                     'product_code' => $data->product_code,
@@ -34,7 +41,12 @@ class ProductCollection extends ResourceCollection
                     'design' => $data->design,
                     'note' => $data->note,
                     'qty' => 0,
-                    'image' => $data->image
+                    'front_image' => $data->front_image,
+                    'back_image' => $data->back_image,
+                    'warehouse_name' => '',
+                    'warehouse_current_stock' => '',
+                    'store_name' => '',
+                    'store_current_stock' => '',
                 ];
             })
         ];

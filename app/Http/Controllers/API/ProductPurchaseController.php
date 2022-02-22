@@ -118,6 +118,7 @@ class ProductPurchaseController extends Controller
                     $purchase_purchase_detail = new ProductPurchaseDetail();
                     $purchase_purchase_detail->product_purchase_id = $insert_id;
                     $purchase_purchase_detail->product_id = $product_id;
+                    $purchase_purchase_detail->product_type = $product->type;
                     $purchase_purchase_detail->product_name = $product->product_name;
                     $purchase_purchase_detail->barcode = $product->barcode;
                     $purchase_purchase_detail->product_code = $product_code;
@@ -141,7 +142,9 @@ class ProductPurchaseController extends Controller
                     $stock->warehouse_id = $warehouse_id;
                     $stock->store_id = $store_id;
                     $stock->product_id = $product_id;
-                    $stock->stock_type = 'whole_purchase';
+                    $stock->product_name = $product->name;
+                    $stock->product_type = $product->type;
+                    $stock->stock_type = 'Whole Purchase';
                     $stock->stock_where = 'warehouse';
                     $stock->stock_in_out = 'stock_in';
                     $stock->previous_stock = $previous_stock;

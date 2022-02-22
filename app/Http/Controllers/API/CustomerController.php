@@ -24,6 +24,56 @@ use Intervention\Image\Facades\Image;
 
 class CustomerController extends Controller
 {
+    // posCustomerActiveList
+    public function posCustomerActiveList(){
+        try {
+            $customers = DB::table('customers')
+                ->select('id','name','status')
+                ->where('status',1)
+                ->where('customer_type','POS Sale')
+                ->orderBy('id','desc')
+                ->get();
+
+            if($customers === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No POS Customer Found.',null);
+                return response()->json($response,404);
+            }
+
+            $response = APIHelpers::createAPIResponse(false,200,'',$customers);
+            return response()->json($response,200);
+
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    // posCustomerActiveList
+    public function wholeCustomerActiveList(){
+        try {
+            $customers = DB::table('customers')
+                ->select('id','name','status')
+                ->where('status',1)
+                ->where('customer_type','Whole Sale')
+                ->orderBy('id','desc')
+                ->get();
+
+            if($customers === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No POS Customer Found.',null);
+                return response()->json($response,404);
+            }
+
+            $response = APIHelpers::createAPIResponse(false,200,'',$customers);
+            return response()->json($response,200);
+
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
     // customer
     public function customerList(){
         try {

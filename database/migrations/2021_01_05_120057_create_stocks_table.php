@@ -20,6 +20,7 @@ class CreateStocksTable extends Migration
             $table->bigInteger('warehouse_id')->unsigned()->nullable();
             $table->bigInteger('store_id')->unsigned()->nullable();
             $table->bigInteger('product_id')->unsigned();
+            $table->string('product_name')->nullable();
             $table->enum('stock_type', ['whole_purchase','pos_purchase','purchase_return','from_warehouse_to_store','from_store_to_store','whole_sale','pos_sale','sale_return']);
             $table->enum('stock_where', ['warehouse','store']);
             $table->enum('stock_in_out', ['stock_in','stock_out']);

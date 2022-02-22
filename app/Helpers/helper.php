@@ -472,8 +472,43 @@ if (! function_exists('storeWiseInformation')) {
 }
 
 
-
-
-
-
-
+//if (! function_exists('checkExistsProduct')) {
+//    function checkExistsProduct($type,$product_category_id,$product_size_id,$product_unit_id,$product_sub_unit_id=NULL,$product_code=NULL) {
+//
+//        if( (!empty($product_sub_unit_id)) && (!empty($product_code !== '')) ){
+//            $check_exists_product = DB::table("products")
+//                ->where('type',$type)
+//                ->where('product_category_id',$product_category_id)
+//                ->where('product_size_id',$product_size_id)
+//                ->where('product_unit_id',$product_unit_id)
+//                ->where('product_sub_unit_id',$product_sub_unit_id)
+//                ->where('product_code',$product_code)
+//                ->pluck('id')->first();
+//        }elseif( (!empty($product_sub_unit_id)) && (empty($product_code !== '')) ){
+//            $check_exists_product = DB::table("products")
+//                ->where('type',$type)
+//                ->where('product_category_id',$product_category_id)
+//                ->where('product_size_id',$product_size_id)
+//                ->where('product_unit_id',$product_unit_id)
+//                ->where('product_sub_unit_id',$product_sub_unit_id)
+//                ->pluck('id')->first();
+//        }elseif( (empty($product_sub_unit_id)) && (!empty($product_code !== '')) ){
+//            $check_exists_product = DB::table("products")
+//                ->where('type',$type)
+//                ->where('product_category_id',$product_category_id)
+//                ->where('product_size_id',$product_size_id)
+//                ->where('product_unit_id',$product_unit_id)
+//                ->where('product_code',$product_code)
+//                ->pluck('id')->first();
+//        }else{
+//            $check_exists_product = DB::table("products")
+//                ->where('type',$type)
+//                ->where('product_category_id',$product_category_id)
+//                ->where('product_size_id',$product_size_id)
+//                ->where('product_unit_id',$product_unit_id)
+//                ->pluck('id')->first();
+//        }
+//
+//        return $check_exists_product;
+//    }
+//}
