@@ -161,6 +161,7 @@ Route::middleware('auth:api')->post('/stock_transaction_list_with_search', 'API\
 Route::middleware('auth:api')->post('/warehouse_current_stock_by_id', 'API\StockController@warehouseCurrentStockById');
 
 // stock transfer
+Route::middleware('auth:api')->post('/product_search_for_stock_transfer_by_warehouse_id', 'API\StockTransferController@productSearchForStockTransferByWarehouseId');
 //Route::middleware('auth:api')->post('/check_warehouse_product_current_qty', 'API\StockController@checkWarehouseProductCurrentQty');
 Route::middleware('auth:api')->post('/warehouse_current_stock_list_pagination_product_name', 'API\PaginationController@warehouseCurrentStockListPaginationProductName');
 Route::middleware('auth:api')->post('/warehouse_to_store_stock_create', 'API\StockTransferController@warehouseToStoreStockCreate');
@@ -173,12 +174,14 @@ Route::middleware('auth:api')->post('/store_current_stock_by_id', 'API\StockCont
 
 
 // product sale whole
+Route::middleware('auth:api')->post('/product_search_for_sale_by_store_id', 'API\ProductSaleController@productSearchForSaleByStoreId');
 //Route::middleware('auth:api')->get('/product_sale_invoice_no', 'API\ProductSaleController@productSaleInvoiceNo');
 //Route::middleware('auth:api')->get('/product_whole_sale_list', 'API\ProductSaleController@productWholeSaleList');
 //Route::middleware('auth:api')->post('/product_whole_sale_list_with_search', 'API\ProductSaleController@productWholeSaleListWithSearch');
 //Route::middleware('auth:api')->get('/product_whole_sale_list_pagination', 'API\ProductSaleController@productWholeSaleListPagination');
 //Route::middleware('auth:api')->post('/product_whole_sale_list_pagination_with_search', 'API\ProductSaleController@productWholeSaleListPaginationWithSearch');
-//Route::middleware('auth:api')->post('/product_whole_sale_details', 'API\ProductSaleController@productWholeSaleDetails');
+Route::middleware('auth:api')->post('/product_sale_details', 'API\ProductSaleController@productSaleDetails');
+Route::middleware('auth:api')->post('/product_sale_details_print', 'API\ProductSaleController@productSaleDetailsPrint');
 Route::middleware('auth:api')->post('/product_whole_sale_create', 'API\ProductSaleController@productWholeSaleCreate');
 //Route::middleware('auth:api')->post('/product_whole_sale_edit', 'API\ProductSaleController@productWholeSaleEdit');
 //Route::middleware('auth:api')->post('/product_whole_sale_delete', 'API\ProductSaleController@productWholeSaleDelete');
@@ -228,6 +231,7 @@ Route::middleware('auth:api')->get('/chart_of_account_is_general_ledger_list', '
 //Route::middleware('auth:api')->post('/chart_of_account_transaction_delete', 'API\AccountController@chartOfAccountTransactionDelete');
 
 // ledger
+Route::middleware('auth:api')->post('/trial_balance_report', 'API\AccountController@trialBalanceReport');
 Route::middleware('auth:api')->post('/ledger', 'API\AccountController@ledger');
 Route::middleware('auth:api')->post('/cash_book_report', 'API\AccountController@cashBookReport');
 Route::middleware('auth:api')->post('/ledger_report', 'API\AccountController@ledgerReport');

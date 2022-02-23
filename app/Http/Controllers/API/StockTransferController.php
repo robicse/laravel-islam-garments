@@ -4,8 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
-
-
 use App\Product;
 use App\Stock;
 use App\StockTransfer;
@@ -22,6 +20,12 @@ class StockTransferController extends Controller
 {
     public function warehouseToStoreStockCreate(Request $request){
 //        try {
+//            return response()->json(['success'=>true,'response' => $request->products], 200);
+//            $products = json_decode($request->products);
+//            foreach ($products as $data) {
+//                $product_id = $data->id;
+//                return response()->json(['success'=>true,'response' => $product_id], 200);
+//            }
             // required and unique
             $validator = Validator::make($request->all(), [
                 'warehouse_id'=> 'required',
@@ -55,9 +59,10 @@ class StockTransferController extends Controller
             $total_amount = 0;
             //$total_vat_amount = 0;
             // for postman also api workable
+
             $products = json_decode($request->products);
             foreach ($products as $data) {
-                $product_id = $data->product_id;
+                $product_id = $data->id;
                 $qty = $data->qty;
                 //$price = Product::where('id',$product_id)->pluck('purchase_price')->first();
                 $Product_info = Product::where('id',$product_id)->first();
@@ -89,7 +94,7 @@ class StockTransferController extends Controller
 
             foreach ($products as $data) {
 
-                $product_id = $data->product_id;
+                $product_id = $data->id;
                 $qty = $data->qty;
                 $product_info = Product::where('id',$product_id)->first();
 
@@ -243,7 +248,7 @@ class StockTransferController extends Controller
                     ->leftJoin('users','stock_transfers.user_id','users.id')
                     ->leftJoin('warehouses','stock_transfers.warehouse_id','warehouses.id')
                     ->leftJoin('stores','stock_transfers.store_id','stores.id')
-                    ->select('stock_transfers.id','stock_transfers.invoice_no','stock_transfers.sub_total_amount','stock_transfers.grand_total_amount','stock_transfers.issue_date','stock_transfers.created_at','stock_transfers.miscellaneous_comment','stock_transfers.miscellaneous_charge','stock_transfers.total_vat_amount','users.name as user_name','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name','stores.phone as store_phone','stores.email as store_email','stores.address as store_address')
+                    ->select('stock_transfers.id','stock_transfers.invoice_no','stock_transfers.sub_total_amount','stock_transfers.grand_total_amount','stock_transfers.issue_date','stock_transfers.created_at as date_time','stock_transfers.miscellaneous_comment','stock_transfers.miscellaneous_charge','stock_transfers.total_vat_amount','users.name as user_name','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name','stores.phone as store_phone','stores.email as store_email','stores.address as store_address')
                     ->orderBy('stock_transfers.id','desc')
                     ->paginate(12);
             }
@@ -401,4 +406,38 @@ class StockTransferController extends Controller
             return response()->json($response,500);
         }
     }
+
+
+    public function productSearchForStockTransferByWarehouseId(Request $request){
+//        try {
+            $validator = Validator::make($request->all(), [
+                'type' => 'required',
+                'product_category_id'=> 'required',
+                'product_unit_id'=> 'required',
+                'product_size_id'=> 'required',
+                'warehouse_id'=> 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+
+            $product_info = productSearchForStockTransferByWarehouseId($request->warehouse_id,$request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+
+            if(empty($product_info)){
+                $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Product Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$product_info);
+                return response()->json($response,200);
+            }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
+    }
+
+
 }

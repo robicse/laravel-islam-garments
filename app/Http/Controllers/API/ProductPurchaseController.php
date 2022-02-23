@@ -549,7 +549,7 @@ class ProductPurchaseController extends Controller
                         'product_purchases.grand_total_amount',
                         'product_purchases.paid_amount',
                         'product_purchases.due_amount',
-                        'product_purchases.purchase_date_time',
+                        'product_purchases.purchase_date_time as date_time',
                         'product_purchases.user_id',
                         'product_purchases.supplier_id',
                         'product_purchases.warehouse_id'
@@ -577,39 +577,39 @@ class ProductPurchaseController extends Controller
             $product_purchase_details = DB::table('product_purchases')
                 ->join('product_purchase_details','product_purchases.id','product_purchase_details.product_purchase_id')
                 ->join('products','product_purchase_details.product_id','products.id')
-                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
                 ->where('product_purchases.id',$request->product_purchase_id)
                 ->select(
                     'product_purchases.warehouse_id',
                     'products.id as product_id',
                     'products.name as product_name',
                     'products.product_code',
-                    'product_units.id as product_unit_id',
-                    'product_categories.name as product_category_name',
-                    'product_categories.id as product_category_id',
-                    'product_units.name as product_unit_name',
-                    'product_sizes.id as product_size_id',
-                    'product_sizes.name as product_size_name',
+                    'products.product_unit_id',
+                    'products.product_category_id',
+                    'products.product_size_id',
+                    'products.product_sub_unit_id',
                     'product_purchase_details.qty',
                     'product_purchase_details.id as product_purchase_detail_id',
                     'product_purchase_details.purchase_price'
                 )
                 ->get();
 
+
             $product_purchase_detail_arr = [];
             if(count($product_purchase_details) > 0){
                 foreach ($product_purchase_details as $product_purchase_detail){
+                    $product = Product::find($product_purchase_detail->product_id);
+
                     $nested_data['product_id'] = $product_purchase_detail->product_id;
                     $nested_data['product_name'] = $product_purchase_detail->product_name;
                     $nested_data['product_code'] = $product_purchase_detail->product_code;
                     $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
-                    $nested_data['product_category_name'] = $product_purchase_detail->product_category_name;
+                    $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
-                    $nested_data['product_unit_name'] = $product_purchase_detail->product_unit_name;
+                    $nested_data['product_unit_name'] = $product->unit->name;
+                    $nested_data['product_sub_unit_id']=$product_purchase_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$product_purchase_detail->product_sub_unit_id ? $product->sub_unit->name : '';
                     $nested_data['product_size_id'] = $product_purchase_detail->product_size_id;
-                    $nested_data['product_size_name'] = $product_purchase_detail->product_size_name;
+                    $nested_data['product_size_name'] = $product->size->name;
                     $nested_data['qty'] = $product_purchase_detail->qty;
                     $nested_data['product_purchase_detail_id'] = $product_purchase_detail->product_purchase_detail_id;
                     $nested_data['purchase_price'] = $product_purchase_detail->purchase_price;
@@ -634,21 +634,16 @@ class ProductPurchaseController extends Controller
             $product_purchase_details = DB::table('product_purchases')
                 ->join('product_purchase_details','product_purchases.id','product_purchase_details.product_purchase_id')
                 ->join('products','product_purchase_details.product_id','products.id')
-                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
                 ->where('product_purchases.id',$request->product_purchase_id)
                 ->select(
                     'product_purchases.warehouse_id',
                     'products.id as product_id',
                     'products.name as product_name',
                     'products.product_code',
-                    'product_units.id as product_unit_id',
-                    'product_categories.name as product_category_name',
-                    'product_categories.id as product_category_id',
-                    'product_units.name as product_unit_name',
-                    'product_sizes.id as product_size_id',
-                    'product_sizes.name as product_size_name',
+                    'products.product_unit_id',
+                    'products.product_category_id',
+                    'products.product_size_id',
+                    'products.product_sub_unit_id',
                     'product_purchase_details.qty',
                     'product_purchase_details.id as product_purchase_detail_id',
                     'product_purchase_details.purchase_price'
@@ -658,15 +653,19 @@ class ProductPurchaseController extends Controller
             $product_purchase_detail_arr = [];
             if(count($product_purchase_details) > 0){
                 foreach ($product_purchase_details as $product_purchase_detail){
+                    $product = Product::find($product_purchase_detail->product_id);
+
                     $nested_data['product_id'] = $product_purchase_detail->product_id;
                     $nested_data['product_name'] = $product_purchase_detail->product_name;
                     $nested_data['product_code'] = $product_purchase_detail->product_code;
                     $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
-                    $nested_data['product_category_name'] = $product_purchase_detail->product_category_name;
+                    $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
-                    $nested_data['product_unit_name'] = $product_purchase_detail->product_unit_name;
+                    $nested_data['product_unit_name'] = $product->unit->name;
+                    $nested_data['product_sub_unit_id']=$product_purchase_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$product_purchase_detail->product_sub_unit_id ? $product->sub_unit->name : '';
                     $nested_data['product_size_id'] = $product_purchase_detail->product_size_id;
-                    $nested_data['product_size_name'] = $product_purchase_detail->product_size_name;
+                    $nested_data['product_size_name'] = $product->size->name;
                     $nested_data['qty'] = $product_purchase_detail->qty;
                     $nested_data['product_purchase_detail_id'] = $product_purchase_detail->product_purchase_detail_id;
                     $nested_data['purchase_price'] = $product_purchase_detail->purchase_price;
@@ -674,10 +673,20 @@ class ProductPurchaseController extends Controller
                     array_push($product_purchase_detail_arr,$nested_data);
                 }
 
-                $supplier_details = DB::table('suppliers')
-                    ->join('product_purchases','product_purchases.supplier_id','suppliers.id')
+                $supplier_details = DB::table('product_purchases')
+                    ->join('suppliers','product_purchases.supplier_id','suppliers.id')
+                    ->join('warehouses','product_purchases.warehouse_id','warehouses.id')
                     ->where('product_purchases.id',$request->product_purchase_id)
-                    ->select('suppliers.id as supplier_id','suppliers.name as supplier_name','suppliers.phone as supplier_phone','suppliers.address as supplier_address')
+                    ->select(
+                        'suppliers.id as supplier_id',
+                        'suppliers.name as supplier_name',
+                        'suppliers.phone as supplier_phone',
+                        'suppliers.address as supplier_address',
+                        'warehouses.id as warehouse_id',
+                        'warehouses.name as warehouse_name',
+                        'warehouses.phone as warehouse_phone',
+                        'warehouses.address as warehouse_address'
+                    )
                     ->first();
 
                 return response()->json(['success' => true,'code' => 200,'data' => $product_purchase_detail_arr, 'info' => $supplier_details], 200);

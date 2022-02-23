@@ -110,7 +110,7 @@ class ProductSaleController extends Controller
                 // for live testing
                 foreach ($products as $data) {
 
-                    $product_id =  $data->product_id;
+                    $product_id =  $data->id;
                     $price =  $data->purchase_price;
                     $qty =  $data->qty;
 
@@ -459,7 +459,7 @@ class ProductSaleController extends Controller
                 ->where('product_sales.invoice_no','like','%'.$request->search.'%')
                 ->orWhere('product_sales.total_amount','like','%'.$request->search.'%')
                 ->orWhere('customers.name','like','%'.$request->search.'%')
-                ->select('product_sales.id','product_sales.invoice_no','product_sales.discount_type','product_sales.discount_percent','product_sales.discount_amount','product_sales.total_vat_amount','product_sales.after_discount_amount','product_sales.grand_total_amount','product_sales.paid_amount','product_sales.due_amount','product_sales.sale_date_time','users.name as user_name','customers.id as customer_id','customers.name as customer_name','stores.id as store_id','stores.name as store_name','stores.address as store_address','stores.phone')
+                ->select('product_sales.id','product_sales.invoice_no','product_sales.discount_type','product_sales.discount_percent','product_sales.discount_amount','product_sales.total_vat_amount','product_sales.after_discount_amount','product_sales.grand_total_amount','product_sales.paid_amount','product_sales.due_amount','product_sales.sale_date_time as date_time','users.name as user_name','customers.id as customer_id','customers.name as customer_name','stores.id as store_id','stores.name as store_name','stores.address as store_address','stores.phone')
                 ->orderBy('product_sales.id','desc')
                 ->paginate(12);
 
@@ -470,7 +470,7 @@ class ProductSaleController extends Controller
                 ->leftJoin('customers','product_sales.customer_id','customers.id')
                 ->leftJoin('stores','product_sales.store_id','stores.id')
                 ->where('product_sales.sale_type','Whole Sale')
-                ->select('product_sales.id','product_sales.invoice_no','product_sales.discount_type','product_sales.discount_percent','product_sales.discount_amount','product_sales.total_vat_amount','product_sales.after_discount_amount','product_sales.grand_total_amount','product_sales.paid_amount','product_sales.due_amount','product_sales.sale_date_time','users.name as user_name','customers.id as customer_id','customers.name as customer_name','stores.id as store_id','stores.name as store_name','stores.address as store_address','stores.phone')
+                ->select('product_sales.id','product_sales.invoice_no','product_sales.discount_type','product_sales.discount_percent','product_sales.discount_amount','product_sales.total_vat_amount','product_sales.after_discount_amount','product_sales.grand_total_amount','product_sales.paid_amount','product_sales.due_amount','product_sales.sale_date_time as date_time','users.name as user_name','customers.id as customer_id','customers.name as customer_name','stores.id as store_id','stores.name as store_name','stores.address as store_address','stores.phone')
                 ->orderBy('product_sales.id','desc')
                 ->paginate(12);
         }
@@ -483,6 +483,190 @@ class ProductSaleController extends Controller
             return response()->json($response,200);
         }
 
+    }
+
+    public function productSaleDetails(Request $request){
+        try {
+            $product_sale_details = DB::table('product_sales')
+                ->join('product_sale_details','product_sales.id','product_sale_details.product_sale_id')
+                ->join('products','product_sale_details.product_id','products.id')
+                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
+                ->leftJoin('product_sizes','products.product_category_id','product_sizes.id')
+                ->leftJoin('product_units','products.product_unit_id','product_units.id')
+                ->leftJoin('product_sub_units','products.product_sub_unit_id','product_sub_units.id')
+                ->where('product_sales.id',$request->product_sale_id)
+                ->select(
+                    'product_sales.store_id',
+                    'products.id as product_id',
+                    'products.name as product_name',
+                    'products.product_code',
+                    'product_sale_details.qty',
+                    'product_sale_details.id as product_sale_detail_id',
+                    'product_sale_details.purchase_price',
+                    'product_sale_details.vat_amount',
+                    'product_categories.id as product_category_id',
+                    'product_categories.name as product_category_name',
+                    'product_sizes.id as product_size_id',
+                    'product_sizes.name as product_size_name',
+                    'product_units.id as product_unit_id',
+                    'product_units.name as product_unit_name',
+                    'product_sub_units.id as product_sub_unit_id',
+                    'product_sub_units.name as product_sub_unit_name'
+                )
+                ->get();
+
+            $sale_product = [];
+            if(count($product_sale_details) > 0){
+                foreach ($product_sale_details as $product_sale_detail){
+                    $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
+
+                    $nested_data['product_id']=$product_sale_detail->product_id;
+                    $nested_data['product_name']=$product_sale_detail->product_name;
+                    $nested_data['product_code']=$product_sale_detail->product_code;
+                    $nested_data['product_category_id']=$product_sale_detail->product_category_id;
+                    $nested_data['product_category_name']=$product_sale_detail->product_category_name;
+                    $nested_data['product_size_id']=$product_sale_detail->product_size_id;
+                    $nested_data['product_size_name']=$product_sale_detail->product_size_name;
+                    $nested_data['product_unit_id']=$product_sale_detail->product_unit_id;
+                    $nested_data['product_unit_name']=$product_sale_detail->product_unit_name;
+                    $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_name;
+                    $nested_data['qty']=$product_sale_detail->qty;
+                    $nested_data['product_sale_detail_id']=$product_sale_detail->product_sale_detail_id;
+                    $nested_data['purchase_price']=$product_sale_detail->purchase_price;
+                    $nested_data['vat_amount']=$product_sale_detail->vat_amount;
+                    $nested_data['current_stock']=$current_stock;
+
+                    array_push($sale_product, $nested_data);
+                }
+            }
+
+            if($product_sale_details === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Product POS Sale Detail Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$sale_product);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    public function productSaleDetailsPrint(Request $request){
+        try {
+            $product_sale_details = DB::table('product_sales')
+                ->join('product_sale_details','product_sales.id','product_sale_details.product_sale_id')
+                ->join('products','product_sale_details.product_id','products.id')
+                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
+                ->leftJoin('product_sizes','products.product_category_id','product_sizes.id')
+                ->leftJoin('product_units','products.product_unit_id','product_units.id')
+                ->leftJoin('product_sub_units','products.product_sub_unit_id','product_sub_units.id')
+                ->where('product_sales.id',$request->product_sale_id)
+                ->select(
+                    'product_sales.store_id',
+                    'products.id as product_id',
+                    'products.name as product_name',
+                    'products.product_code',
+                    'product_sale_details.qty',
+                    'product_sale_details.id as product_sale_detail_id',
+                    'product_sale_details.purchase_price',
+                    'product_sale_details.vat_amount',
+                    'product_categories.id as product_category_id',
+                    'product_categories.name as product_category_name',
+                    'product_sizes.id as product_size_id',
+                    'product_sizes.name as product_size_name',
+                    'product_units.id as product_unit_id',
+                    'product_units.name as product_unit_name',
+                    'product_sub_units.id as product_sub_unit_id',
+                    'product_sub_units.name as product_sub_unit_name'
+                )
+                ->get();
+
+            $sale_product = [];
+            if(count($product_sale_details) > 0){
+                foreach ($product_sale_details as $product_sale_detail){
+                    $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
+
+                    $nested_data['product_id']=$product_sale_detail->product_id;
+                    $nested_data['product_name']=$product_sale_detail->product_name;
+                    $nested_data['product_code']=$product_sale_detail->product_code;
+                    $nested_data['product_category_id']=$product_sale_detail->product_category_id;
+                    $nested_data['product_category_name']=$product_sale_detail->product_category_name;
+                    $nested_data['product_size_id']=$product_sale_detail->product_size_id;
+                    $nested_data['product_size_name']=$product_sale_detail->product_size_name;
+                    $nested_data['product_unit_id']=$product_sale_detail->product_unit_id;
+                    $nested_data['product_unit_name']=$product_sale_detail->product_unit_name;
+                    $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_name;
+                    $nested_data['qty']=$product_sale_detail->qty;
+                    $nested_data['product_sale_detail_id']=$product_sale_detail->product_sale_detail_id;
+                    $nested_data['purchase_price']=$product_sale_detail->purchase_price;
+                    $nested_data['vat_amount']=$product_sale_detail->vat_amount;
+                    $nested_data['current_stock']=$current_stock;
+
+                    array_push($sale_product, $nested_data);
+                }
+                $customer_details = DB::table('product_sales')
+                    ->join('customers','product_sales.customer_id','customers.id')
+                    ->join('stores','product_sales.store_id','stores.id')
+                    ->where('product_sales.id',$request->product_sale_id)
+                    ->select(
+                        'customers.id as customer_id',
+                        'customers.name as customer_name',
+                        'customers.phone as customer_phone',
+                        'customers.address as customer_address',
+                        'stores.id as store_id',
+                        'stores.name as store_name',
+                        'stores.phone as store_phone',
+                        'stores.address as store_address'
+                    )
+                    ->first();
+
+                return response()->json(['success' => true,'code' => 200,'data' => $sale_product, 'info' => $customer_details], 200);
+            }else{
+                $response = APIHelpers::createAPIResponse(true,404,'No Sale Found.',null);
+                return response()->json($response,404);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+
+    }
+
+    public function productSearchForSaleByStoreId(Request $request){
+//        try {
+        $validator = Validator::make($request->all(), [
+            'type' => 'required',
+            'product_category_id'=> 'required',
+            'product_unit_id'=> 'required',
+            'product_size_id'=> 'required',
+            'store_id'=> 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+            return response()->json($response,400);
+        }
+
+
+        $product_info = productSearchForSaleByStoreId($request->store_id,$request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+
+        if(count($product_info) === 0){
+            $response = APIHelpers::createAPIResponse(true,404,'No Store Product Found.',null);
+            return response()->json($response,404);
+        }else{
+            $response = APIHelpers::createAPIResponse(false,200,'',$product_info);
+            return response()->json($response,200);
+        }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
 

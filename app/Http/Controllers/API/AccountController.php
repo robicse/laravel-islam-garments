@@ -1144,6 +1144,31 @@ class AccountController extends Controller
         }
     }
 
+    public function trialBalanceReport(Request $request){
+        $validator = Validator::make($request->all(), [
+//            'chart_of_account_name'=> 'required',
+            'from_date'=> 'required',
+            'to_date'=> 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $response = [
+                'success' => false,
+                'data' => 'Validation Error.',
+                'message' => $validator->errors()
+            ];
+
+            return response()->json($response, $this-> validationStatus);
+        }
+
+
+        // trial_balance_report($FromDate, $ToDate, $WithOpening)
+        $trial_balance_report = trial_balance_report($request->from_date, $request->to_date, false);
+        return response()->json(['success'=>true,'response' => $trial_balance_report], $this->successStatus);
+
+
+    }
+
     public function ledger(Request $request){
         $validator = Validator::make($request->all(), [
             'chart_of_account_name'=> 'required',

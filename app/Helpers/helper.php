@@ -208,7 +208,7 @@ if (! function_exists('todaySale')) {
         $today_sale = 0;
         $today_sale_history = DB::table('product_sales')
             ->where('sale_date', date('Y-m-d'))
-            ->select(DB::raw('SUM(total_amount) as today_sale'),DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
+            ->select(DB::raw('SUM(grand_total_amount) as today_sale'),DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
             ->first();
         if(!empty($today_sale_history)){
             $today_sale = $today_sale_history->today_sale - $today_sale_history->today_sale_vat_amount;
@@ -222,7 +222,7 @@ if (! function_exists('totalSale')) {
     function totalSale() {
         $total_sale = 0;
         $total_sale_history = DB::table('product_sales')
-            ->select(DB::raw('SUM(total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
+            ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
             ->first();
         if(!empty($total_sale_history)){
             $total_sale = $total_sale_history->total_sale - $total_sale_history->total_sale_vat_amount;
@@ -437,14 +437,14 @@ if (! function_exists('storeWiseInformation')) {
 
                 $today_sale_history = DB::table('product_sales')
                     ->where('sale_date', date('Y-m-d'))
-                    ->select(DB::raw('SUM(total_amount) as today_sale'),DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
+                    ->select(DB::raw('SUM(grand_total_amount) as today_sale'),DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
                     ->first();
                 if(!empty($today_sale_history)){
                     $today_sale = $today_sale_history->today_sale - $today_sale_history->today_sale_vat_amount;
                 }
 
                 $total_sale_history = DB::table('product_sales')
-                    ->select(DB::raw('SUM(total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
+                    ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
                     ->first();
                 if(!empty($total_sale_history)){
                     $total_sale = $total_sale_history->total_sale - $total_sale_history->total_sale_vat_amount;
@@ -471,44 +471,700 @@ if (! function_exists('storeWiseInformation')) {
     }
 }
 
+// warehouse and product current stock
+if (! function_exists('warehouseStoreProductCurrentStock')) {
+    function warehouseStoreProductCurrentStock($store_id,$product_id) {
+        $warehouse_store_current_stock = DB::table('warehouse_store_current_stocks')
+            ->where('store_id',$store_id)
+            ->where('product_id',$product_id)
+            ->latest('id')
+            ->pluck('current_stock')
+            ->first();
 
-//if (! function_exists('checkExistsProduct')) {
-//    function checkExistsProduct($type,$product_category_id,$product_size_id,$product_unit_id,$product_sub_unit_id=NULL,$product_code=NULL) {
-//
-//        if( (!empty($product_sub_unit_id)) && (!empty($product_code !== '')) ){
-//            $check_exists_product = DB::table("products")
-//                ->where('type',$type)
-//                ->where('product_category_id',$product_category_id)
-//                ->where('product_size_id',$product_size_id)
-//                ->where('product_unit_id',$product_unit_id)
-//                ->where('product_sub_unit_id',$product_sub_unit_id)
-//                ->where('product_code',$product_code)
-//                ->pluck('id')->first();
-//        }elseif( (!empty($product_sub_unit_id)) && (empty($product_code !== '')) ){
-//            $check_exists_product = DB::table("products")
-//                ->where('type',$type)
-//                ->where('product_category_id',$product_category_id)
-//                ->where('product_size_id',$product_size_id)
-//                ->where('product_unit_id',$product_unit_id)
-//                ->where('product_sub_unit_id',$product_sub_unit_id)
-//                ->pluck('id')->first();
-//        }elseif( (empty($product_sub_unit_id)) && (!empty($product_code !== '')) ){
-//            $check_exists_product = DB::table("products")
-//                ->where('type',$type)
-//                ->where('product_category_id',$product_category_id)
-//                ->where('product_size_id',$product_size_id)
-//                ->where('product_unit_id',$product_unit_id)
-//                ->where('product_code',$product_code)
-//                ->pluck('id')->first();
-//        }else{
-//            $check_exists_product = DB::table("products")
-//                ->where('type',$type)
-//                ->where('product_category_id',$product_category_id)
-//                ->where('product_size_id',$product_size_id)
-//                ->where('product_unit_id',$product_unit_id)
-//                ->pluck('id')->first();
-//        }
-//
-//        return $check_exists_product;
-//    }
-//}
+        if($warehouse_store_current_stock == NULL){
+            $warehouse_store_current_stock = 0;
+        }
+        return $warehouse_store_current_stock;
+    }
+}
+
+
+if (! function_exists('checkExistsProduct')) {
+    function checkExistsProduct($type,$product_category_id,$product_size_id,$product_unit_id,$product_sub_unit_id=NULL,$product_code=NULL) {
+
+        if( (!empty($product_sub_unit_id)) && (!empty($product_code !== '')) ){
+            $check_exists_product = DB::table("products")
+                ->where('type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_sub_unit_id',$product_sub_unit_id)
+                ->where('product_code',$product_code)
+                ->pluck('id')->first();
+        }elseif( (!empty($product_sub_unit_id)) && (empty($product_code !== '')) ){
+            $check_exists_product = DB::table("products")
+                ->where('type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_sub_unit_id',$product_sub_unit_id)
+                ->pluck('id')->first();
+        }elseif( (empty($product_sub_unit_id)) && (!empty($product_code !== '')) ){
+            $check_exists_product = DB::table("products")
+                ->where('type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_code',$product_code)
+                ->pluck('id')->first();
+        }else{
+            $check_exists_product = DB::table("products")
+                ->where('type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->pluck('id')->first();
+        }
+
+        return $check_exists_product;
+    }
+}
+
+if (! function_exists('productSearchForStockTransferByWarehouseId')) {
+    function productSearchForStockTransferByWarehouseId($warehouse_id,$type,$product_category_id,$product_size_id,$product_unit_id,$product_sub_unit_id=NULL,$product_code=NULL) {
+
+        if( (!empty($product_sub_unit_id)) && (!empty($product_code)) ){
+
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_sub_unit_id',$product_sub_unit_id)
+                ->where('product_code',$product_code)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseCurrentStock::where('warehouse_id',$warehouse_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }elseif( (!empty($product_sub_unit_id)) && (empty($product_code)) ){
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_code',$product_code)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseCurrentStock::where('warehouse_id',$warehouse_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }elseif( (empty($product_sub_unit_id)) && (!empty($product_code)) ){
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_code',$product_code)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseCurrentStock::where('warehouse_id',$warehouse_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }else{
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseCurrentStock::where('warehouse_id',$warehouse_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }
+
+        return $product_data;
+    }
+}
+
+if (! function_exists('productSearchForSaleByStoreId')) {
+    function productSearchForSaleByStoreId($store_id,$type,$product_category_id,$product_size_id,$product_unit_id,$product_sub_unit_id=NULL,$product_code=NULL) {
+
+        if( (!empty($product_sub_unit_id)) && (!empty($product_code)) ){
+
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_sub_unit_id',$product_sub_unit_id)
+                ->where('product_code',$product_code)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseStoreCurrentStock::where('store_id',$store_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }elseif( (!empty($product_sub_unit_id)) && (empty($product_code)) ){
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_code',$product_code)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseStoreCurrentStock::where('store_id',$store_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }elseif( (empty($product_sub_unit_id)) && (!empty($product_code)) ){
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->where('product_code',$product_code)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseStoreCurrentStock::where('store_id',$store_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }else{
+            $product_infos = \App\Product::where('products.type',$type)
+                ->where('product_category_id',$product_category_id)
+                ->where('product_size_id',$product_size_id)
+                ->where('product_unit_id',$product_unit_id)
+                ->select(
+                    'id',
+                    'type',
+                    'product_category_id',
+                    'product_size_id',
+                    'product_unit_id',
+                    'product_sub_unit_id',
+                    'product_code',
+                    'name',
+                    'barcode',
+                    'purchase_price',
+                    'note',
+                    'color',
+                    'design',
+                    'status',
+                    'front_image',
+                    'back_image'
+                )
+                ->latest('id')
+                ->get();
+
+            $product_data = [];
+            foreach($product_infos as $product_info){
+                $current_stock = \App\WarehouseStoreCurrentStock::where('store_id',$store_id)
+                    ->where('product_id',$product_info['id'])
+                    ->pluck('current_stock')
+                    ->first();
+
+                $nested_data['id']=$product_info['id'];
+                $nested_data['type']=$product_info['type'];
+                $nested_data['product_category_id']=$product_info['product_category_id'];
+                $nested_data['product_category_name']=$product_info->category->name;
+                $nested_data['product_size_id']=$product_info['product_size_id'];
+                $nested_data['product_size_name']=$product_info->size->name;
+                $nested_data['product_unit_id']=$product_info['product_unit_id'];
+                $nested_data['product_unit_name']=$product_info->unit->name;
+                $nested_data['product_sub_unit_id']=$product_info['product_sub_unit_id'];
+                $nested_data['product_sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
+                $nested_data['product_code']=$product_info['product_code'];
+                $nested_data['name']=$product_info['name'];
+                $nested_data['barcode']=$product_info['barcode'];
+                $nested_data['purchase_price']=$product_info['purchase_price'];
+                $nested_data['note']=$product_info['note'];
+                $nested_data['color']=$product_info['color'];
+                $nested_data['design']=$product_info['design'];
+                $nested_data['status']=$product_info['status'];
+                $nested_data['front_image']=$product_info['front_image'];
+                $nested_data['back_image']=$product_info['back_image'];
+                $nested_data['qty']= 0;
+                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                array_push($product_data, $nested_data);
+            }
+        }
+
+        return $product_data;
+    }
+}
+
+
+
+//Trial Balance Report
+if (! function_exists('trial_balance_report')) {
+    function trial_balance_report($FromDate, $ToDate, $WithOpening) {
+
+        if ($WithOpening)
+            $WithOpening = true;
+        else
+            $WithOpening = false;
+
+        $data = array(
+            'oResultTr' => '',
+            'oResultInEx' => '',
+            'WithOpening' => $WithOpening
+        );
+
+        //$sql = "SELECT * FROM acc_coa WHERE IsGL=1 AND IsActive=1 AND HeadType IN ('A','L') ORDER BY HeadCode";
+        //$oResultTr = $this->db->query($sql);
+
+        $oResultTr = \App\ChartOfAccount::where('is_active',1)
+            ->where('is_general_ledger',1)
+            ->whereIn('head_type',['A','L'])
+            ->orderBy('head_code')
+            ->get();
+
+
+        $TotalCredit=0;
+        $TotalDebit=0;
+        $oResultTrialData = [];
+        for($i=0;$i<count($oResultTr);$i++) {
+            $head_code = $oResultTr[$i]['head_code'];
+            $head_name = $oResultTr[$i]['head_name'];
+
+            //$sql = "SELECT SUM(acc_transaction.Debit) AS Debit, SUM(acc_transaction.Credit) AS Credit FROM acc_transaction WHERE acc_transaction.IsAppove =1 AND VDate BETWEEN '" . $dtpFromDate . "' AND '" . $dtpToDate . "' AND COAID LIKE '$COAID%' ";
+            $oResultTrial = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
+                ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                ->first();
+
+
+            if($oResultTrial->Credit+$oResultTrial->Debit>0)
+            {
+                if($oResultTrial->Debit>$oResultTrial->Credit)
+                {
+                    $TotalDebit += $oResultTrial->Debit-$oResultTrial->Credit;
+                    $debit = number_format($oResultTrial->Debit-$oResultTrial->Credit, 2);
+                    $credit = number_format(0,2);
+                }else{
+                    $TotalCredit += $oResultTrial->Credit-$oResultTrial->Debit;
+                    $debit = number_format(0,2);
+                    $credit = number_format($oResultTrial->Credit-$oResultTrial->Debit,2);
+                }
+
+                $nested_data['head_code']=$head_code;
+                $nested_data['head_name']=$head_name;
+                $nested_data['debit']=$debit;
+                $nested_data['credit']=$credit;
+
+                array_push($oResultTrialData, $nested_data);
+            }
+        }
+
+        //$sql = "SELECT * FROM acc_coa WHERE IsGL=1 AND IsActive=1 AND HeadType IN ('I','E') ORDER BY HeadCode";
+        //$oResultInEx = $this->db->query($sql);
+
+        $oResultInEx = \App\ChartOfAccount::where('is_active',1)
+            ->where('is_general_ledger',1)
+            ->whereIn('head_type',['I','E'])
+            ->orderBy('head_code')
+            ->get();
+
+        for($i=0;$i<count($oResultInEx);$i++) {
+            $head_code = $oResultInEx[$i]['head_code'];
+            $head_name = $oResultInEx[$i]['head_name'];
+
+            //$sql = "SELECT SUM(acc_transaction.Debit) AS Debit, SUM(acc_transaction.Credit) AS Credit FROM acc_transaction WHERE acc_transaction.IsAppove =1 AND VDate BETWEEN '" . $dtpFromDate . "' AND '" . $dtpToDate . "' AND COAID LIKE '$COAID%' ";
+            $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
+                ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                ->first();
+
+
+            if($oResultIE->Credit+$oResultIE->Debit>0)
+            {
+                if($oResultIE->Debit>$oResultIE->Credit)
+                {
+                    $TotalDebit += $oResultIE->Debit-$oResultIE->Credit;
+                    $debit = number_format($oResultIE->Debit-$oResultIE->Credit,2);
+                    $credit = number_format(0,2);
+                }else{
+                    $TotalCredit += $oResultIE->Credit-$oResultIE->Debit;
+                    $debit = number_format(0,2);
+                    $credit = number_format($oResultIE->Credit-$oResultIE->Debit,2);
+                }
+
+                $nested_data['head_code']=$head_code;
+                $nested_data['head_name']=$head_name;
+                $nested_data['debit']=$debit;
+                $nested_data['credit']=$credit;
+
+                array_push($oResultTrialData, $nested_data);
+            }
+        }
+
+
+
+        $ProfitLoss=$TotalDebit-$TotalCredit;
+        if($ProfitLoss!=0)
+        {
+            if($ProfitLoss<0)
+            {
+                $TotalDebit += abs($ProfitLoss);
+                $d = number_format( abs($ProfitLoss),2);
+                $c = number_format(0,2);
+            }else if($ProfitLoss>0)
+            {
+                $TotalCredit+= abs($ProfitLoss);
+                $c = number_format(abs($ProfitLoss),2);
+                $d = number_format(0,2);
+            }else{
+                $c = number_format(0,2);
+                $d = number_format(0,2);
+            }
+
+            $nested_data['head_code']='';
+            $nested_data['head_name']='';
+//            $nested_data['d']=$d;
+//            $nested_data['c']=$c;
+            $nested_data['debit']= $d;
+            $nested_data['credit']=$c;
+
+            array_push($oResultTrialData, $nested_data);
+        }
+
+
+
+        $final_data = [
+            'ResultTr' => $oResultTrialData,
+            'TotalDebit' => number_format($TotalDebit,2),
+            'TotalCredit' => number_format($TotalCredit,2)
+        ];
+
+        return $final_data;
+    }
+}
