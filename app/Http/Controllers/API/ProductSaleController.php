@@ -490,10 +490,6 @@ class ProductSaleController extends Controller
             $product_sale_details = DB::table('product_sales')
                 ->join('product_sale_details','product_sales.id','product_sale_details.product_sale_id')
                 ->join('products','product_sale_details.product_id','products.id')
-                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
-                ->leftJoin('product_sizes','products.product_category_id','product_sizes.id')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_sub_units','products.product_sub_unit_id','product_sub_units.id')
                 ->where('product_sales.id',$request->product_sale_id)
                 ->select(
                     'product_sales.store_id',
@@ -504,14 +500,10 @@ class ProductSaleController extends Controller
                     'product_sale_details.id as product_sale_detail_id',
                     'product_sale_details.purchase_price',
                     'product_sale_details.vat_amount',
-                    'product_categories.id as product_category_id',
-                    'product_categories.name as product_category_name',
-                    'product_sizes.id as product_size_id',
-                    'product_sizes.name as product_size_name',
-                    'product_units.id as product_unit_id',
-                    'product_units.name as product_unit_name',
-                    'product_sub_units.id as product_sub_unit_id',
-                    'product_sub_units.name as product_sub_unit_name'
+                    'products.product_unit_id',
+                    'products.product_category_id',
+                    'products.product_size_id',
+                    'products.product_sub_unit_id'
                 )
                 ->get();
 
@@ -519,18 +511,19 @@ class ProductSaleController extends Controller
             if(count($product_sale_details) > 0){
                 foreach ($product_sale_details as $product_sale_detail){
                     $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
+                    $product = Product::find($product_sale_detail->product_id);
 
                     $nested_data['product_id']=$product_sale_detail->product_id;
                     $nested_data['product_name']=$product_sale_detail->product_name;
                     $nested_data['product_code']=$product_sale_detail->product_code;
-                    $nested_data['product_category_id']=$product_sale_detail->product_category_id;
-                    $nested_data['product_category_name']=$product_sale_detail->product_category_name;
-                    $nested_data['product_size_id']=$product_sale_detail->product_size_id;
-                    $nested_data['product_size_name']=$product_sale_detail->product_size_name;
-                    $nested_data['product_unit_id']=$product_sale_detail->product_unit_id;
-                    $nested_data['product_unit_name']=$product_sale_detail->product_unit_name;
+                    $nested_data['product_category_id'] = $product_sale_detail->product_category_id;
+                    $nested_data['product_category_name'] = $product->category->name;
+                    $nested_data['product_unit_id'] = $product_sale_detail->product_unit_id;
+                    $nested_data['product_unit_name'] = $product->unit->name;
                     $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
-                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_name;
+                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_id ? $product->sub_unit->name : '';
+                    $nested_data['product_size_id'] = $product_sale_detail->product_size_id;
+                    $nested_data['product_size_name'] = $product->size->name;
                     $nested_data['qty']=$product_sale_detail->qty;
                     $nested_data['product_sale_detail_id']=$product_sale_detail->product_sale_detail_id;
                     $nested_data['purchase_price']=$product_sale_detail->purchase_price;
@@ -560,10 +553,6 @@ class ProductSaleController extends Controller
             $product_sale_details = DB::table('product_sales')
                 ->join('product_sale_details','product_sales.id','product_sale_details.product_sale_id')
                 ->join('products','product_sale_details.product_id','products.id')
-                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
-                ->leftJoin('product_sizes','products.product_category_id','product_sizes.id')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_sub_units','products.product_sub_unit_id','product_sub_units.id')
                 ->where('product_sales.id',$request->product_sale_id)
                 ->select(
                     'product_sales.store_id',
@@ -574,14 +563,10 @@ class ProductSaleController extends Controller
                     'product_sale_details.id as product_sale_detail_id',
                     'product_sale_details.purchase_price',
                     'product_sale_details.vat_amount',
-                    'product_categories.id as product_category_id',
-                    'product_categories.name as product_category_name',
-                    'product_sizes.id as product_size_id',
-                    'product_sizes.name as product_size_name',
-                    'product_units.id as product_unit_id',
-                    'product_units.name as product_unit_name',
-                    'product_sub_units.id as product_sub_unit_id',
-                    'product_sub_units.name as product_sub_unit_name'
+                    'products.product_unit_id',
+                    'products.product_category_id',
+                    'products.product_size_id',
+                    'products.product_sub_unit_id'
                 )
                 ->get();
 
@@ -589,19 +574,19 @@ class ProductSaleController extends Controller
             if(count($product_sale_details) > 0){
                 foreach ($product_sale_details as $product_sale_detail){
                     $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
+                    $product = Product::find($product_sale_detail->product_id);
 
                     $nested_data['product_id']=$product_sale_detail->product_id;
                     $nested_data['product_name']=$product_sale_detail->product_name;
                     $nested_data['product_code']=$product_sale_detail->product_code;
-                    $nested_data['product_category_id']=$product_sale_detail->product_category_id;
-                    $nested_data['product_category_name']=$product_sale_detail->product_category_name;
-                    $nested_data['product_size_id']=$product_sale_detail->product_size_id;
-                    $nested_data['product_size_name']=$product_sale_detail->product_size_name;
-                    $nested_data['product_unit_id']=$product_sale_detail->product_unit_id;
-                    $nested_data['product_unit_name']=$product_sale_detail->product_unit_name;
+                    $nested_data['product_category_id'] = $product_sale_detail->product_category_id;
+                    $nested_data['product_category_name'] = $product->category->name;
+                    $nested_data['product_unit_id'] = $product_sale_detail->product_unit_id;
+                    $nested_data['product_unit_name'] = $product->unit->name;
                     $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
-                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_name;
-                    $nested_data['qty']=$product_sale_detail->qty;
+                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_id ? $product->sub_unit->name : '';
+                    $nested_data['product_size_id'] = $product_sale_detail->product_size_id;
+                    $nested_data['product_size_name'] = $product->size->name;                    $nested_data['qty']=$product_sale_detail->qty;
                     $nested_data['product_sale_detail_id']=$product_sale_detail->product_sale_detail_id;
                     $nested_data['purchase_price']=$product_sale_detail->purchase_price;
                     $nested_data['vat_amount']=$product_sale_detail->vat_amount;

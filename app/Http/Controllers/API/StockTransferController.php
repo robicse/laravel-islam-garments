@@ -272,21 +272,16 @@ class StockTransferController extends Controller
             $stock_transfer_details = DB::table('stock_transfers')
                 ->join('stock_transfer_details','stock_transfers.id','stock_transfer_details.stock_transfer_id')
                 ->join('products','stock_transfer_details.product_id','products.id')
-                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
                 ->where('stock_transfers.id',$request->stock_transfer_id)
                 ->select(
                     'products.id as product_id',
                     'products.name as product_name',
                     'products.product_code',
                     'stock_transfers.warehouse_id',
-                    'product_units.id as product_unit_id',
-                    'product_categories.name as product_category_name',
-                    'product_categories.id as product_category_id',
-                    'product_units.name as product_unit_name',
-                    'product_sizes.id as product_size_id',
-                    'product_sizes.name as product_size_name',
+                    'products.product_unit_id',
+                    'products.product_category_id',
+                    'products.product_size_id',
+                    'products.product_sub_unit_id',
                     'stock_transfer_details.qty',
                     'stock_transfer_details.id as stock_transfer_detail_id',
                     'stock_transfer_details.price',
@@ -300,17 +295,20 @@ class StockTransferController extends Controller
             {
                 foreach($stock_transfer_details as $stock_transfer_detail){
                     $current_qty = warehouseProductCurrentStock($stock_transfer_detail->warehouse_id,$stock_transfer_detail->product_id);
+                    $product = Product::find($stock_transfer_detail->product_id);
 
                     $nested_data['product_id']=$stock_transfer_detail->product_id;
                     $nested_data['product_name']=$stock_transfer_detail->product_name;
                     $nested_data['product_code'] = $stock_transfer_detail->product_code;
                     $nested_data['qty']=$stock_transfer_detail->qty;
                     $nested_data['product_category_id'] = $stock_transfer_detail->product_category_id;
-                    $nested_data['product_category_name'] = $stock_transfer_detail->product_category_name;
+                    $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $stock_transfer_detail->product_unit_id;
-                    $nested_data['product_unit_name'] = $stock_transfer_detail->product_unit_name;
+                    $nested_data['product_unit_name'] = $product->unit->name;
+                    $nested_data['product_sub_unit_id']=$stock_transfer_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$stock_transfer_detail->product_sub_unit_id ? $product->sub_unit->name : '';
                     $nested_data['product_size_id'] = $stock_transfer_detail->product_size_id;
-                    $nested_data['product_size_name'] = $stock_transfer_detail->product_size_name;
+                    $nested_data['product_size_name'] = $product->size->name;
                     $nested_data['stock_transfer_detail_id']=$stock_transfer_detail->stock_transfer_detail_id;
                     $nested_data['purchase_price']=$stock_transfer_detail->price;
                     $nested_data['sub_total']=$stock_transfer_detail->sub_total;
@@ -335,21 +333,16 @@ class StockTransferController extends Controller
             $stock_transfer_details = DB::table('stock_transfers')
                 ->join('stock_transfer_details','stock_transfers.id','stock_transfer_details.stock_transfer_id')
                 ->join('products','stock_transfer_details.product_id','products.id')
-                ->leftJoin('product_categories','products.product_category_id','product_categories.id')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
                 ->where('stock_transfers.id',$request->stock_transfer_id)
                 ->select(
                     'products.id as product_id',
                     'products.name as product_name',
                     'products.product_code',
                     'stock_transfers.warehouse_id',
-                    'product_units.id as product_unit_id',
-                    'product_categories.name as product_category_name',
-                    'product_categories.id as product_category_id',
-                    'product_units.name as product_unit_name',
-                    'product_sizes.id as product_size_id',
-                    'product_sizes.name as product_size_name',
+                    'products.product_unit_id',
+                    'products.product_category_id',
+                    'products.product_size_id',
+                    'products.product_sub_unit_id',
                     'stock_transfer_details.qty',
                     'stock_transfer_details.id as stock_transfer_detail_id',
                     'stock_transfer_details.price',
@@ -363,17 +356,20 @@ class StockTransferController extends Controller
             {
                 foreach($stock_transfer_details as $stock_transfer_detail){
                     $current_qty = warehouseProductCurrentStock($stock_transfer_detail->warehouse_id,$stock_transfer_detail->product_id);
+                    $product = Product::find($stock_transfer_detail->product_id);
 
                     $nested_data['product_id']=$stock_transfer_detail->product_id;
                     $nested_data['product_name']=$stock_transfer_detail->product_name;
                     $nested_data['product_code'] = $stock_transfer_detail->product_code;
                     $nested_data['qty']=$stock_transfer_detail->qty;
                     $nested_data['product_category_id'] = $stock_transfer_detail->product_category_id;
-                    $nested_data['product_category_name'] = $stock_transfer_detail->product_category_name;
+                    $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $stock_transfer_detail->product_unit_id;
-                    $nested_data['product_unit_name'] = $stock_transfer_detail->product_unit_name;
+                    $nested_data['product_unit_name'] = $product->unit->name;
+                    $nested_data['product_sub_unit_id']=$stock_transfer_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$stock_transfer_detail->product_sub_unit_id ? $product->sub_unit->name : '';
                     $nested_data['product_size_id'] = $stock_transfer_detail->product_size_id;
-                    $nested_data['product_size_name'] = $stock_transfer_detail->product_size_name;
+                    $nested_data['product_size_name'] = $product->size->name;
                     $nested_data['stock_transfer_detail_id']=$stock_transfer_detail->stock_transfer_detail_id;
                     $nested_data['purchase_price']=$stock_transfer_detail->price;
                     $nested_data['sub_total']=$stock_transfer_detail->sub_total;
