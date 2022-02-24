@@ -88,6 +88,8 @@ Route::middleware('auth:api')->post('/supplier_update', 'API\SupplierController@
 Route::middleware('auth:api')->post('/supplier_delete', 'API\SupplierController@supplierDelete');
 Route::middleware('auth:api')->post('/supplier_image', 'API\SupplierController@supplierImage');
 Route::middleware('auth:api')->get('/supplier_active_list', 'API\SupplierController@supplierActiveList');
+Route::middleware('auth:api')->post('/supplier_current_total_due_by_supplier_id', 'API\SupplierController@supplierCurrentTotalDueBySupplierId');
+Route::middleware('auth:api')->post('/supplier_due_paid', 'API\SupplierController@supplierDuePaid');
 
 // pos/whole customer
 Route::middleware('auth:api')->get('/pos_sale_customer_active_list', 'API\CustomerController@posCustomerActiveList');
@@ -100,6 +102,8 @@ Route::middleware('auth:api')->post('/customer_update', 'API\CustomerController@
 Route::middleware('auth:api')->post('/customer_delete', 'API\CustomerController@customerDelete');
 Route::middleware('auth:api')->post('/pos_sale_customer_list_pagination_with_search', 'API\CustomerController@posSaleCustomerListPaginationWithSearch');
 Route::middleware('auth:api')->post('/whole_sale_customer_list_pagination_with_search', 'API\CustomerController@wholeSaleCustomerListPaginationWithSearch');
+Route::middleware('auth:api')->post('/customer_current_total_due_by_customer_id', 'API\CustomerController@customerCurrentTotalDueByCustomerId');
+Route::middleware('auth:api')->post('/customer_due_paid', 'API\CustomerController@customerDuePaid');
 
 // product brand
 Route::middleware('auth:api')->get('/product_brand_list', 'API\ProductBrandController@productBrandList');
@@ -144,6 +148,8 @@ Route::middleware('auth:api')->post('/product_image', 'API\ProductController@pro
 Route::middleware('auth:api')->post('/product_list_with_search', 'API\ProductController@productListWithSearch');
 Route::middleware('auth:api')->post('/product_info_for_stock_in', 'API\ProductController@productInfoForStockIn');
 Route::middleware('auth:api')->get('/product_active_list', 'API\ProductController@productActiveList');
+// product Code
+Route::middleware('auth:api')->post('/product_code_list', 'API\ProductController@productCodeList');
 
 // payment type
 Route::middleware('auth:api')->get('/payment_type_active_list', 'API\PaymentTypeController@paymentTypeActiveList');

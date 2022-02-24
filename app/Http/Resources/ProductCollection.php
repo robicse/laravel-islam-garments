@@ -66,6 +66,12 @@ class ProductCollection extends ResourceCollection
                 $category_name = ProductCategory::where('id',$data->product_category_id)->pluck('name')->first();
                 $unit_name = ProductUnit::where('id',$data->product_unit_id)->pluck('name')->first();
                 $size_name = ProductSize::where('id',$data->product_size_id)->pluck('name')->first();
+
+                if(!empty($data->product_sub_unit_id)){
+                    $sub_unit_name = ProductSubUnit::where('id',$data->product_sub_unit_id)->pluck('name')->first();
+                }else{
+                    $sub_unit_name = '';
+                }
                 return [
                     'id' => $data->id,
                     'type' => $data->type,
@@ -74,6 +80,8 @@ class ProductCollection extends ResourceCollection
                     'category_name' => $category_name,
                     'unit_id' => $data->product_unit_id,
                     'unit_name' => $unit_name,
+                    'sub_unit_id' => $data->product_unit_id,
+                    'sub_unit_name' => !empty($data->product_unit_id) ? $sub_unit_name : '',
                     'size_id' => $data->product_size_id,
                     'size_name' => $size_name,
                     'product_code' => $data->product_code,

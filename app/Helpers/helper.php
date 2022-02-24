@@ -1148,9 +1148,7 @@ if (! function_exists('trial_balance_report')) {
             }
 
             $nested_data['head_code']='';
-            $nested_data['head_name']='';
-//            $nested_data['d']=$d;
-//            $nested_data['c']=$c;
+            $nested_data['head_name']='Balance C/D';
             $nested_data['debit']= $d;
             $nested_data['credit']=$c;
 
@@ -1166,5 +1164,35 @@ if (! function_exists('trial_balance_report')) {
         ];
 
         return $final_data;
+    }
+}
+
+if (! function_exists('supplierCurrentTotalDueByCustomerId')) {
+    function supplierCurrentTotalDueByCustomerId($supplier_id) {
+        $current_total_due = 0;
+        $supplier_current_total_due = DB::table('suppliers')
+            ->where('id',$supplier_id)
+            ->select('id','current_total_due')
+            ->first();
+
+        if(!empty($supplier_current_total_due)){
+            $current_total_due = $supplier_current_total_due->current_total_due;
+        }
+        return $current_total_due;
+    }
+}
+
+if (! function_exists('customerCurrentTotalDueByCustomerId')) {
+    function customerCurrentTotalDueByCustomerId($customer_id) {
+        $current_total_due = 0;
+        $customer_current_total_due = DB::table('customers')
+            ->where('id',$customer_id)
+            ->select('id','current_total_due')
+            ->first();
+
+        if(!empty($customer_current_total_due)){
+            $current_total_due = $customer_current_total_due->current_total_due;
+        }
+        return $current_total_due;
     }
 }

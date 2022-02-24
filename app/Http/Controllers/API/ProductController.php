@@ -622,4 +622,27 @@ class ProductController extends Controller
         }
 
     }
+
+    public function productCodeList(){
+        try {
+            $product_codes = DB::table('products')
+                ->select('product_code')
+                ->where('status',1)
+                ->where('product_code','!=',NULL)
+                ->groupBy('product_code')
+                ->get();
+
+            if($product_codes === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Product Code Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$product_codes);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
 }

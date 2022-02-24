@@ -78,7 +78,7 @@ class CustomerController extends Controller
     public function customerList(){
         try {
             $customers = DB::table('customers')
-                ->select('id','customer_type','code','name','phone','email','address','initial_due','nid_front','nid_back','image','bank_detail_image','note','status')
+                ->select('id','customer_type','code','name','phone','email','address','initial_due','current_total_due','nid_front','nid_back','image','bank_detail_image','note','status')
                 ->orderBy('id','desc')
                 ->get();
 
@@ -97,6 +97,7 @@ class CustomerController extends Controller
                 $nested_data['email'] = $customer->email;
                 $nested_data['address'] = $customer->address;
                 $nested_data['initial_due'] = $customer->initial_due;
+                $nested_data['current_total_due'] = $customer->current_total_due;
                 $nested_data['nid_front'] = $customer->nid_front;
                 $nested_data['nid_back'] = $customer->nid_back;
                 $nested_data['image'] = $customer->image;
@@ -149,6 +150,7 @@ class CustomerController extends Controller
             $customer->email = $request->email;
             $customer->address = $request->address;
             $customer->initial_due = 0;
+            $customer->current_total_due = 0;
 
             $image = $request->file('nid_front');
             //dd($image);
@@ -412,6 +414,7 @@ class CustomerController extends Controller
             $customer->email = $request->email;
             $customer->address = $request->address;
             $customer->initial_due = $request->initial_due;
+            $customer->current_total_due = $request->initial_due;
             $customer->note = $request->note;
             $image = $request->file('nid_front');
             //dd($image);
@@ -684,12 +687,23 @@ class CustomerController extends Controller
             }
 
             $customer = Customer::find($request->customer_id);
+            $previous_initial_due = $customer->current_total_due;
+            $previous_current_total_due = $customer->current_total_due;
+            if($previous_initial_due > $request->initial_due){
+                $increase_current_total_due = $previous_initial_due - $request->initial_due;
+                $update_current_total_due = $previous_current_total_due + $increase_current_total_due;
+            }else{
+                $decrease_current_total_due = $request->initial_due - $previous_initial_due;
+                $update_current_total_due = $previous_current_total_due - $decrease_current_total_due;
+            }
+
             //$customer->customer_type = $request->customer_type;
             $customer->name = $request->name;
             $customer->phone = $request->phone;
             $customer->email = $request->email;
             $customer->address = $request->address;
             $customer->initial_due = $request->initial_due;
+            $customer->current_total_due = $update_current_total_due;
             $customer->note = $request->note;
             $image = $request->file('nid_front');
             //dd($image);
@@ -980,5 +994,196 @@ class CustomerController extends Controller
         }else{
             return new CustomerCollection(Customer::where('customer_type','Whole Sale')->latest()->paginate(12));
         }
+    }
+
+    public function customerCurrentTotalDueByCustomerId(Request $request){
+        try {
+            $current_total_due = customerCurrentTotalDueByCustomerId($request->customer_id);
+
+            if($current_total_due !== 0){
+                return response()->json(['success'=>true,'code' => 200,'data' => $current_total_due], 200);
+            }else{
+                return response()->json(['success'=>false,'code' => 400, 'message' => 'No Customer Found.'], 400);
+            }
+
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    public function customerDuePaid(Request $request){
+//        try {
+        $customer_id = $request->customer_id;
+        $payment_type_id = $request->payment_type_id;
+        $paid_amount = $request->paid_amount;
+        $grand_total_amount = $paid_amount;
+
+        $check_exists_customer = DB::table("customers")->where('id',$customer_id)->pluck('id')->first();
+        if($check_exists_customer == null){
+            $response = APIHelpers::createAPIResponse(true,404,'No Customer Found.',null);
+            return response()->json($response,404);
+        }
+
+        // required
+        $validator = Validator::make($request->all(), [
+            'customer_id' => 'required',
+            'paid_amount' => 'required',
+            'due_amount' => 'required',
+            'payment_type_id' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+            return response()->json($response,400);
+        }
+
+        $customer = Customer::find($customer_id);
+        $previous_current_total_due = $customer->current_total_due;
+        $update_current_total_due = $previous_current_total_due - $paid_amount;
+
+        $customer->current_total_due = $update_current_total_due;
+        $affected_row = $customer->save();
+
+        if($affected_row){
+            // posting
+            $date = date('Y-m-d');
+            $user_id = Auth::user()->id;
+            $store_id = NULL;
+            $month = date('m');
+            $year = date('Y');
+            $transaction_date_time = date('Y-m-d H:i:s');
+
+            // supplier head
+            $code = Customer::where('id',$customer_id)->pluck('code')->first();
+            $customer_chart_of_account_info = ChartOfAccount::where('name_code',$code)->first();
+
+            // Cash In Hand For Paid Amount
+            $get_voucher_name = VoucherType::where('id',2)->pluck('name')->first();
+            $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',2)->latest()->pluck('voucher_no')->first();
+            if(!empty($get_voucher_no)){
+                $get_voucher_name_str = $get_voucher_name."-";
+                $get_voucher = str_replace($get_voucher_name_str,"",$get_voucher_no);
+                $voucher_no = $get_voucher+1;
+            }else{
+                $voucher_no = 2000;
+            }
+            $final_voucher_no = $get_voucher_name.'-'.$voucher_no;
+
+            // Cash In Hand Account Info
+            $cash_chart_of_account_info = ChartOfAccount::where('head_name','Cash In Hand')->first();
+
+            // Account Receivable Account Info
+            $account_receivable_info = ChartOfAccount::where('head_name','Account Receivable')->first();
+
+            if($payment_type_id == 1){
+                $chart_of_account_transactions = new ChartOfAccountTransaction();
+                $chart_of_account_transactions->ref_id = NULL;
+                $chart_of_account_transactions->user_id = $user_id;
+                $chart_of_account_transactions->warehouse_id = NULL;
+                $chart_of_account_transactions->store_id = NULL;
+                $chart_of_account_transactions->payment_type_id = $payment_type_id;
+                $chart_of_account_transactions->transaction_type = 'Due Paid';
+                $chart_of_account_transactions->voucher_type_id = 2;
+                $chart_of_account_transactions->voucher_no = $final_voucher_no;
+                $chart_of_account_transactions->is_approved = 'approved';
+                $chart_of_account_transactions->transaction_date = $date;
+                $chart_of_account_transactions->transaction_date_time = $transaction_date_time;
+                $chart_of_account_transactions->save();
+                $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
+
+                if($chart_of_account_transactions_insert_id){
+                    // customer debit
+                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+                    $chart_of_account_transaction_details->warehouse_id = NULL;
+                    $chart_of_account_transaction_details->store_id = $store_id;
+                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
+                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+                    $chart_of_account_transaction_details->chart_of_account_name = $customer_chart_of_account_info->head_name;
+                    $chart_of_account_transaction_details->chart_of_account_parent_name = $customer_chart_of_account_info->parent_head_name;
+                    $chart_of_account_transaction_details->chart_of_account_type = $customer_chart_of_account_info->head_type;
+                    $chart_of_account_transaction_details->debit = NULL;
+                    $chart_of_account_transaction_details->credit = $grand_total_amount;
+                    $chart_of_account_transaction_details->description = $customer_chart_of_account_info->head_name.' Customer Credited For Due Paid';
+                    $chart_of_account_transaction_details->year = $year;
+                    $chart_of_account_transaction_details->month = $month;
+                    $chart_of_account_transaction_details->transaction_date = $date;
+                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+                    $chart_of_account_transaction_details->save();
+
+                    // Cash In Hand credit
+                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+                    $chart_of_account_transaction_details->warehouse_id = NULL;
+                    $chart_of_account_transaction_details->store_id = $store_id;
+                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
+                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+                    $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
+                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
+                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
+                    $chart_of_account_transaction_details->debit = $grand_total_amount;
+                    $chart_of_account_transaction_details->credit = NULL;
+                    $chart_of_account_transaction_details->description = 'Cash In Hand Debit For Due Paid';
+                    $chart_of_account_transaction_details->year = $year;
+                    $chart_of_account_transaction_details->month = $month;
+                    $chart_of_account_transaction_details->transaction_date = $date;
+                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+                    $chart_of_account_transaction_details->save();
+
+                    // Cash In Hand debit
+                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+                    $chart_of_account_transaction_details->warehouse_id = NULL;
+                    $chart_of_account_transaction_details->store_id = $store_id;
+                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
+                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+                    $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
+                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
+                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
+                    $chart_of_account_transaction_details->debit = NULL;
+                    $chart_of_account_transaction_details->credit = $grand_total_amount;
+                    $chart_of_account_transaction_details->description = 'Cash In Hand Credit For Due Paid';
+                    $chart_of_account_transaction_details->year = $year;
+                    $chart_of_account_transaction_details->month = $month;
+                    $chart_of_account_transaction_details->transaction_date = $date;
+                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+                    $chart_of_account_transaction_details->save();
+
+                    // supplier credit
+                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+                    $chart_of_account_transaction_details->warehouse_id = NULL;
+                    $chart_of_account_transaction_details->store_id = $store_id;
+                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
+                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+                    $chart_of_account_transaction_details->chart_of_account_name = $customer_chart_of_account_info->head_name;
+                    $chart_of_account_transaction_details->chart_of_account_parent_name = $customer_chart_of_account_info->parent_head_name;
+                    $chart_of_account_transaction_details->chart_of_account_type = $customer_chart_of_account_info->head_type;
+                    $chart_of_account_transaction_details->debit = $grand_total_amount;
+                    $chart_of_account_transaction_details->credit = NULL;
+                    $chart_of_account_transaction_details->description = $customer_chart_of_account_info->head_name.' Supplier Credited For Due Paid';
+                    $chart_of_account_transaction_details->year = $year;
+                    $chart_of_account_transaction_details->month = $month;
+                    $chart_of_account_transaction_details->transaction_date = $date;
+                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+                    $chart_of_account_transaction_details->save();
+                }
+            }
+
+            $response = APIHelpers::createAPIResponse(false,200,'Supplier Updated Successfully.',null);
+            return response()->json($response,200);
+        }else{
+            $response = APIHelpers::createAPIResponse(true,400,'Supplier Updated Failed.',null);
+            return response()->json($response,400);
+        }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 }
