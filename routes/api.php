@@ -166,6 +166,18 @@ Route::middleware('auth:api')->post('/product_purchase_create', 'API\ProductPurc
 Route::middleware('auth:api')->post('/stock_transaction_list_with_search', 'API\StockController@stockTransactionListWithSearch');
 Route::middleware('auth:api')->post('/warehouse_current_stock_by_id', 'API\StockController@warehouseCurrentStockById');
 
+
+
+// stock transfer request
+Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_create', 'API\StockTransferRequestController@storeToWarehouseStockRequestCreate');
+Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_edit', 'API\StockTransferRequestController@storeToWarehouseStockRequestEdit');
+Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_list_pagination_with_search', 'API\StockTransferRequestController@storeToWarehouseStockRequestListPaginationWithSearch');
+Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_details', 'API\StockTransferRequestController@storeToWarehouseStockRequestDetails');
+Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_details_print', 'API\StockTransferRequestController@storeToWarehouseStockRequestDetailsPrint');
+//Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_delete', 'API\StockController@storeToWarehouseStockRequestDelete');
+//Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_view_update', 'API\StockController@storeToWarehouseStockRequestViewUpdate');
+//Route::middleware('auth:api')->post('/store_to_warehouse_stock_request_single_product_remove', 'API\StockController@storeToWarehouseStockRequestSingleProductRemove');
+
 // stock transfer
 Route::middleware('auth:api')->post('/product_search_for_stock_transfer_by_warehouse_id', 'API\StockTransferController@productSearchForStockTransferByWarehouseId');
 //Route::middleware('auth:api')->post('/check_warehouse_product_current_qty', 'API\StockController@checkWarehouseProductCurrentQty');
@@ -203,10 +215,10 @@ Route::middleware('auth:api')->post('/expense_category_create', 'API\ExpenseCate
 Route::middleware('auth:api')->post('/expense_category_edit', 'API\ExpenseCategoryController@expenseCategoryEdit');
 Route::middleware('auth:api')->post('/expense_category_delete', 'API\ExpenseCategoryController@expenseCategoryDelete');
 
-// shop expense
-//Route::middleware('auth:api')->get('/store_expense_list', 'API\AccountController@storeExpenseList');
-//Route::middleware('auth:api')->post('/store_expense_create', 'API\AccountController@storeExpenseCreate');
-//Route::middleware('auth:api')->post('/store_expense_edit', 'API\AccountController@storeExpenseEdit');
+// expense
+Route::middleware('auth:api')->get('/expense_list_pagination_with_search', 'API\ExpenseController@expenseListPaginationWithSearch');
+Route::middleware('auth:api')->post('/expense_create', 'API\ExpenseController@expenseCreate');
+Route::middleware('auth:api')->post('/expense_edit', 'API\ExpenseController@expenseEdit');
 //Route::middleware('auth:api')->post('/store_expense_delete', 'API\AccountController@storeExpenseDelete');
 
 // voucher type

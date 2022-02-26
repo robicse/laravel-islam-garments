@@ -785,8 +785,8 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->store_id = $store_id;
                         $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
                         $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+                        $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
+                        $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
                         $chart_of_account_transaction_details->chart_of_account_name = $supplier_chart_of_account_info->head_name;
                         $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_chart_of_account_info->parent_head_name;
                         $chart_of_account_transaction_details->chart_of_account_type = $supplier_chart_of_account_info->head_type;
@@ -845,8 +845,8 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->store_id = $store_id;
                         $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
                         $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+                        $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
+                        $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
                         $chart_of_account_transaction_details->chart_of_account_name = $supplier_chart_of_account_info->head_name;
                         $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_chart_of_account_info->parent_head_name;
                         $chart_of_account_transaction_details->chart_of_account_type = $supplier_chart_of_account_info->head_type;

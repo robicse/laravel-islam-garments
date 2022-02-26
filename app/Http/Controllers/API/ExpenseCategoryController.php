@@ -66,9 +66,17 @@ class ExpenseCategoryController extends Controller
                 return response()->json($response,400);
             }
 
-
+            $get_expense_category_code = ExpenseCategory::latest('id','desc')->pluck('code')->first();
+            if(!empty($get_expense_category_code)){
+                $get_expense_category_code_after_replace = str_replace("EC-","",$get_expense_category_code);
+                $expense_category_code = $get_expense_category_code_after_replace+1;
+            }else{
+                $expense_category_code = 1;
+            }
+            $final_expense_category_code = 'EC-'.$expense_category_code;
             $expenseCategory = new ExpenseCategory();
             $expenseCategory->name = $request->name;
+            $expenseCategory->code = $final_expense_category_code;
             $expenseCategory->status = $request->status;
             $expenseCategory->save();
             $insert_id = $expenseCategory->id;
@@ -93,6 +101,7 @@ class ExpenseCategoryController extends Controller
                 $chart_of_accounts = new ChartOfAccount();
                 $chart_of_accounts->head_code = $head_code;
                 $chart_of_accounts->head_name = $request->name;
+                $chart_of_accounts->name_code = $final_expense_category_code;
                 $chart_of_accounts->parent_head_name = 'Office Expenses';
                 $chart_of_accounts->head_type = 'E';
                 $chart_of_accounts->head_level = 2;
