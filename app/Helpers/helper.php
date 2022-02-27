@@ -1063,7 +1063,7 @@ if (! function_exists('trial_balance_report')) {
                 ->first();
 
 
-            if($oResultTrial->Credit+$oResultTrial->Debit>0)
+            if($oResultTrial->Credit+$oResultTrial->Debit > 0)
             {
                 if($oResultTrial->Debit>$oResultTrial->Credit)
                 {
@@ -1099,15 +1099,15 @@ if (! function_exists('trial_balance_report')) {
             $head_name = $oResultInEx[$i]['head_name'];
 
             //$sql = "SELECT SUM(acc_transaction.Debit) AS Debit, SUM(acc_transaction.Credit) AS Credit FROM acc_transaction WHERE acc_transaction.IsAppove =1 AND VDate BETWEEN '" . $dtpFromDate . "' AND '" . $dtpToDate . "' AND COAID LIKE '$COAID%' ";
-            $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
+            $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like',$head_code.'%')
                 ->whereBetween('transaction_date',[$FromDate,$ToDate])
                 ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
                 ->first();
 
 
-            if($oResultIE->Credit+$oResultIE->Debit>0)
+            if($oResultIE->Credit+$oResultIE->Debit > 0)
             {
-                if($oResultIE->Debit>$oResultIE->Credit)
+                if($oResultIE->Debit > $oResultIE->Credit)
                 {
                     $TotalDebit += $oResultIE->Debit-$oResultIE->Credit;
                     $debit = number_format($oResultIE->Debit-$oResultIE->Credit,2);

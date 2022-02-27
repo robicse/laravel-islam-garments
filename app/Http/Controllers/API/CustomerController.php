@@ -77,7 +77,7 @@ class CustomerController extends Controller
     public function customerList(){
         try {
             $customers = DB::table('customers')
-                ->select('id','customer_type','code','name','phone','email','address','initial_due','current_total_due','nid_front','nid_back','image','bank_detail_image','note','status')
+                ->select('id','customer_type','code','shop_name','name','phone','email','address','initial_due','current_total_due','nid_front','nid_back','image','bank_detail_image','note','status')
                 ->orderBy('id','desc')
                 ->get();
 
@@ -89,6 +89,7 @@ class CustomerController extends Controller
             $customer_arr = [];
             foreach ($customers as $customer) {
                 $nested_data['id'] = $customer->id;
+                $nested_data['shop_name'] = $customer->shop_name;
                 $nested_data['customer_type'] = $customer->customer_type;
                 $nested_data['code'] = $customer->code;
                 $nested_data['name'] = $customer->name;
@@ -144,6 +145,7 @@ class CustomerController extends Controller
             $customer = new Customer();
             $customer->customer_type = 'POS Sale';
             $customer->name = $request->name;
+            $customer->shop_name = $request->shop_name;
             $customer->code = $final_customer_code;
             $customer->phone = $request->phone;
             $customer->email = $request->email;
@@ -408,6 +410,7 @@ class CustomerController extends Controller
             $customer = new Customer();
             $customer->customer_type = 'Whole Sale';
             $customer->name = $request->name;
+            $customer->shop_name = $request->shop_name;
             $customer->code = $final_customer_code;
             $customer->phone = $request->phone;
             $customer->email = $request->email;
@@ -696,8 +699,10 @@ class CustomerController extends Controller
                 $update_current_total_due = $previous_current_total_due - $decrease_current_total_due;
             }
 
+
             //$customer->customer_type = $request->customer_type;
             $customer->name = $request->name;
+            $customer->shop_name = $request->shop_name;
             $customer->phone = $request->phone;
             $customer->email = $request->email;
             $customer->address = $request->address;
@@ -805,19 +810,11 @@ class CustomerController extends Controller
             }else{
                 $customer->bank_detail_image = Customer::where('id',$customer->id)->pluck('bank_detail_image')->first();
             }
-            $customer->save();
             $update_customer = $customer->save();
 
             if($update_customer){
-                $chart_of_account = ChartOfAccount::where('name_code',$customer->code)->first();
-                $chart_of_account->head_name=$request->name.'-'.$customer->code;
-                $chart_of_account->save();
-
-
-
-
                 // customer initial due
-                if($request->initial_due > 0) {
+                if( ($customer->initial_due == 0) && ($request->initial_due > 0) ) {
                     $chart_of_account_transaction = ChartOfAccountTransaction::where('transaction_type','Opening Balance')
                     ->where('ref_id',$customer->id)
                     ->first();
@@ -920,6 +917,30 @@ class CustomerController extends Controller
                             $chart_of_account_transaction_details->transaction_date_time = $date_time;
                             $chart_of_account_transaction_details->save();
                         }
+                    }
+                }elseif( ($customer->initial_due > 0) && ($request->initial_due !== $customer->initial_due) ){
+                    $chart_of_account = ChartOfAccount::where('name_code',$customer->code)->first();
+                    $chart_of_account->head_name=$request->name.'-'.$customer->code;
+                    $chart_of_account->save();
+
+                    $chart_of_account_name = $customer->name.'-'.$customer->code;
+                    $customer_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
+                        ->where('chart_of_account_name',$chart_of_account_name)
+                        ->first();
+                    if(!empty($customer_opening_balance)){
+                        $customer_opening_balance->debit = NULL;
+                        $customer_opening_balance->credit = $request->initial_due;
+                        $customer_opening_balance->save();
+                    }
+
+                    // Cash In Hand account
+                    $cash_in_hand_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
+                        ->where('chart_of_account_name','Cash In Hand')
+                        ->first();
+                    if(!empty($cash_in_hand_opening_balance)){
+                        $cash_in_hand_opening_balance->debit = $request->initial_due;
+                        $cash_in_hand_opening_balance->credit = NULL;
+                        $cash_in_hand_opening_balance->save();
                     }
                 }
 

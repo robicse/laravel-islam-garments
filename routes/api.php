@@ -207,6 +207,15 @@ Route::middleware('auth:api')->post('/product_whole_sale_create', 'API\ProductSa
 Route::middleware('auth:api')->post('/product_whole_sale_list_search', 'API\ProductSaleController@productWholeSaleListSearch');
 
 
+// product sale return
+//Route::middleware('auth:api')->get('/product_sale_invoice_list', 'API\ProductSaleController@productSaleInvoiceList');
+//Route::middleware('auth:api')->get('/product_sale_invoice_list_pagination', 'API\ProductSaleController@productSaleInvoiceListPagination');
+//Route::middleware('auth:api')->post('/product_sale_invoice_list_pagination_with_search', 'API\ProductSaleController@productSaleInvoiceListPaginationWithSearch');
+//Route::middleware('auth:api')->post('/product_sale_details', 'API\ProductSaleController@productSaleDetails');
+//Route::middleware('auth:api')->get('/product_sale_return_list', 'API\ProductSaleController@productSaleReturnList');
+//Route::middleware('auth:api')->post('/product_sale_return_details', 'API\ProductSaleController@productSaleReturnDetails');
+Route::middleware('auth:api')->post('/product_sale_return_create', 'API\ProductSaleReturnController@productSaleReturnCreate');
+//Route::middleware('auth:api')->post('/product_sale_return_edit', 'API\ProductSaleController@productSaleReturnEdit');
 
 // expense category
 Route::middleware('auth:api')->get('/expense_category_list', 'API\ExpenseCategoryController@expenseCategoryList');

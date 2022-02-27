@@ -308,7 +308,7 @@ class ProductController extends Controller
     }
 
     public function productCreate(Request $request){
-        try {
+//        try {
             $fourRandomDigit = rand(1000,9999);
             $barcode = time().$fourRandomDigit;
 
@@ -335,6 +335,8 @@ class ProductController extends Controller
 //                    return response()->json($response,409);
 //                }
 //            }
+
+
 
             $product_vat = ProductVat::latest()->first();
             $vat_percentage = 0;
@@ -365,6 +367,12 @@ class ProductController extends Controller
             $product_unit = ProductUnit::where('id',$request->product_unit_id)->pluck('name')->first();
             $product_sub_unit = ProductSubUnit::where('id',$request->product_sub_unit_id)->pluck('name')->first();
             $product_code = $request->product_code;
+
+            $check_exists_product = checkExistsProduct($request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+            if($check_exists_product !== null){
+                $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
+                return response()->json($response,409);
+            }
 
             if(!empty($product_sub_unit) && !empty($product_code)){
                 $name = $product_category.'-'.$product_sub_unit.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
@@ -442,11 +450,11 @@ class ProductController extends Controller
 
             $response = APIHelpers::createAPIResponse(false,201,'Product Added Successfully.',$product->id,null);
             return response()->json($response,201);
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            //return $e->getMessage();
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function productEdit(Request $request){

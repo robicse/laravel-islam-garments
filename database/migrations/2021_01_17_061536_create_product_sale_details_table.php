@@ -25,6 +25,7 @@ class CreateProductSaleDetailsTable extends Migration
             $table->float('price', 8,2);
             $table->float('vat_amount', 8,2);
             $table->float('sub_total', 8,2);
+            $table->float('profit', 8,2)->default(0);
             $table->string('sale_date');
             $table->string('return_among_day');
             $table->string('return_last_date');

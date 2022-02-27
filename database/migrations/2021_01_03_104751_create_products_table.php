@@ -25,6 +25,7 @@ class CreateProductsTable extends Migration
             $table->string('barcode')->unique();
             $table->string('self_no')->nullable();
             $table->integer('low_inventory_alert')->nullable();
+            $table->float('average_purchase_price',8,2)->default(0);
             $table->float('purchase_price',8,2);
             $table->float('whole_sale_price',8,2);
             $table->float('selling_price',8,2);
