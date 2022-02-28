@@ -313,7 +313,7 @@ class CustomerController extends Controller
 
                     $chart_of_account_transactions = new ChartOfAccountTransaction();
                     $chart_of_account_transactions->ref_id = $customer->id;
-                    $chart_of_account_transactions->transaction_type = 'Opening Balance';
+                    $chart_of_account_transactions->transaction_type = 'Opening Balance of '.$coa->head_name;
                     $chart_of_account_transactions->user_id = $user_id;
                     $chart_of_account_transactions->warehouse_id = NULL;
                     $chart_of_account_transactions->store_id = NULL;
@@ -340,7 +340,7 @@ class CustomerController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $coa->head_type;
                         $chart_of_account_transaction_details->debit = $request->initial_due;
                         $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = 'Opening Balance';
+                        $chart_of_account_transaction_details->description = 'Opening Balance of '.$coa->head_name;
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
@@ -348,20 +348,20 @@ class CustomerController extends Controller
                         $chart_of_account_transaction_details->save();
 
                         // Cash In Hand account
-                        $supplier_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
+                        $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
                         $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                         $chart_of_account_transaction_details->warehouse_id = NULL;
                         $chart_of_account_transaction_details->store_id = NULL;
                         $chart_of_account_transaction_details->payment_type_id = 8;
                         $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $supplier_account->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $supplier_account->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $supplier_account->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_account->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $supplier_account->head_type;
+                        $chart_of_account_transaction_details->chart_of_account_id = $cash_in_hand_account->id;
+                        $chart_of_account_transaction_details->chart_of_account_number = $cash_in_hand_account->head_code;
+                        $chart_of_account_transaction_details->chart_of_account_name = $cash_in_hand_account->head_name;
+                        $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_in_hand_account->parent_head_name;
+                        $chart_of_account_transaction_details->chart_of_account_type = $cash_in_hand_account->head_type;
                         $chart_of_account_transaction_details->debit = NULL;
                         $chart_of_account_transaction_details->credit = $request->initial_due;
-                        $chart_of_account_transaction_details->description = 'Opening Balance';
+                        $chart_of_account_transaction_details->description = 'Opening Balance of '.$coa->head_name;
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
@@ -696,7 +696,7 @@ class CustomerController extends Controller
                 $update_current_total_due = $previous_current_total_due + $increase_current_total_due;
             }else{
                 $decrease_current_total_due = $request->initial_due - $previous_initial_due;
-                $update_current_total_due = $previous_current_total_due - $decrease_current_total_due;
+                $update_current_total_due = $previous_current_total_due + $decrease_current_total_due;
             }
 
 
@@ -814,7 +814,7 @@ class CustomerController extends Controller
 
             if($update_customer){
                 // customer initial due
-                if( ($customer->initial_due == 0) && ($request->initial_due > 0) ) {
+                if( ($previous_initial_due == 0) && ($request->initial_due > 0) ) {
                     $chart_of_account_transaction = ChartOfAccountTransaction::where('transaction_type','Opening Balance')
                     ->where('ref_id',$customer->id)
                     ->first();
@@ -918,7 +918,7 @@ class CustomerController extends Controller
                             $chart_of_account_transaction_details->save();
                         }
                     }
-                }elseif( ($customer->initial_due > 0) && ($request->initial_due !== $customer->initial_due) ){
+                }elseif( $request->initial_due !== $previous_initial_due ){
                     $chart_of_account = ChartOfAccount::where('name_code',$customer->code)->first();
                     $chart_of_account->head_name=$request->name.'-'.$customer->code;
                     $chart_of_account->save();

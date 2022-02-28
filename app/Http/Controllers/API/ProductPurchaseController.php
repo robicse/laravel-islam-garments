@@ -305,7 +305,7 @@ class ProductPurchaseController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
                         $chart_of_account_transaction_details->debit = $grand_total_amount;
                         $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = 'Cash In Hand Debit For Purchases';
+                        $chart_of_account_transaction_details->description = 'Cash In Hand Debit For Purchases Paid Amount';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;

@@ -231,7 +231,7 @@ Route::middleware('auth:api')->post('/expense_edit', 'API\ExpenseController@expe
 //Route::middleware('auth:api')->post('/store_expense_delete', 'API\AccountController@storeExpenseDelete');
 
 // voucher type
-//Route::middleware('auth:api')->get('/voucher_type_list', 'API\AccountController@voucherTypeList');
+Route::middleware('auth:api')->get('/voucher_type_list', 'API\AccountController@voucherTypeList');
 //Route::middleware('auth:api')->post('/voucher_type_create', 'API\AccountController@voucherTypeCreate');
 //Route::middleware('auth:api')->post('/voucher_type_edit', 'API\AccountController@voucherTypeEdit');
 //Route::middleware('auth:api')->post('/voucher_type_delete', 'API\AccountController@voucherTypeDelete');
@@ -251,9 +251,9 @@ Route::middleware('auth:api')->get('/chart_of_account_is_general_ledger_list', '
 //Route::middleware('auth:api')->post('/chart_of_account_delete', 'API\AccountController@chartOfAccountDelete');
 
 // chart of account transaction
-//Route::middleware('auth:api')->get('/chart_of_account_transaction_list', 'API\AccountController@chartOfAccountTransactionList');
+Route::middleware('auth:api')->get('/chart_of_account_transaction_list', 'API\AccountController@chartOfAccountTransactionList');
 //Route::middleware('auth:api')->post('/chart_of_account_transaction_details', 'API\AccountController@chartOfAccountTransactionDetails');
-//Route::middleware('auth:api')->post('/chart_of_account_transaction_create', 'API\AccountController@chartOfAccountTransactionCreate');
+Route::middleware('auth:api')->post('/chart_of_account_transaction_create', 'API\AccountController@chartOfAccountTransactionCreate');
 //Route::middleware('auth:api')->post('/chart_of_account_transaction_edit', 'API\AccountController@chartOfAccountTransactionEdit');
 //Route::middleware('auth:api')->post('/chart_of_account_transaction_delete', 'API\AccountController@chartOfAccountTransactionDelete');
 

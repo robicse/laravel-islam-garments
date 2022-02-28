@@ -340,7 +340,7 @@ if (! function_exists('warehouseWiseInformation')) {
                     ->where('warehouse_id', $warehouse->id)
                     ->select(DB::raw('SUM(grand_total_amount) as today_purchase'))
                     ->first();
-                if(!empty($total_purchase_history)){
+                if(!empty($today_purchase_history)){
                     $today_purchase_amount = (int) $today_purchase_history->today_purchase;
                 }else{
                     $today_purchase_amount = 0;

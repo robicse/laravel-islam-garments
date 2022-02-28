@@ -286,9 +286,12 @@ class SupplierController extends Controller
                     $date_time = date('Y-m-d h:i:s');
                     $user_id = Auth::user()->id;
 
+                    // Cash In Hand account
+                    $supplier_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
+
                     $chart_of_account_transactions = new ChartOfAccountTransaction();
                     $chart_of_account_transactions->ref_id = $insert_id;
-                    $chart_of_account_transactions->transaction_type = 'Opening Balance';
+                    $chart_of_account_transactions->transaction_type = 'Opening Balance of '.$supplier_account->head_name;
                     $chart_of_account_transactions->user_id = $user_id;
                     $chart_of_account_transactions->warehouse_id = NULL;
                     $chart_of_account_transactions->store_id = NULL;
@@ -316,15 +319,14 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $coa->head_type;
                         $chart_of_account_transaction_details->debit = $request->initial_due;
                         $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = 'Opening Balance';
+                        $chart_of_account_transaction_details->description = 'Opening Balance of '.$supplier_account->head_name;
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
                         $chart_of_account_transaction_details->transaction_date_time = $date_time;
                         $chart_of_account_transaction_details->save();
 
-                        // Cash In Hand account
-                        $supplier_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
+
                         $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                         $chart_of_account_transaction_details->warehouse_id = NULL;
                         $chart_of_account_transaction_details->store_id = NULL;
@@ -337,7 +339,7 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $supplier_account->head_type;
                         $chart_of_account_transaction_details->debit = NULL;
                         $chart_of_account_transaction_details->credit = $request->initial_due;
-                        $chart_of_account_transaction_details->description = 'Opening Balance';
+                        $chart_of_account_transaction_details->description = 'Opening Balance of '.$supplier_account->head_name;
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
@@ -407,7 +409,7 @@ class SupplierController extends Controller
                 $update_current_total_due = $previous_current_total_due + $increase_current_total_due;
             }else{
                 $decrease_current_total_due = $request->initial_due - $previous_initial_due;
-                $update_current_total_due = $previous_current_total_due - $decrease_current_total_due;
+                $update_current_total_due = $previous_current_total_due + $decrease_current_total_due;
             }
 
             $supplier->name = $request->name;
@@ -530,7 +532,7 @@ class SupplierController extends Controller
 
             if($update_supplier){
                 // supplier initial due
-                if( ($supplier->initial_due == 0) && ($request->initial_due > 0) ) {
+                if( ($previous_initial_due == 0) && ($request->initial_due > 0) ) {
                     $get_voucher_name = 'Opening Balance';
                     $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',8)->latest()->pluck('voucher_no')->first();
                     if(!empty($get_voucher_no)){
@@ -606,7 +608,7 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->transaction_date_time = $date_time;
                         $chart_of_account_transaction_details->save();
                     }
-                }elseif( ($supplier->initial_due > 0) && ($request->initial_due !== $supplier->initial_due) ){
+                }elseif( $request->initial_due !== $previous_initial_due ){
                     $chart_of_account = ChartOfAccount::where('name_code',$supplier->code)->first();
                     $chart_of_account->head_name=$request->name.'-'.$supplier->code;
                     $chart_of_account->save();
