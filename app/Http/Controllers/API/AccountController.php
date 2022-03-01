@@ -1291,7 +1291,7 @@ class AccountController extends Controller
 
 
 
-
+//        return response()->json(['success'=>true,'response' => $request->all()], $this->successStatus);
         $warehouse_id = $request->warehouse_id;
         $store_id = $request->store_id;
         $chart_of_account_name = $request->chart_of_account_name;
@@ -1299,16 +1299,26 @@ class AccountController extends Controller
         $to_date = $request->to_date;
 
 
-        if($warehouse_id != 0){
+        if($warehouse_id !== '' && $store_id !== ''){
             $gl_pre_valance_data = DB::table('chart_of_account_transaction_details')
                 ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
                 ->select('chart_of_account_transaction_details.chart_of_account_name', DB::raw('SUM(chart_of_account_transaction_details.debit) as debit, SUM(chart_of_account_transaction_details.credit) as credit'))
                 ->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
                 ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
                 ->where('chart_of_account_transactions.warehouse_id',$warehouse_id)
+                ->where('chart_of_account_transactions.store_id',$store_id)
                 ->groupBy('chart_of_account_transaction_details.chart_of_account_name')
                 ->first();
-        }elseif($store_id != 0){
+        }elseif($warehouse_id !== ''){
+            $gl_pre_valance_data = DB::table('chart_of_account_transaction_details')
+                ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                ->select('chart_of_account_transaction_details.chart_of_account_name', DB::raw('SUM(chart_of_account_transaction_details.debit) as debit, SUM(chart_of_account_transaction_details.credit) as credit'))
+                ->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
+                ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                ->where('chart_of_account_transactions.store_id',$store_id)
+                ->groupBy('chart_of_account_transaction_details.chart_of_account_name')
+                ->first();
+        }elseif($store_id !== ''){
             $gl_pre_valance_data = DB::table('chart_of_account_transaction_details')
                 ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
                 ->select('chart_of_account_transaction_details.chart_of_account_name', DB::raw('SUM(chart_of_account_transaction_details.debit) as debit, SUM(chart_of_account_transaction_details.credit) as credit'))
@@ -1320,8 +1330,8 @@ class AccountController extends Controller
         }else{
             $gl_pre_valance_data = DB::table('chart_of_account_transaction_details')
                 ->select('chart_of_account_name', DB::raw('SUM(debit) as debit, SUM(credit) as credit'))
-                ->where('transaction_date', '<',$request->from_date)
-                ->where('chart_of_account_name',$request->chart_of_account_name)
+                ->where('transaction_date', '<',$from_date)
+                ->where('chart_of_account_name',$chart_of_account_name)
                 ->groupBy('chart_of_account_name')
                 ->first();
 
@@ -1355,14 +1365,35 @@ class AccountController extends Controller
 
 
 
-        if($warehouse_id !== ''){
-            if($request->from_date && $request->to_date){
+
+        if(($from_date !== null) && ($to_date !== null)){
+            if( ($warehouse_id !== null) && ($store_id !== null)){
+//                return response()->json(['success'=>true,'response' => 1], 200);
                 $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
                     ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
                     ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.transaction_date','>=',$from_date)
+                    ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date)
+                    ->where('chart_of_account_transaction_details.warehouse_id','=',$warehouse_id)
+                    ->where('chart_of_account_transaction_details.store_id','=',$store_id)
+                    ->select(
+                        'voucher_types.name as voucher_type_name',
+                        'chart_of_account_transactions.voucher_no',
+                        'chart_of_account_transaction_details.debit',
+                        'chart_of_account_transaction_details.credit',
+                        'chart_of_account_transaction_details.description',
+                        'chart_of_account_transaction_details.transaction_date_time'
+                    )
+                    ->get();
+            }elseif($warehouse_id !== null){
+//                return response()->json(['success'=>true,'response' => 2], 200);
+                $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
+                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.transaction_date','>=',$from_date)
+                    ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date)
                     ->where('chart_of_account_transaction_details.warehouse_id','=',$warehouse_id)
                     ->select(
                         'voucher_types.name as voucher_type_name',
@@ -1373,33 +1404,15 @@ class AccountController extends Controller
                         'chart_of_account_transaction_details.transaction_date_time'
                     )
                     ->get();
-
-            }else{
+            }elseif($store_id !== null){
+//                return response()->json(['success'=>true,'response' => 3], 200);
                 $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
                     ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
                     ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.warehouse_id','=',$warehouse_id)
-                    ->select(
-                        'voucher_types.name as voucher_type_name',
-                        'chart_of_account_transactions.voucher_no',
-                        'chart_of_account_transaction_details.debit',
-                        'chart_of_account_transaction_details.debit',
-                        'chart_of_account_transaction_details.credit',
-                        'chart_of_account_transaction_details.description',
-                        'chart_of_account_transaction_details.transaction_date_time'
-                    )
-                    ->get();
-            }
-        }elseif($store_id !== ''){
-            if($request->from_date && $request->to_date){
-                $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transaction_details.store_id','=',$request->store_id)
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.transaction_date','>=',$from_date)
+                    ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date)
+                    ->where('chart_of_account_transaction_details.store_id','=',$store_id)
                     ->select(
                         'voucher_types.name as voucher_type_name',
                         'chart_of_account_transactions.voucher_no',
@@ -1409,17 +1422,17 @@ class AccountController extends Controller
                         'chart_of_account_transaction_details.transaction_date_time'
                     )
                     ->get();
-
             }else{
+//                return response()->json(['success'=>true,'response' => 4], 200);
                 $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
                     ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
                     ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.store_id','=',$request->store_id)
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.transaction_date','>=',$from_date)
+                    ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date)
                     ->select(
                         'voucher_types.name as voucher_type_name',
                         'chart_of_account_transactions.voucher_no',
-                        'chart_of_account_transaction_details.debit',
                         'chart_of_account_transaction_details.debit',
                         'chart_of_account_transaction_details.credit',
                         'chart_of_account_transaction_details.description',
@@ -1428,13 +1441,43 @@ class AccountController extends Controller
                     ->get();
             }
         }else{
-            if($request->from_date && $request->to_date){
+            if($warehouse_id !== '' && $store_id !== ''){
                 $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
                     ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
                     ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.warehouse_id','=',$warehouse_id)
+                    ->where('chart_of_account_transaction_details.store_id','=',$store_id)
+                    ->select(
+                        'voucher_types.name as voucher_type_name',
+                        'chart_of_account_transactions.voucher_no',
+                        'chart_of_account_transaction_details.debit',
+                        'chart_of_account_transaction_details.credit',
+                        'chart_of_account_transaction_details.description',
+                        'chart_of_account_transaction_details.transaction_date_time'
+                    )
+                    ->get();
+            }elseif($warehouse_id !== ''){
+                $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
+                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.warehouse_id','=',$warehouse_id)
+                    ->select(
+                        'voucher_types.name as voucher_type_name',
+                        'chart_of_account_transactions.voucher_no',
+                        'chart_of_account_transaction_details.debit',
+                        'chart_of_account_transaction_details.credit',
+                        'chart_of_account_transaction_details.description',
+                        'chart_of_account_transaction_details.transaction_date_time'
+                    )
+                    ->get();
+            }elseif($store_id !== ''){
+                $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
+                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.store_id','=',$store_id)
                     ->select(
                         'voucher_types.name as voucher_type_name',
                         'chart_of_account_transactions.voucher_no',
@@ -1448,11 +1491,10 @@ class AccountController extends Controller
                 $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
                     ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
                     ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+                    ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
                     ->select(
                         'voucher_types.name as voucher_type_name',
                         'chart_of_account_transactions.voucher_no',
-                        'chart_of_account_transaction_details.debit',
                         'chart_of_account_transaction_details.debit',
                         'chart_of_account_transaction_details.credit',
                         'chart_of_account_transaction_details.description',
@@ -1471,6 +1513,7 @@ class AccountController extends Controller
                 'pre_debit' => $pre_debit,
                 'pre_credit' => $pre_credit,
                 'chart_of_account_name' => $chart_of_account_name,
+                'head_debit_or_credit' => get_head_debit_or_credit($chart_of_account_name),
                 'from_date' => $from_date,
                 'to_date' => $to_date,
             ];
@@ -2003,6 +2046,7 @@ class AccountController extends Controller
 
 
         $store_id = $request->store_id;
+        $warehouse_id = $request->warehouse_id;
         $chart_of_account_name = $request->chart_of_account_name;
         $from_date = $request->from_date;
         $to_date = $request->to_date;
@@ -2017,11 +2061,20 @@ class AccountController extends Controller
                 ->where('chart_of_account_transactions.store_id',$store_id)
                 ->groupBy('chart_of_account_transaction_details.chart_of_account_name')
                 ->first();
+        }elseif($warehouse_id != 0){
+            $gl_pre_valance_data = DB::table('chart_of_account_transaction_details')
+                ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                ->select('chart_of_account_transaction_details.chart_of_account_name', DB::raw('SUM(chart_of_account_transaction_details.debit) as debit, SUM(chart_of_account_transaction_details.credit) as credit'))
+                ->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
+                ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                ->where('chart_of_account_transactions.warehouse_id',$warehouse_id)
+                ->groupBy('chart_of_account_transaction_details.chart_of_account_name')
+                ->first();
         }else{
             $gl_pre_valance_data = DB::table('chart_of_account_transaction_details')
                 ->select('chart_of_account_name', DB::raw('SUM(debit) as debit, SUM(credit) as credit'))
-                ->where('transaction_date', '<',$request->from_date)
-                ->where('chart_of_account_name',$request->chart_of_account_name)
+                ->where('transaction_date', '<',$from_date)
+                ->where('chart_of_account_name',$chart_of_account_name)
                 ->groupBy('chart_of_account_name')
                 ->first();
 
@@ -2055,365 +2108,358 @@ class AccountController extends Controller
 
 
         // sales
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $sale_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.debit) as debit'))
-                    ->first();
-                //return response()->json(['success'=>true,'response' => $chart_of_account_transaction], $this->successStatus);
-            }else{
-                $sale_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.debit) as debit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $sale_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.debit) as debit'))
-                    ->first();
-            }else{
-                $sale_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.debit) as debit'))
-                    ->first();
-            }
+        if($store_id !== ''){
+            $sale_info = DB::table("chart_of_account_transaction_details")
+                ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                ->where('chart_of_account_transaction_details.transaction_date','>=',$from_date)
+                ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date)
+                ->where('chart_of_account_transactions.store_id','=',$store_id)
+                ->where('chart_of_account_transactions.transaction_type','=','Sales')
+                ->select(DB::raw('SUM(chart_of_account_transaction_details.debit) as debit'))
+                ->first();
+            //return response()->json(['success'=>true,'response' => $chart_of_account_transaction], $this->successStatus);
+        }
+        if($warehouse_id !== ''){
+            $sale_info = DB::table("chart_of_account_transaction_details")
+                ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                ->where('chart_of_account_transaction_details.transaction_date','>=',$from_date)
+                ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date)
+                ->where('chart_of_account_transactions.warehouse_id','=',$warehouse_id)
+                ->where('chart_of_account_transactions.transaction_type','=','Sales')
+                ->select(DB::raw('SUM(chart_of_account_transaction_details.debit) as debit'))
+                ->first();
+            //return response()->json(['success'=>true,'response' => $chart_of_account_transaction], $this->successStatus);
+        }
+        else{
+            $sale_info = DB::table("chart_of_account_transaction_details")
+                ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+                ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name)
+                ->where('chart_of_account_transaction_details.transaction_date','>=',$from_date)
+                ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date)
+                ->where('chart_of_account_transactions.transaction_type','=','Sales')
+                ->select(DB::raw('SUM(chart_of_account_transaction_details.debit) as debit'))
+                ->first();
         }
 
         // sales return info
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $sale_return_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $sale_return_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $sale_return_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $sale_return_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }
+//        if($store_id != 0){
+//            if($request->from_date && $request->to_date){
+//                $sale_return_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $sale_return_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }else{
+//            if($request->from_date && $request->to_date){
+//                $sale_return_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $sale_return_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.transaction_type','=','Sales Return')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }
 
         // bkash
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }
+//        if($store_id != 0){
+//            if($request->from_date && $request->to_date){
+//                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }else{
+//            if($request->from_date && $request->to_date){
+//                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $bkash_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Bkash')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }
 
         // Card
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $card_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $card_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $card_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $card_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }
+//        if($store_id != 0){
+//            if($request->from_date && $request->to_date){
+//                $card_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $card_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }else{
+//            if($request->from_date && $request->to_date){
+//                $card_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $card_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Card')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }
 
         // Rocket
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }
+//        if($store_id != 0){
+//            if($request->from_date && $request->to_date){
+//                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }else{
+//            if($request->from_date && $request->to_date){
+//                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $rocket_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Rocket')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }
 
         // Upay
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $upay_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $upay_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $upay_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $upay_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }
+//        if($store_id != 0){
+//            if($request->from_date && $request->to_date){
+//                $upay_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $upay_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }else{
+//            if($request->from_date && $request->to_date){
+//                $upay_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $upay_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Upay')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }
 
         // Employee Salary
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }
+//        if($store_id != 0){
+//            if($request->from_date && $request->to_date){
+//                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }else{
+//            if($request->from_date && $request->to_date){
+//                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $employee_salary_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Employee Salary')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }
 
         // Boss
-        if($store_id != 0){
-            if($request->from_date && $request->to_date){
-                $boss_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $boss_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }else{
-            if($request->from_date && $request->to_date){
-                $boss_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
-                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }else{
-                $boss_credit_info = DB::table("chart_of_account_transaction_details")
-                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
-                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
-                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
-                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
-                    ->first();
-            }
-        }
+//        if($store_id != 0){
+//            if($request->from_date && $request->to_date){
+//                $boss_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $boss_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transactions.store_id','=',$request->store_id)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }else{
+//            if($request->from_date && $request->to_date){
+//                $boss_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
+//                    ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }else{
+//                $boss_credit_info = DB::table("chart_of_account_transaction_details")
+//                    ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
+//                    ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+//                    //->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
+//                    ->where('chart_of_account_transaction_details.chart_of_account_name','=','Boss')
+//                    ->select(DB::raw('SUM(chart_of_account_transaction_details.credit) as credit'))
+//                    ->first();
+//            }
+//        }
 
 
 //        $ledger_data = [
@@ -2439,34 +2485,34 @@ class AccountController extends Controller
                 'debit' => $sale_info->debit,
                 'credit' => 0
             ],
-            'sale_return_info' => [
-                'debit' => 0,
-                'credit' => $sale_return_info->credit ? $sale_return_info->credit : 0
-            ],
-            'bkash_credit_info' => [
-                'debit' => 0,
-                'credit' => $bkash_credit_info->credit ? $bkash_credit_info->credit :0
-            ],
-            'card_credit_info' => [
-                'debit' => 0,
-                'credit' => $card_credit_info->credit ? $card_credit_info->credit : 0
-            ],
-            'rocket_credit_info' => [
-                'debit' => 0,
-                'credit' => $rocket_credit_info->credit ? $rocket_credit_info->credit : 0
-            ],
-            'upay_credit_info' => [
-                'debit' => 0,
-                'credit' => $upay_credit_info->credit ? $upay_credit_info->credit : 0
-            ],
-            'employee_salary_credit_info' => [
-                'debit' => 0,
-                'credit' => $employee_salary_credit_info->credit ? $employee_salary_credit_info->credit : 0
-            ],
-            'boss_credit_info' => [
-                'debit' => 0,
-                'credit' => $boss_credit_info->credit ? $boss_credit_info->credit : 0
-            ],
+//            'sale_return_info' => [
+//                'debit' => 0,
+//                'credit' => $sale_return_info->credit ? $sale_return_info->credit : 0
+//            ],
+//            'bkash_credit_info' => [
+//                'debit' => 0,
+//                'credit' => $bkash_credit_info->credit ? $bkash_credit_info->credit :0
+//            ],
+//            'card_credit_info' => [
+//                'debit' => 0,
+//                'credit' => $card_credit_info->credit ? $card_credit_info->credit : 0
+//            ],
+//            'rocket_credit_info' => [
+//                'debit' => 0,
+//                'credit' => $rocket_credit_info->credit ? $rocket_credit_info->credit : 0
+//            ],
+//            'upay_credit_info' => [
+//                'debit' => 0,
+//                'credit' => $upay_credit_info->credit ? $upay_credit_info->credit : 0
+//            ],
+//            'employee_salary_credit_info' => [
+//                'debit' => 0,
+//                'credit' => $employee_salary_credit_info->credit ? $employee_salary_credit_info->credit : 0
+//            ],
+//            'boss_credit_info' => [
+//                'debit' => 0,
+//                'credit' => $boss_credit_info->credit ? $boss_credit_info->credit : 0
+//            ],
             'PreBalance' => $PreBalance,
             'preDebCre' => $preDebCre,
             'pre_debit' => $pre_debit,

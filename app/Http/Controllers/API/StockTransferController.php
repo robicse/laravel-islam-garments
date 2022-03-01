@@ -270,6 +270,26 @@ class StockTransferController extends Controller
             // Cash In Hand Account Info
             $cash_chart_of_account_info = ChartOfAccount::where('head_name','Cash In Hand')->first();
 
+            // Warehouse debit
+            $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+            $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
+            $chart_of_account_transaction_details->store_id = NULL;
+            $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+            $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+            $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
+            $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+            $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
+            $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
+            $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
+            $chart_of_account_transaction_details->debit = $total_amount;
+            $chart_of_account_transaction_details->credit = NULL;
+            $chart_of_account_transaction_details->description = 'Warehouse Debit For Stock Transfer';
+            $chart_of_account_transaction_details->year = $year;
+            $chart_of_account_transaction_details->month = $month;
+            $chart_of_account_transaction_details->transaction_date = $date;
+            $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+            $chart_of_account_transaction_details->save();
+
             // store credit
             $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
             $chart_of_account_transaction_details->warehouse_id = NULL;
@@ -290,25 +310,7 @@ class StockTransferController extends Controller
             $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
             $chart_of_account_transaction_details->save();
 
-            // Warehouse debit
-            $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-            $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-            $chart_of_account_transaction_details->store_id = NULL;
-            $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-            $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-            $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-            $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-            $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
-            $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-            $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-            $chart_of_account_transaction_details->debit = $total_amount;
-            $chart_of_account_transaction_details->credit = NULL;
-            $chart_of_account_transaction_details->description = 'Warehouse Debit For Stock Transfer';
-            $chart_of_account_transaction_details->year = $year;
-            $chart_of_account_transaction_details->month = $month;
-            $chart_of_account_transaction_details->transaction_date = $date;
-            $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-            $chart_of_account_transaction_details->save();
+
         }
 
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse To Store Stock Added Successfully.',null);

@@ -233,7 +233,7 @@ class SupplierController extends Controller
             if($insert_id){
                 $account = DB::table('chart_of_accounts')
                     ->where('head_level',3)
-                    ->where('head_code', 'like', '50101%')
+                    ->where('head_code', 'like', '20101%')
                     ->Orderby('created_at', 'desc')
                     ->limit(1)
                     ->first();
@@ -241,7 +241,7 @@ class SupplierController extends Controller
                 if(!empty($account)){
                     $head_code=$account->head_code+1;
                 }else{
-                    $head_code="5010100001";
+                    $head_code="2010100001";
                 }
                 $head_name = $request->name.'-'.$final_supplier_code;
 
@@ -250,6 +250,7 @@ class SupplierController extends Controller
                 $head_type = 'L';
 
                 $coa = new ChartOfAccount();
+                $coa->head_debit_or_credit  = 'Cr';
                 $coa->head_code             = $head_code;
                 $coa->head_name             = $head_name;
                 $coa->name_code             = $final_supplier_code;

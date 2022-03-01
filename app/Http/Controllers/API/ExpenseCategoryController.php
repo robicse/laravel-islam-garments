@@ -99,6 +99,7 @@ class ExpenseCategoryController extends Controller
 
 
                 $chart_of_accounts = new ChartOfAccount();
+                $chart_of_accounts->head_debit_or_credit  = 'Cr';
                 $chart_of_accounts->head_code = $head_code;
                 $chart_of_accounts->head_name = $request->name;
                 $chart_of_accounts->name_code = $final_expense_category_code;

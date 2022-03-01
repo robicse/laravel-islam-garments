@@ -52,6 +52,7 @@ if (! function_exists('currentUserDetails')) {
 if (! function_exists('totalStaff')) {
     function totalStaff() {
         return DB::table('users')
+            ->where('name','!=','Super Admin')
             ->where('name','!=','production')
             ->where('name','!=','Walk-In-Customer')
             ->get()->count();
@@ -267,6 +268,16 @@ if (! function_exists('paymentType')) {
         return DB::table('payment_types')
             ->where('id',$id)
             ->pluck('name')
+            ->first();
+    }
+}
+
+// head_debit_or_credit
+if (! function_exists('get_head_debit_or_credit')) {
+    function get_head_debit_or_credit($name) {
+        return DB::table('chart_of_accounts')
+            ->where('head_name',$name)
+            ->pluck('head_debit_or_credit')
             ->first();
     }
 }

@@ -277,6 +277,7 @@ class CustomerController extends Controller
                 $head_type = 'A';
 
                 $coa = new ChartOfAccount();
+                $coa->head_debit_or_credit  = 'De';
                 $coa->parent_head_name      = $parent_head_name;
                 $coa->head_name             = $head_name;
                 $coa->head_code             = $head_code;
