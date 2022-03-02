@@ -806,6 +806,7 @@ class SupplierController extends Controller
             $supplier->current_total_due = $update_current_total_due;
             $affected_row = $supplier->save();
 
+
             if($affected_row){
                 // posting
                 $date = date('Y-m-d');
@@ -815,6 +816,9 @@ class SupplierController extends Controller
                 $month = date('m');
                 $year = date('Y');
                 $transaction_date_time = date('Y-m-d H:i:s');
+
+                // Account Payable Account Info
+                $account_payable_info = ChartOfAccount::where('head_name','Account Payable')->first();
 
                 if($payment_type_id == 1) {
                     // Cash In Hand For Paid Amount
@@ -851,31 +855,11 @@ class SupplierController extends Controller
                         $code = Supplier::where('id', $supplier_id)->pluck('code')->first();
                         $supplier_chart_of_account_info = ChartOfAccount::where('name_code', $code)->first();
 
-                        // supplier debit
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                        $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $supplier_chart_of_account_info->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_chart_of_account_info->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $supplier_chart_of_account_info->head_type;
-                        $chart_of_account_transaction_details->debit = $grand_total_amount;
-                        $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = $supplier_chart_of_account_info->head_name . ' Supplier Debited For Due Paid';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                        $chart_of_account_transaction_details->save();
-
                         // Cash In Hand credit
                         $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                         $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
                         $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                        $chart_of_account_transaction_details->payment_type_id = 1;
                         $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
                         $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
                         $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
@@ -883,48 +867,28 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
                         $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
                         $chart_of_account_transaction_details->debit = NULL;
-                        $chart_of_account_transaction_details->credit = $grand_total_amount;
-                        $chart_of_account_transaction_details->description = 'Cash In Hand Credit For Due Paid';
+                        $chart_of_account_transaction_details->credit = $paid_amount;
+                        $chart_of_account_transaction_details->description = 'Cash In Hand Credit For Due Amount Paid';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
                         $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
                         $chart_of_account_transaction_details->save();
 
-                        // Cash In Hand debit
+                        // Account Payable
                         $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                         $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
                         $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                        $chart_of_account_transaction_details->payment_type_id = 1;
                         $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-                        $chart_of_account_transaction_details->debit = $grand_total_amount;
+                        $chart_of_account_transaction_details->chart_of_account_id = $account_payable_info->id;
+                        $chart_of_account_transaction_details->chart_of_account_number = $account_payable_info->head_code;
+                        $chart_of_account_transaction_details->chart_of_account_name = 'Account Payable';
+                        $chart_of_account_transaction_details->chart_of_account_parent_name = $account_payable_info->parent_head_name;
+                        $chart_of_account_transaction_details->chart_of_account_type = $account_payable_info->head_type;
+                        $chart_of_account_transaction_details->debit = $paid_amount;
                         $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = 'Cash In Hand Debit For Due Paid';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                        $chart_of_account_transaction_details->save();
-
-                        // supplier credit
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                        $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $supplier_chart_of_account_info->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_chart_of_account_info->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $supplier_chart_of_account_info->head_type;
-                        $chart_of_account_transaction_details->debit = NULL;
-                        $chart_of_account_transaction_details->credit = $grand_total_amount;
-                        $chart_of_account_transaction_details->description = $supplier_chart_of_account_info->head_name . ' Supplier Credited For Due Paid';
+                        $chart_of_account_transaction_details->description = 'Account Payable Debit For Due Amount Paid';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
