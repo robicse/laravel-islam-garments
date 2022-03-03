@@ -248,7 +248,6 @@ class ProductController extends Controller
                 'type' => 'required',
                 'product_category_id'=> 'required',
                 'product_unit_id'=> 'required',
-                'product_size_id'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -279,7 +278,6 @@ class ProductController extends Controller
                 //'name' => 'required',
                 'product_category_id'=> 'required',
                 'product_unit_id'=> 'required',
-                'product_size_id'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -287,12 +285,58 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
 
-            $product_info = Product::where('type',$request->type)
-                ->where('product_category_id',$request->product_category_id)
-                ->where('product_unit_id',$request->product_unit_id)
-                ->where('product_size_id',$request->product_size_id)
-                ->latest()
-                ->paginate(1);
+            if($request->type === 'Buy'){
+                if(!empty($request->product_sub_unit_id)){
+                    $product_info = Product::where('type',$request->type)
+                        ->where('product_category_id',$request->product_category_id)
+                        ->where('product_unit_id',$request->product_unit_id)
+                        ->where('product_sub_unit_id',$request->product_sub_unit_id)
+                        ->latest()
+                        ->paginate(1);
+                }else{
+                    $product_info = Product::where('type',$request->type)
+                        ->where('product_category_id',$request->product_category_id)
+                        ->where('product_unit_id',$request->product_unit_id)
+                        ->latest()
+                        ->paginate(1);
+                }
+
+            }else{
+                if( (!empty($request->product_sub_unit_id)) && (!empty($request->product_code))) {
+                    $product_info = Product::where('type', $request->type)
+                        ->where('product_category_id', $request->product_category_id)
+                        ->where('product_unit_id', $request->product_unit_id)
+                        ->where('product_sub_unit_id', $request->product_sub_unit_id)
+                        ->where('product_size_id', $request->product_size_id)
+                        ->where('product_code', $request->product_code)
+                        ->latest()
+                        ->paginate(1);
+                }elseif( (!empty($request->product_sub_unit_id)) && (empty($request->product_code))) {
+                    $product_info = Product::where('type', $request->type)
+                        ->where('product_category_id', $request->product_category_id)
+                        ->where('product_unit_id', $request->product_unit_id)
+                        ->where('product_sub_unit_id', $request->product_sub_unit_id)
+                        ->where('product_size_id', $request->product_size_id)
+                        ->latest()
+                        ->paginate(1);
+                }elseif( (empty($request->product_sub_unit_id)) && (!empty($request->product_code))) {
+                    $product_info = Product::where('type', $request->type)
+                        ->where('product_category_id', $request->product_category_id)
+                        ->where('product_unit_id', $request->product_unit_id)
+                        ->where('product_size_id', $request->product_size_id)
+                        ->where('product_code', $request->product_code)
+                        ->latest()
+                        ->paginate(1);
+                }else{
+                    $product_info = Product::where('type', $request->type)
+                        ->where('product_category_id', $request->product_category_id)
+                        ->where('product_unit_id', $request->product_unit_id)
+                        ->where('product_size_id', $request->product_size_id)
+                        ->latest()
+                        ->paginate(1);
+                }
+            }
+
 
             if(count($product_info) === 0){
                 $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
@@ -362,6 +406,7 @@ class ProductController extends Controller
             $final_product_code = 'PC-'.$product_code;
             $date = date('Y-m-d');
 
+            $type = $request->type;
             $product_category = ProductCategory::where('id',$request->product_category_id)->pluck('name')->first();
             $product_size = ProductSize::where('id',$request->product_size_id)->pluck('name')->first();
             $product_unit = ProductUnit::where('id',$request->product_unit_id)->pluck('name')->first();
@@ -374,23 +419,31 @@ class ProductController extends Controller
                 return response()->json($response,409);
             }
 
-            if(!empty($product_sub_unit) && !empty($product_code)){
-                $name = $product_category.'-'.$product_sub_unit.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
-            }elseif(empty($product_sub_unit) && !empty($product_code)){
-                $name = $product_category.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
-            }elseif(!empty($product_sub_unit) && empty($product_code)){
-                $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit.'-'.$product_size;
+            if($type === 'Buy'){
+                if(!empty($product_sub_unit)){
+                    $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit;
+                }else{
+                    $name = $product_category.'-'.$product_unit;
+                }
             }else{
-                $name = $product_category.'-'.$product_unit.'-'.$product_size;
+                if( (!empty($product_sub_unit)) && (!empty($product_code)) ){
+                    $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit.'-'.$product_size.'-'.$product_code;
+                }elseif( (empty($product_sub_unit)) && (!empty($product_code)) ){
+                    $name = $product_category.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
+                }elseif( (!empty($product_sub_unit)) && (empty($product_code)) ){
+                    $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit.'-'.$product_size;
+                }else{
+                    $name = $product_category.'-'.$product_unit.'-'.$product_size;
+                }
             }
 
 
             $product = new Product();
-            $product->type = $request->type;
+            $product->type = $type;
             $product->product_category_id = $request->product_category_id;
             $product->product_unit_id = $request->product_unit_id;
             $product->product_sub_unit_id = $request->product_sub_unit_id ? $request->product_sub_unit_id : NULL;
-            $product->product_size_id = $request->product_size_id;
+            $product->product_size_id = $request->product_size_id ? $request->product_size_id : NULL;;
             $product->name = $name;
             $product->code = $final_product_code;
             $product->product_code = $request->product_code;
