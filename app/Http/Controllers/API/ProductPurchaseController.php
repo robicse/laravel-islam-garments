@@ -29,16 +29,13 @@ use Illuminate\Support\Facades\Validator;
 class ProductPurchaseController extends Controller
 {
     public function productPurchaseCreate(Request $request){
-//        try {
-//        return response()->json(['success'=>true,'response' => 'come here'], 200);
-//        return response()->json(['success'=>true,'response' => $request->all()], 200);
+        try {
             $this->validate($request, [
                 'date'=> 'required',
                 'warehouse_id'=> 'required',
                 'supplier_id'=> 'required',
                 'payment_type_id'=> 'required',
                 'sub_total_amount'=> 'required',
-                //'discount_type'=> 'required',
                 'discount_percent'=> 'required',
                 'discount_amount'=> 'required',
                 'after_discount_amount'=> 'required',
@@ -46,12 +43,6 @@ class ProductPurchaseController extends Controller
                 'paid_amount'=> 'required',
                 'due_amount'=> 'required',
             ]);
-
-//            $products = json_decode($request->products);
-//            foreach ($products as $data) {
-//                $product_id = $data->id;
-//                return response()->json(['success'=>true,'response' => $product_id], 200);
-//            }
 
             $get_invoice_no = ProductPurchase::latest()->pluck('invoice_no')->first();
             if(!empty($get_invoice_no)){
@@ -76,16 +67,10 @@ class ProductPurchaseController extends Controller
             $discount_percent = $request->discount_percent ? $request->discount_percent : 0;
             $discount_amount = $request->discount_amount ? $request->discount_amount : 0;
             $after_discount_amount = $request->after_discount_amount ? $request->after_discount_amount : 0;
+            $paid_amount = $request->paid_amount;
+            $due_amount = $request->due_amount;
             $products = json_decode($request->products);
-            if($payment_type_id == 1){
-                $paid_amount = $grand_total_amount;
-                $due_amount = 0;
-            }elseif($payment_type_id == 2){
-                $paid_amount = $request->paid_amount;
-                $due_amount = $request->due_amount;
-            }else{
 
-            }
 
             // product purchase
             $productPurchase = new ProductPurchase();
@@ -176,52 +161,10 @@ class ProductPurchaseController extends Controller
                     }
                 }
 
-                // transaction
-//                $transaction = new Transaction();
-//                $transaction->ref_id = $insert_id;
-//                $transaction->invoice_no = $final_invoice;
-//                $transaction->user_id = $user_id;
-//                $transaction->warehouse_id = $request->warehouse_id;
-//                $transaction->party_id = $request->party_id;
-//                $transaction->transaction_type = 'whole_purchase';
-//                $transaction->payment_type = $request->payment_type;
-//                $transaction->amount = $request->paid_amount;
-//                $transaction->transaction_date = $date;
-//                $transaction->transaction_date_time = $date_time;
-//                $transaction->save();
-
-                // payment paid
-//                $payment_paid = new PaymentPaid();
-//                $payment_paid->invoice_no = $final_invoice;
-//                $payment_paid->product_purchase_id = $insert_id;
-//                $payment_paid->user_id = $user_id;
-//                $payment_paid->party_id = $request->party_id;
-//                $payment_paid->paid_type = 'Purchase';
-//                $payment_paid->paid_amount = $request->paid_amount;
-//                $payment_paid->due_amount = $request->due_amount;
-//                $payment_paid->current_paid_amount = $request->paid_amount;
-//                $payment_paid->paid_date = $date;
-//                $payment_paid->paid_date_time = $date_time;
-//                $payment_paid->save();
-
                 // posting
                 $month = date('m', strtotime($date));
                 $year = date('Y', strtotime($date));
                 $transaction_date_time = date('Y-m-d H:i:s');
-
-
-                // Note For Cash Paid
-
-                // 1.
-                // Supplier        => debit
-                // Cash In Hand    => credit
-
-                // 2.
-                // Cash In Hand    => debit
-                // Supplier        => credit
-
-
-
 
                 // supplier current due update
                 $supplier = Supplier::find($supplier_id);
@@ -257,144 +200,11 @@ class ProductPurchaseController extends Controller
                 $chart_of_account_transactions->save();
                 $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
 
-                if($payment_type_id === 1){
+                if($chart_of_account_transactions_insert_id){
+
                     // Cash In Hand Account Info
                     $cash_chart_of_account_info = ChartOfAccount::where('head_name','Cash In Hand')->first();
 
-                    // supplier head
-                    $code = Supplier::where('id',$supplier_id)->pluck('code')->first();
-                    $supplier_chart_of_account_info = ChartOfAccount::where('name_code',$code)->first();
-
-                    // Account Payable Account Info
-                    $account_payable_info = ChartOfAccount::where('head_name','Account Payable')->first();
-
-
-                    // For Paid Amount
-                    // supplier debit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 1;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $supplier_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $supplier_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = $paid_amount;
-                    $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = $supplier_chart_of_account_info->head_name.' Supplier Debited For Paid Amount Purchases';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    // Cash In Hand credit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 1;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = NULL;
-                    $chart_of_account_transaction_details->credit = $paid_amount;
-                    $chart_of_account_transaction_details->description = 'Cash In Hand Credit For Paid Amount Purchases';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    // Account Payable
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 1;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $account_payable_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $account_payable_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = 'Account Payable';
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $account_payable_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $account_payable_info->head_type;
-                    $chart_of_account_transaction_details->debit = $paid_amount;
-                    $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = 'Account Payable Debit For Paid Amount Purchases';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    // supplier credit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 1;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $supplier_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $supplier_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = NULL;
-                    $chart_of_account_transaction_details->credit = $paid_amount;
-                    $chart_of_account_transaction_details->description = $supplier_chart_of_account_info->head_name.' Supplier Credited For Paid Amount Purchases';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    // For Due Amount
-                    if($due_amount > 0){
-                        // supplier debit
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                        $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = 1;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $supplier_chart_of_account_info->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_chart_of_account_info->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $supplier_chart_of_account_info->head_type;
-                        $chart_of_account_transaction_details->debit = $due_amount;
-                        $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = $supplier_chart_of_account_info->head_name.' Supplier Debited For Due Amount Purchases';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                        $chart_of_account_transaction_details->save();
-
-                        // Account Payable
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                        $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = 1;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $account_payable_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $account_payable_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = 'Account Payable';
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $account_payable_info->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $account_payable_info->head_type;
-                        $chart_of_account_transaction_details->debit = NULL;
-                        $chart_of_account_transaction_details->credit = $due_amount;
-                        $chart_of_account_transaction_details->description = 'Account Payable Credited For Purchases Due Amount Purchases';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                        $chart_of_account_transaction_details->save();
-                    }
-                }
-
-                if($payment_type_id === 2){
                     // Cheque Account Info
                     $cheque_chart_of_account_info = ChartOfAccount::where('head_name','Cheque')->first();
 
@@ -411,7 +221,7 @@ class ProductPurchaseController extends Controller
                     $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                     $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
                     $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 2;
+                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
                     $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
                     $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
                     $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
@@ -427,40 +237,65 @@ class ProductPurchaseController extends Controller
                     $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
                     $chart_of_account_transaction_details->save();
 
-                    // Cheque
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 2;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cheque_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cheque_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $cheque_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cheque_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = NULL;
-                    $chart_of_account_transaction_details->credit = $paid_amount;
-                    $chart_of_account_transaction_details->description = 'Cash In Hand Credit For Paid Amount Purchases';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
+                    if($payment_type_id === '1'){
+
+                        // Cash In Hand credit
+                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
+                        $chart_of_account_transaction_details->store_id = $store_id;
+                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+                        $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
+                        $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
+                        $chart_of_account_transaction_details->chart_of_account_name = $cash_chart_of_account_info->head_name;
+                        $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
+                        $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
+                        $chart_of_account_transaction_details->debit = NULL;
+                        $chart_of_account_transaction_details->credit = $paid_amount;
+                        $chart_of_account_transaction_details->description = $cash_chart_of_account_info->head_name. ' Credit For Paid Amount Purchases';
+                        $chart_of_account_transaction_details->year = $year;
+                        $chart_of_account_transaction_details->month = $month;
+                        $chart_of_account_transaction_details->transaction_date = $date;
+                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+                        $chart_of_account_transaction_details->save();
+                    }
+
+                    if($payment_type_id === '2') {
+                        // Cheque
+                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
+                        $chart_of_account_transaction_details->store_id = $store_id;
+                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
+                        $chart_of_account_transaction_details->chart_of_account_id = $cheque_chart_of_account_info->id;
+                        $chart_of_account_transaction_details->chart_of_account_number = $cheque_chart_of_account_info->head_code;
+                        $chart_of_account_transaction_details->chart_of_account_name = $cheque_chart_of_account_info->head_name;
+                        $chart_of_account_transaction_details->chart_of_account_parent_name = $cheque_chart_of_account_info->parent_head_name;
+                        $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
+                        $chart_of_account_transaction_details->debit = NULL;
+                        $chart_of_account_transaction_details->credit = $paid_amount;
+                        $chart_of_account_transaction_details->description = $cheque_chart_of_account_info->head_name. ' For Paid Amount Purchases';
+                        $chart_of_account_transaction_details->year = $year;
+                        $chart_of_account_transaction_details->month = $month;
+                        $chart_of_account_transaction_details->transaction_date = $date;
+                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+                        $chart_of_account_transaction_details->save();
+                    }
 
                     // Account Payable
                     $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                     $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
                     $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 2;
+                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
                     $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
                     $chart_of_account_transaction_details->chart_of_account_id = $account_payable_info->id;
                     $chart_of_account_transaction_details->chart_of_account_number = $account_payable_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = 'Account Payable';
+                    $chart_of_account_transaction_details->chart_of_account_name = $account_payable_info->head_name;
                     $chart_of_account_transaction_details->chart_of_account_parent_name = $account_payable_info->parent_head_name;
                     $chart_of_account_transaction_details->chart_of_account_type = $account_payable_info->head_type;
                     $chart_of_account_transaction_details->debit = $paid_amount;
                     $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = 'Account Payable Debit For Paid Amount Purchases';
+                    $chart_of_account_transaction_details->description = $account_payable_info->head_name.' Debit For Paid Amount Purchases';
                     $chart_of_account_transaction_details->year = $year;
                     $chart_of_account_transaction_details->month = $month;
                     $chart_of_account_transaction_details->transaction_date = $date;
@@ -471,7 +306,7 @@ class ProductPurchaseController extends Controller
                     $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                     $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
                     $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = 2;
+                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
                     $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
                     $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
                     $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
@@ -493,7 +328,7 @@ class ProductPurchaseController extends Controller
                         $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                         $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
                         $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = 2;
+                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
                         $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
                         $chart_of_account_transaction_details->chart_of_account_id = $supplier_chart_of_account_info->id;
                         $chart_of_account_transaction_details->chart_of_account_number = $supplier_chart_of_account_info->head_code;
@@ -513,16 +348,16 @@ class ProductPurchaseController extends Controller
                         $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
                         $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
                         $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = 2;
+                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
                         $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
                         $chart_of_account_transaction_details->chart_of_account_id = $account_payable_info->id;
                         $chart_of_account_transaction_details->chart_of_account_number = $account_payable_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = 'Account Payable';
+                        $chart_of_account_transaction_details->chart_of_account_name = $account_payable_info->head_name;
                         $chart_of_account_transaction_details->chart_of_account_parent_name = $account_payable_info->parent_head_name;
                         $chart_of_account_transaction_details->chart_of_account_type = $account_payable_info->head_type;
                         $chart_of_account_transaction_details->debit = NULL;
                         $chart_of_account_transaction_details->credit = $due_amount;
-                        $chart_of_account_transaction_details->description = 'Account Payable Credited For Purchases Due Amount Purchases';
+                        $chart_of_account_transaction_details->description = $account_payable_info->head_name.' Credited For Purchases Due Amount Purchases';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
@@ -531,20 +366,17 @@ class ProductPurchaseController extends Controller
                     }
                 }
 
-
-
-
                 $response = APIHelpers::createAPIResponse(false,201,'Product Purchase Added Successfully.',null);
                 return response()->json($response,201);
             }else{
                 $response = APIHelpers::createAPIResponse(true,400,'Product Purchase Updated Failed.',null);
                 return response()->json($response,400);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
 //    public function productPurchaseList(){
