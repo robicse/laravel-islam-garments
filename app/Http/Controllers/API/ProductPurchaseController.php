@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\StockHelpers;
+
 use App\ChartOfAccount;
 use App\ChartOfAccountTransaction;
 use App\ChartOfAccountTransactionDetail;
@@ -29,7 +31,7 @@ use Illuminate\Support\Facades\Validator;
 class ProductPurchaseController extends Controller
 {
     public function productPurchaseCreate(Request $request){
-        try {
+        // try {
             $this->validate($request, [
                 'date'=> 'required',
                 'warehouse_id'=> 'required',
@@ -125,24 +127,27 @@ class ProductPurchaseController extends Controller
                     }
 
                     // product stock
-                    $stock = new Stock();
-                    $stock->ref_id = $insert_id;
-                    $stock->user_id = $user_id;
-                    $stock->warehouse_id = $warehouse_id;
-                    $stock->store_id = $store_id;
-                    $stock->product_id = $product_id;
-                    $stock->product_name = $product->name;
-                    $stock->product_type = $product->type;
-                    $stock->stock_type = 'Whole Purchase';
-                    $stock->stock_where = 'warehouse';
-                    $stock->stock_in_out = 'stock_in';
-                    $stock->previous_stock = $previous_stock;
-                    $stock->stock_in = $qty;
-                    $stock->stock_out = 0;
-                    $stock->current_stock = $previous_stock + $qty;
-                    $stock->stock_date = $date;
-                    $stock->stock_date_time = $date_time;
-                    $stock->save();
+                   $stock = new Stock();
+                   $stock->ref_id = $insert_id;
+                   $stock->user_id = $user_id;
+                   $stock->warehouse_id = $warehouse_id;
+                   $stock->store_id = $store_id;
+                   $stock->product_id = $product_id;
+                   $stock->product_name = $product->name;
+                   $stock->product_type = $product->type;
+                   $stock->stock_type = 'Whole Purchase';
+                   $stock->stock_where = 'warehouse';
+                   $stock->stock_in_out = 'stock_in';
+                   $stock->previous_stock = $previous_stock;
+                   $stock->stock_in = $qty;
+                   $stock->stock_out = 0;
+                   $stock->current_stock = $previous_stock + $qty;
+                   $stock->stock_date = $date;
+                   $stock->stock_date_time = $date_time;
+                   $stock->save();
+
+                    // $current_stock = $previous_stock + $qty;
+                    // stock($insert_id,$user_id,$warehouse_id,$store_id,$product,'Whole Purchase','Warehouse','Stock In',$previous_stock,0,$current_stock,$date,$date_time);
 
                     // warehouse current stock
                     $check_exists_warehouse_current_stock = WarehouseCurrentStock::where('warehouse_id',$warehouse_id)
@@ -372,11 +377,11 @@ class ProductPurchaseController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,'Product Purchase Updated Failed.',null);
                 return response()->json($response,400);
             }
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+        // } catch (\Exception $e) {
+        //     //return $e->getMessage();
+        //     $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+        //     return response()->json($response,500);
+        // }
     }
 
 //    public function productPurchaseList(){
