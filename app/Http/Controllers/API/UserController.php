@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Customer;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Facades\Image;
 
 class UserController extends Controller
 {
@@ -27,7 +31,7 @@ class UserController extends Controller
                 ->leftJoin('warehouses','users.warehouse_id','warehouses.id')
                 ->leftJoin('stores','users.store_id','stores.id')
                 ->where('roles.id','!=',8)
-                ->select('users.id','users.name','users.phone','users.email','users.status','users.user_for','roles.name as role','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name')
+                ->select('users.id','users.name','users.phone','users.email','users.status','users.user_for','users.image','roles.name as role','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name')
                 ->get();
             if($users === null){
                 $response = APIHelpers::createAPIResponse(true,404,'No User Found.',null);
@@ -63,6 +67,25 @@ class UserController extends Controller
             $input = $request->all();
             $input['password'] = Hash::make($input['password']);
 
+            $image = $request->file('image');
+            //dd($image);
+            if (isset($image)) {
+                //make unique name for image
+                $currentDate = Carbon::now()->toDateString();
+                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                //            resize image for hospital and upload
+                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                Storage::disk('public')->put('uploads/users/'. $imagename, $proImage);
+
+                // update image db
+                $input['image'] = $imagename;
+
+            }else{
+                $input['image'] = 'default.png';
+            }
+
             $user = User::create($input);
             if($input['user_for'] === "Warehouse"){
                 $input['store_id'] = NULL;
@@ -94,7 +117,7 @@ class UserController extends Controller
                 ->leftJoin('warehouses','users.warehouse_id','warehouses.id')
                 ->leftJoin('stores','users.store_id','stores.id')
                 ->where('users.id',$request->user_id)
-                ->select('users.id','users.name','users.phone','users.email','users.status','roles.name as role','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name')
+                ->select('users.id','users.name','users.phone','users.email','users.status','users.user_for','users.image','roles.name as role','warehouses.id as warehouse_id','warehouses.name as warehouse_name','stores.id as store_id','stores.name as store_name')
                 ->first();
 
 
@@ -112,7 +135,7 @@ class UserController extends Controller
     }
 
     public function userEdit(Request $request){
-        try {
+//        try {
             $input = $request->all();
 
             if(!empty($input['password'])){
@@ -161,6 +184,32 @@ class UserController extends Controller
                     $input['warehouse_id'] = NULL;
                 }
 
+                $image = $request->file('image');
+                //dd($image);
+                if (isset($image)) {
+                    //make unique name for image
+                    $currentDate = Carbon::now()->toDateString();
+                    $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
+
+                    // delete old image.....
+                    if(Storage::disk('public')->exists('uploads/users/'.$check_exists_user->image))
+                    {
+                        Storage::disk('public')->delete('uploads/users/'.$check_exists_user->image);
+
+                    }
+
+                    //            resize image for hospital and upload
+                    //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
+                    $proImage = Image::make($image)->save($image->getClientOriginalExtension());
+                    Storage::disk('public')->put('uploads/users/'. $imagename, $proImage);
+
+                    // update image db
+                    $input['image'] = $imagename;
+
+                }else{
+                    $input['image'] = $check_exists_user->image;
+                }
+
                 $user = User::find($request->user_id);
                 $update_user = $user->update($input);
                 DB::table('model_has_roles')->where('model_id',$request->user_id)->delete();
@@ -178,11 +227,10 @@ class UserController extends Controller
                 $response = APIHelpers::createAPIResponse(true,404,'No User Found.',null);
                 return response()->json($response,404);
             }
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function userDelete(Request $request){

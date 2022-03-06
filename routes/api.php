@@ -198,6 +198,7 @@ Route::middleware('auth:api')->post('/product_search_for_sale_by_store_id', 'API
 //Route::middleware('auth:api')->post('/product_whole_sale_list_with_search', 'API\ProductSaleController@productWholeSaleListWithSearch');
 //Route::middleware('auth:api')->get('/product_whole_sale_list_pagination', 'API\ProductSaleController@productWholeSaleListPagination');
 //Route::middleware('auth:api')->post('/product_whole_sale_list_pagination_with_search', 'API\ProductSaleController@productWholeSaleListPaginationWithSearch');
+
 Route::middleware('auth:api')->post('/product_sale_details', 'API\ProductSaleController@productSaleDetails');
 Route::middleware('auth:api')->post('/product_sale_details_print', 'API\ProductSaleController@productSaleDetailsPrint');
 Route::middleware('auth:api')->post('/product_whole_sale_create', 'API\ProductSaleController@productWholeSaleCreate');
@@ -211,7 +212,7 @@ Route::middleware('auth:api')->post('/product_whole_sale_list_search', 'API\Prod
 //Route::middleware('auth:api')->get('/product_sale_invoice_list', 'API\ProductSaleController@productSaleInvoiceList');
 //Route::middleware('auth:api')->get('/product_sale_invoice_list_pagination', 'API\ProductSaleController@productSaleInvoiceListPagination');
 Route::middleware('auth:api')->post('/product_sale_invoice_list_pagination_with_search', 'API\ProductSaleReturnController@productSaleInvoiceListPaginationWithSearch');
-Route::middleware('auth:api')->post('/product_sale_details', 'API\ProductSaleReturnController@productSaleDetails');
+Route::middleware('auth:api')->post('/product_sale_return_details', 'API\ProductSaleReturnController@productSaleDetails');
 //Route::middleware('auth:api')->get('/product_sale_return_list', 'API\ProductSaleController@productSaleReturnList');
 Route::middleware('auth:api')->post('/product_sale_return_list_with_search', 'API\ProductSaleReturnController@productSaleReturnListWithSearch');
 //Route::middleware('auth:api')->post('/product_sale_return_details', 'API\ProductSaleController@productSaleReturnDetails');

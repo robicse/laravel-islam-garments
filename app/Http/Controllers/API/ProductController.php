@@ -135,7 +135,16 @@ class ProductController extends Controller
 
     public function productListWithSearch(Request $request){
         try {
-            if($request->search){
+            if( ($request->search) && ($request->type)){
+                $products = Product::where('type',$request->type)
+                    ->where('name','like','%'.$request->search.'%')
+                    ->orWhere('name','like','%'.$request->search.'%')
+                    ->orWhere('product_code','like','%'.$request->search.'%')
+                    ->orWhere('barcode','like','%'.$request->search.'%')
+                    ->orWhere('whole_sale_price','like','%'.$request->search.'%')
+                    ->orWhere('selling_price','like','%'.$request->search.'%')
+                    ->latest()->paginate(12);
+            }elseif($request->search){
                 $products = Product::where('name','like','%'.$request->search.'%')
                     ->orWhere('name','like','%'.$request->search.'%')
                     ->orWhere('product_code','like','%'.$request->search.'%')
@@ -143,14 +152,19 @@ class ProductController extends Controller
                     ->orWhere('whole_sale_price','like','%'.$request->search.'%')
                     ->orWhere('selling_price','like','%'.$request->search.'%')
                     ->latest()->paginate(12);
-                if($products === null){
-                    $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
-                    return response()->json($response,404);
-                }else{
-                    return new ProductCollection($products);
-                }
+
+            }elseif($request->type){
+                $products = Product::where('type',$request->type)
+                    ->latest()->paginate(12);
             }else{
-                return new ProductCollection(Product::latest()->paginate(12));
+                $products = Product::latest()->paginate(12);
+            }
+
+            if($products === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
+                return response()->json($response,404);
+            }else{
+                return new ProductCollection($products);
             }
         } catch (\Exception $e) {
             //return $e->getMessage();
