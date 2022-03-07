@@ -1406,7 +1406,8 @@ if (! function_exists('productSearchForSaleByStoreId')) {
 
 //Trial Balance Report
 if (! function_exists('trial_balance_report')) {
-    function trial_balance_report($FromDate, $ToDate, $WithOpening) {
+//    function trial_balance_report($FromDate, $ToDate, $WithOpening) {
+    function trial_balance_report($FromDate, $ToDate, $warehouse_id, $store_id, $WithOpening) {
 
         if ($WithOpening)
             $WithOpening = true;
@@ -1437,10 +1438,31 @@ if (! function_exists('trial_balance_report')) {
             $head_name = $oResultTr[$i]['head_name'];
 
             //$sql = "SELECT SUM(acc_transaction.Debit) AS Debit, SUM(acc_transaction.Credit) AS Credit FROM acc_transaction WHERE acc_transaction.IsAppove =1 AND VDate BETWEEN '" . $dtpFromDate . "' AND '" . $dtpToDate . "' AND COAID LIKE '$COAID%' ";
-            $oResultTrial = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
-                ->whereBetween('transaction_date',[$FromDate,$ToDate])
-                ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
-                ->first();
+            if( ($warehouse_id !== null) && ($store_id !== null) ){
+                $oResultTrial = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
+                    ->where('warehouse_id',$warehouse_id)
+                    ->where('store_id',$store_id)
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }elseif( ($warehouse_id !== null) ){
+                $oResultTrial = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
+                    ->where('warehouse_id',$warehouse_id)
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }elseif( ($store_id !== null) ){
+                $oResultTrial = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
+                    ->where('store_id',$store_id)
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }else{
+                $oResultTrial = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like','%'.$head_code.'%')
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }
 
 
             if($oResultTrial->Credit+$oResultTrial->Debit > 0)
@@ -1479,10 +1501,31 @@ if (! function_exists('trial_balance_report')) {
             $head_name = $oResultInEx[$i]['head_name'];
 
             //$sql = "SELECT SUM(acc_transaction.Debit) AS Debit, SUM(acc_transaction.Credit) AS Credit FROM acc_transaction WHERE acc_transaction.IsAppove =1 AND VDate BETWEEN '" . $dtpFromDate . "' AND '" . $dtpToDate . "' AND COAID LIKE '$COAID%' ";
-            $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like',$head_code.'%')
-                ->whereBetween('transaction_date',[$FromDate,$ToDate])
-                ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
-                ->first();
+            if( ($warehouse_id !== null) && ($store_id !== null) ){
+                $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like',$head_code.'%')
+                    ->where('warehouse_id',$warehouse_id)
+                    ->where('store_id',$store_id)
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }elseif( ($warehouse_id !== null) ){
+                $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like',$head_code.'%')
+                    ->where('warehouse_id',$warehouse_id)
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }elseif( ($store_id !== null) ){
+                $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like',$head_code.'%')
+                    ->where('store_id',$store_id)
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }else{
+                $oResultIE = \App\ChartOfAccountTransactionDetail::where('chart_of_account_number','like',$head_code.'%')
+                    ->whereBetween('transaction_date',[$FromDate,$ToDate])
+                    ->select(DB::raw('SUM(debit) as Debit'),DB::raw('SUM(credit) as Credit'))
+                    ->first();
+            }
 
 
             if($oResultIE->Credit+$oResultIE->Debit > 0)

@@ -1017,18 +1017,8 @@ class AccountController extends Controller
             }
             $final_voucher_no = $get_voucher_name.'-'.$voucher_no;
 
-            if($request->warehouse_id !== ''){
-                $warehouse_id = $request->warehouse_id;
-            }else{
-                $warehouse_id = NULL;
-            }
-
-            if($request->store_id !== ''){
-                $store_id = $request->store_id;
-            }else{
-                $store_id = NULL;
-            }
-
+            $warehouse_id = $request->warehouse_id ? $request->warehouse_id : NULL;
+            $store_id = $request->store_id ? $request->store_id : NULL;
 
             $chart_of_account_transactions = new ChartOfAccountTransaction();
             $chart_of_account_transactions->user_id = $user_id;
@@ -1254,9 +1244,13 @@ class AccountController extends Controller
             return response()->json($response, $this-> validationStatus);
         }
 
+        $warehouse_id = $request->warehouse_id ? $request->warehouse_id : NULL;
+        $store_id = $request->store_id ? $request->store_id : NULL;
+
 
         // trial_balance_report($FromDate, $ToDate, $WithOpening)
-        $trial_balance_report = trial_balance_report($request->from_date, $request->to_date, false);
+        //$trial_balance_report = trial_balance_report($request->from_date, $request->to_date, false);
+        $trial_balance_report = trial_balance_report($request->from_date, $request->to_date, $warehouse_id, $store_id, false);
         return response()->json(['success'=>true,'response' => $trial_balance_report], $this->successStatus);
 
 
