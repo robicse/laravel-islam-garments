@@ -21,7 +21,7 @@ class ProductPurchaseCollection extends ResourceCollection
                     'grand_total_amount' => $data->grand_total_amount,
                     'paid_amount' => $data->paid_amount,
                     'due_amount' => $data->due_amount,
-                    'purchase_date_time' => $data->purchase_date_time,
+                    'date_time' => $data->date_time,
                     'user_name' => userName($data->user_id),
                     'supplier_id' => $data->supplier_id,
                     'supplier_name' => SupplierName($data->supplier_id),

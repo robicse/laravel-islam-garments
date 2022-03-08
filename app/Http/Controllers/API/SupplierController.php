@@ -778,6 +778,7 @@ class SupplierController extends Controller
             $supplier_id = $request->supplier_id;
             $payment_type_id = $request->payment_type_id;
             $paid_amount = $request->paid_amount;
+            $description = $request->description;
 
             $check_exists_supplier = DB::table("suppliers")->where('id',$supplier_id)->pluck('id')->first();
             if($check_exists_supplier == null){
@@ -869,7 +870,7 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $account_payable_info->head_type;
                         $chart_of_account_transaction_details->debit = $paid_amount;
                         $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = $account_payable_info->head_name . ' Debit For Due Amount Paid';
+                        $chart_of_account_transaction_details->description = $description ? $description : $account_payable_info->head_name . ' Debit For Due Amount Paid';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
@@ -889,7 +890,7 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
                         $chart_of_account_transaction_details->debit = NULL;
                         $chart_of_account_transaction_details->credit = $paid_amount;
-                        $chart_of_account_transaction_details->description = $cash_chart_of_account_info->head_name . ' Credit For Due Amount Paid';
+                        $chart_of_account_transaction_details->description = $description ? $description : $cash_chart_of_account_info->head_name . ' Credit For Due Amount Paid';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
@@ -911,7 +912,7 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
                         $chart_of_account_transaction_details->debit = $paid_amount;
                         $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = $cheque_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
+                        $chart_of_account_transaction_details->description = $description ? $description : $cheque_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;
@@ -931,7 +932,7 @@ class SupplierController extends Controller
                         $chart_of_account_transaction_details->chart_of_account_type = $account_payable_info->head_type;
                         $chart_of_account_transaction_details->debit = $paid_amount;
                         $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = $account_payable_info->head_name . ' Debit For Due Amount Paid';
+                        $chart_of_account_transaction_details->description = $description ? $description : $account_payable_info->head_name . ' Debit For Due Amount Paid';
                         $chart_of_account_transaction_details->year = $year;
                         $chart_of_account_transaction_details->month = $month;
                         $chart_of_account_transaction_details->transaction_date = $date;

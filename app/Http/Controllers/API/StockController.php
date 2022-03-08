@@ -104,7 +104,7 @@ class StockController extends Controller
                 ->leftJoin('product_categories','products.product_category_id','product_categories.id')
                 ->leftJoin('product_units','products.product_unit_id','product_units.id')
                 ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
-                ->where('warehouse_current_stocks.product_id',$request->warehouse_id)
+                ->where('warehouse_current_stocks.warehouse_id',$request->warehouse_id)
                 ->select(
                     'warehouses.name as warehouse_name',
                     'product_categories.name as product_category_name',

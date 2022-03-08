@@ -1038,6 +1038,7 @@ class CustomerController extends Controller
         $customer_id = $request->customer_id;
         $payment_type_id = $request->payment_type_id;
         $paid_amount = $request->paid_amount;
+        $description = $request->description;
 
         $check_exists_customer = DB::table("customers")->where('id',$customer_id)->pluck('id')->first();
         if($check_exists_customer == null){
@@ -1130,7 +1131,7 @@ class CustomerController extends Controller
                     $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
                     $chart_of_account_transaction_details->debit = $paid_amount;
                     $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = $cash_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
+                    $chart_of_account_transaction_details->description = $description ? $description : $cash_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
                     $chart_of_account_transaction_details->year = $year;
                     $chart_of_account_transaction_details->month = $month;
                     $chart_of_account_transaction_details->transaction_date = $date;
@@ -1150,7 +1151,7 @@ class CustomerController extends Controller
                     $chart_of_account_transaction_details->chart_of_account_type = $account_receivable_info->head_type;
                     $chart_of_account_transaction_details->debit = NULL;
                     $chart_of_account_transaction_details->credit = $paid_amount;
-                    $chart_of_account_transaction_details->description = $account_receivable_info->head_name . ' Credited For Due Amount Paid';
+                    $chart_of_account_transaction_details->description = $description ? $description : $account_receivable_info->head_name . ' Credited For Due Amount Paid';
                     $chart_of_account_transaction_details->year = $year;
                     $chart_of_account_transaction_details->month = $month;
                     $chart_of_account_transaction_details->transaction_date = $date;
@@ -1172,7 +1173,7 @@ class CustomerController extends Controller
                     $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
                     $chart_of_account_transaction_details->debit = $paid_amount;
                     $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = $cheque_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
+                    $chart_of_account_transaction_details->description = $description ? $description : $cheque_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
                     $chart_of_account_transaction_details->year = $year;
                     $chart_of_account_transaction_details->month = $month;
                     $chart_of_account_transaction_details->transaction_date = $date;
@@ -1192,7 +1193,7 @@ class CustomerController extends Controller
                     $chart_of_account_transaction_details->chart_of_account_type = $account_receivable_info->head_type;
                     $chart_of_account_transaction_details->debit = NULL;
                     $chart_of_account_transaction_details->credit = $paid_amount;
-                    $chart_of_account_transaction_details->description = $account_receivable_info->head_name . ' Credited For Due Amount Paid';
+                    $chart_of_account_transaction_details->description = $description ? $description : $account_receivable_info->head_name . ' Credited For Due Amount Paid';
                     $chart_of_account_transaction_details->year = $year;
                     $chart_of_account_transaction_details->month = $month;
                     $chart_of_account_transaction_details->transaction_date = $date;

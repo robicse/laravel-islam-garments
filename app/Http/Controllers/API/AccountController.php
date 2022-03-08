@@ -860,6 +860,7 @@ class AccountController extends Controller
                     'chart_of_account_transaction_details.debit',
                     'chart_of_account_transaction_details.credit',
                     'chart_of_account_transaction_details.description',
+                    'chart_of_account_transaction_details.transaction_date',
                     'chart_of_account_transaction_details.transaction_date_time'
                 )
                 ->orderBy('chart_of_account_transaction_details.id','desc')
@@ -890,6 +891,7 @@ class AccountController extends Controller
                     'chart_of_account_transaction_details.debit',
                     'chart_of_account_transaction_details.credit',
                     'chart_of_account_transaction_details.description',
+                    'chart_of_account_transaction_details.transaction_date',
                     'chart_of_account_transaction_details.transaction_date_time'
                 )
                 ->orderBy('chart_of_account_transaction_details.id','desc')
@@ -920,6 +922,7 @@ class AccountController extends Controller
                     'chart_of_account_transaction_details.debit',
                     'chart_of_account_transaction_details.credit',
                     'chart_of_account_transaction_details.description',
+                    'chart_of_account_transaction_details.transaction_date',
                     'chart_of_account_transaction_details.transaction_date_time'
                 )
                 ->orderBy('chart_of_account_transaction_details.id','desc')
