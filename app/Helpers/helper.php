@@ -342,6 +342,16 @@ if (! function_exists('storeInfo')) {
     }
 }
 
+// customer name as id
+if (! function_exists('customerName')) {
+    function customerName($customer_id) {
+        return DB::table('customers')
+            ->where('id',$customer_id)
+            ->pluck('name')
+            ->first();
+    }
+}
+
 // supplier name as id
 if (! function_exists('supplierName')) {
     function supplierName($supplier_id) {

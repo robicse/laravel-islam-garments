@@ -19,10 +19,15 @@ class CreateStockTransfersTable extends Migration
             $table->bigInteger('user_id');
             $table->bigInteger('warehouse_id')->unsigned()->nullable();
             $table->bigInteger('store_id')->unsigned();
+            $table->bigInteger('purchase_type_id')->nullable();
+            $table->string('cheque_date')->nullable();
+            $table->string('cheque_approved_status')->nullable();
+            $table->float('sub_total_amount', 8,2);
             $table->text('miscellaneous_comment')->nullable();
             $table->float('miscellaneous_charge', 8,2);
             $table->float('total_vat_amount', 8,2);
-            $table->float('total_amount', 8,2);
+            $table->float('less_amount', 8,2)->default(0);
+            $table->float('grand_total_amount', 8,2);
             $table->float('paid_amount', 8,2);
             $table->float('due_amount', 8,2);
             $table->string('issue_date');

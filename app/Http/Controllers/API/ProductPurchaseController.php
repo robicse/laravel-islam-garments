@@ -2,24 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Helpers\StockHelpers;
-
 use App\ChartOfAccount;
 use App\ChartOfAccountTransaction;
 use App\ChartOfAccountTransactionDetail;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductPurchaseCollection;
-use App\PaymentPaid;
+use App\Http\Resources\SupplierPurchaseCollection;
 use App\Product;
 use App\ProductPurchase;
 use App\ProductPurchaseDetail;
-use App\ProductPurchaseReturn;
-use App\ProductPurchaseReturnDetail;
-use App\ProductSale;
 use App\Stock;
 use App\Supplier;
-use App\Transaction;
 use App\VoucherType;
 use App\WarehouseCurrentStock;
 use Illuminate\Database\Eloquent\Model;
@@ -55,20 +49,24 @@ class ProductPurchaseController extends Controller
             }
             $final_invoice = 'purchase-'.$invoice_no;
 
-            $date = date('Y-m-d');
-            $date_time = date('Y-m-d h:i:s');
+            $date = $request->date ? $request->date : date('Y-m-d');
+            $date_time = $request->date ? $request->date.date(' h:i:s') : date('Y-m-d h:i:s');
 
             $user_id = Auth::user()->id;
-            $supplier_id=$request->supplier_id;
+            $supplier_invoice_no=$request->supplier_invoice_no;
+            $supplier_id=$request->supplier_id ? $request->supplier_id : 1;
             $warehouse_id = $request->warehouse_id;
             $store_id = NULL;
             $payment_type_id = $request->payment_type_id;
+            $cheque_date = $request->cheque_date;
             $sub_total_amount = $request->sub_total_amount;
             $grand_total_amount = $request->grand_total_amount;
             $discount_type = $request->discount_type ? $request->discount_type : NULL;
             $discount_percent = $request->discount_percent ? $request->discount_percent : 0;
             $discount_amount = $request->discount_amount ? $request->discount_amount : 0;
             $after_discount_amount = $request->after_discount_amount ? $request->after_discount_amount : 0;
+            $less_amount = $request->less_amount ? $request->less_amount : 0;
+            $after_less_amount = $request->after_less_amount ? $request->after_less_amount : 0;
             $paid_amount = $request->paid_amount;
             $due_amount = $request->due_amount;
             $products = json_decode($request->products);
@@ -77,15 +75,19 @@ class ProductPurchaseController extends Controller
             // product purchase
             $productPurchase = new ProductPurchase();
             $productPurchase ->invoice_no = $final_invoice;
+            $productPurchase ->supplier_invoice_no = $supplier_invoice_no ? $supplier_invoice_no : NULL;
             $productPurchase ->user_id = $user_id;
             $productPurchase ->supplier_id = $supplier_id;
             $productPurchase ->warehouse_id = $warehouse_id;
             $productPurchase ->payment_type_id = $payment_type_id;
+            $productPurchase ->cheque_date = $cheque_date ? $cheque_date : NULL;
             $productPurchase ->sub_total_amount = $sub_total_amount;
             $productPurchase ->discount_type = $discount_type;
             $productPurchase ->discount_percent = $discount_percent;
             $productPurchase ->discount_amount = $discount_amount;
             $productPurchase ->after_discount_amount = $after_discount_amount;
+            $productPurchase ->less_amount = $less_amount;
+            $productPurchase ->after_less_amount = $after_less_amount;
             $productPurchase ->paid_amount = $paid_amount;
             $productPurchase ->due_amount = $due_amount;
             $productPurchase ->grand_total_amount = $grand_total_amount;
@@ -654,6 +656,144 @@ class ProductPurchaseController extends Controller
             }
         } catch (\Exception $e) {
             //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    public function productPurchaseListPaginationWithSearchBySupplier(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'supplier_id' => 'required',
+                'from_date' => 'required',
+                'to_date'=> 'required'
+            ]);
+
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+            $user_id = Auth::user()->id;
+            $currentUserDetails = currentUserDetails($user_id);
+            $role = $currentUserDetails['role'];
+            $warehouse_id = $currentUserDetails['warehouse_id'];
+
+            $supplier_id = $request->supplier_id;
+            $from_date = $request->from_date;
+            $to_date = $request->to_date;
+            $search = $request->search;
+
+            $product_purchases = ProductPurchase::join('suppliers','product_purchases.supplier_id','suppliers.id')
+                ->select(
+                    'product_purchases.id',
+                    'product_purchases.invoice_no',
+                    'product_purchases.supplier_invoice_no',
+                    'product_purchases.payment_type_id',
+                    'product_purchases.grand_total_amount',
+                    'product_purchases.purchase_date_time as date_time',
+                    'product_purchases.user_id',
+                    'product_purchases.supplier_id',
+                    'product_purchases.warehouse_id'
+                );
+
+            $product_purchases->where('product_purchases.supplier_id',$supplier_id)
+                ->whereBetween('product_purchases.purchase_date', [$from_date, $to_date]);
+
+            if($role !== 'Super Admin'){
+                $product_purchases->where('product_purchases.warehouse_id',$warehouse_id);
+            }
+
+            if($search){
+                $product_purchases->where('product_purchases.invoice_no','like','%'.$search.'%');
+                $product_purchases->orWhere('suppliers.name','like','%'.$search.'%');
+            }
+
+            $product_purchase_data = $product_purchases->latest('product_purchases.id','desc')->paginate(12);
+
+            $total_amount = $product_purchases->sum('product_purchases.grand_total_amount');
+
+            if(count($product_purchase_data) === 0){
+                $response = APIHelpers::createAPIResponse(true,404,'No Purchase Report Found.',null);
+                return response()->json($response,404);
+            }else{
+//                $result_data = [
+//                    'purchase_data' => $product_purchase_data,
+//                    'total_amount' => $total_amount
+//                ];
+//                return new SupplierPurchaseCollection($result_data);
+                return response()->json(['success'=>true,'code' => 200,'data' => $product_purchase_data,'total_amount'=>$total_amount], 200);
+            }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+    public function productPurchaseListPaginationWithSearchBySupplierPrint(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'supplier_id' => 'required',
+                'from_date' => 'required',
+                'to_date'=> 'required'
+            ]);
+
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+            $user_id = Auth::user()->id;
+            $currentUserDetails = currentUserDetails($user_id);
+            $role = $currentUserDetails['role'];
+            $warehouse_id = $currentUserDetails['warehouse_id'];
+
+            $supplier_id = $request->supplier_id;
+            $from_date = $request->from_date;
+            $to_date = $request->to_date;
+            $search = $request->search;
+
+            $product_purchases = ProductPurchase::join('suppliers','product_purchases.supplier_id','suppliers.id')
+                ->select(
+                    'product_purchases.id',
+                    'product_purchases.invoice_no',
+                    'product_purchases.supplier_invoice_no',
+                    'product_purchases.payment_type_id',
+                    'product_purchases.grand_total_amount',
+                    'product_purchases.purchase_date_time as date_time',
+                    'product_purchases.user_id',
+                    'product_purchases.supplier_id',
+                    'product_purchases.warehouse_id'
+                );
+
+            $product_purchases->where('product_purchases.supplier_id',$supplier_id)
+                ->whereBetween('product_purchases.purchase_date', [$from_date, $to_date]);
+
+            if($role !== 'Super Admin'){
+                $product_purchases->where('product_purchases.warehouse_id',$warehouse_id);
+            }
+
+            if($search){
+                $product_purchases->where('product_purchases.invoice_no','like','%'.$search.'%');
+                $product_purchases->orWhere('suppliers.name','like','%'.$search.'%');
+            }
+
+            $product_purchase_data = $product_purchases->latest('product_purchases.id','desc')->get();
+
+            $total_amount = $product_purchases->sum('product_purchases.grand_total_amount');
+
+            if(count($product_purchase_data) === 0){
+                $response = APIHelpers::createAPIResponse(true,404,'No Purchase Report Found.',null);
+                return response()->json($response,404);
+            }else{
+//                $result_data = [
+//                    'purchase_data' => $product_purchase_data,
+//                    'total_amount' => $total_amount
+//                ];
+//                return new SupplierPurchaseCollection($result_data);
+                return response()->json(['success'=>true,'code' => 200,'data' => $product_purchase_data,'total_amount'=>$total_amount], 200);
+            }
+        } catch (\Exception $e) {
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }

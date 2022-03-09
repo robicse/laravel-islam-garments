@@ -17,9 +17,12 @@ class CreateProductSalesTable extends Migration
             $table->bigIncrements('id');
             $table->string('invoice_no');
             $table->bigInteger('user_id');
-            $table->bigInteger('party_id')->unsigned();
-            $table->bigInteger('warehouse_id')->unsigned()->nullable();
-            $table->bigInteger('store_id')->unsigned()->nullable();
+            $table->bigInteger('customer_id');
+            $table->bigInteger('warehouse_id')->nullable();
+            $table->bigInteger('store_id')->nullable();
+            $table->bigInteger('purchase_type_id')->nullable();
+            $table->string('cheque_date')->nullable();
+            $table->string('cheque_approved_status')->nullable();
             $table->enum('sale_type', ['whole_sale','pos_sale']);
             $table->float('sub_total_amount', 8,2);
             $table->enum('discount_type', ['Flat','Percentage'])->nullable();
@@ -29,14 +32,12 @@ class CreateProductSalesTable extends Migration
             $table->float('paid_amount', 8,2);
             $table->float('due_amount', 8,2);
             $table->float('total_vat_amount', 8,2);
+            $table->float('less_amount', 8,2)->default(0);
             $table->float('grand_total_amount', 8,2);
             $table->float('grand_profit_amount', 8,2)->default(0);
             $table->string('sale_date');
             $table->string('sale_date_time');
             $table->timestamps();
-            $table->foreign('party_id')->references('id')->on('parties')->onDelete('cascade');
-            $table->foreign('warehouse_id')->references('id')->on('warehouses')->onDelete('cascade');
-            $table->foreign('store_id')->references('id')->on('stores')->onDelete('cascade');
         });
     }
 

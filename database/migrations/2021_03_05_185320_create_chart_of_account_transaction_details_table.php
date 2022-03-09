@@ -25,6 +25,7 @@ class CreateChartOfAccountTransactionDetailsTable extends Migration
             $table->float('debit', 8,2);
             $table->float('credit', 8,2);
             $table->text('description')->nullable();
+            $table->string('approved_status')->default('Approved');
             $table->string('year');
             $table->string('month');
             $table->string('transaction_date');

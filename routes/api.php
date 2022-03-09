@@ -158,6 +158,8 @@ Route::middleware('auth:api')->get('/payment_type_active_list', 'API\PaymentType
 Route::middleware('auth:api')->post('/product_purchase_details', 'API\ProductPurchaseController@productPurchaseDetails');
 Route::middleware('auth:api')->post('/product_purchase_details_print', 'API\ProductPurchaseController@productPurchaseDetailsPrint');
 Route::middleware('auth:api')->post('/product_purchase_list_pagination_with_search', 'API\ProductPurchaseController@productPurchaseListPaginationWithSearch');
+Route::middleware('auth:api')->post('/product_purchase_list_pagination_with_search_by_supplier', 'API\ProductPurchaseController@productPurchaseListPaginationWithSearchBySupplier');
+Route::middleware('auth:api')->post('/product_purchase_list_pagination_with_search_by_supplier_print', 'API\ProductPurchaseController@productPurchaseListPaginationWithSearchBySupplierPrint');
 Route::middleware('auth:api')->post('/product_purchase_create', 'API\ProductPurchaseController@productPurchaseCreate');
 //Route::middleware('auth:api')->post('/product_pos_purchase_edit', 'API\ProductPurchaseController@productPOSPurchaseEdit');
 //Route::middleware('auth:api')->post('/product_pos_purchase_delete', 'API\ProductPurchaseController@productPOSPurchaseDelete');
@@ -206,6 +208,9 @@ Route::middleware('auth:api')->post('/product_whole_sale_create', 'API\ProductSa
 //Route::middleware('auth:api')->post('/product_whole_sale_delete', 'API\ProductSaleController@productWholeSaleDelete');
 //Route::middleware('auth:api')->post('/product_whole_sale_single_product_remove', 'API\ProductSaleController@productWholeSaleSingleProductRemove');
 Route::middleware('auth:api')->post('/product_whole_sale_list_search', 'API\ProductSaleController@productWholeSaleListSearch');
+Route::middleware('auth:api')->post('/product_whole_sale_list_search_by_customer', 'API\ProductSaleController@productWholeSaleListSearchByCustomer');
+Route::middleware('auth:api')->post('/product_whole_sale_list_search_by_customer_print', 'API\ProductSaleController@productWholeSaleListSearchByCustomerPrint');
+
 
 
 // product sale return

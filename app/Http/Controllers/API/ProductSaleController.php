@@ -8,6 +8,7 @@ use App\ChartOfAccountTransactionDetail;
 use App\Customer;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CustomerSaleCollection;
 use App\Product;
 use App\ProductSale;
 use App\ProductSaleDetail;
@@ -599,6 +600,143 @@ class ProductSaleController extends Controller
             return response()->json($response,200);
         }
 
+    }
+
+    public function productWholeSaleListSearchByCustomer(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'customer_id' => 'required',
+                'from_date' => 'required',
+                'to_date'=> 'required'
+            ]);
+
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+            $user_id = Auth::user()->id;
+            $currentUserDetails = currentUserDetails($user_id);
+            $role = $currentUserDetails['role'];
+            $store_id = $currentUserDetails['store_id'];
+
+            $customer_id = $request->customer_id;
+            $from_date = $request->from_date;
+            $to_date = $request->to_date;
+            $search = $request->search;
+
+            $product_sales = ProductSale::join('customers', 'product_sales.customer_id', 'customers.id')
+                ->select(
+                    'product_sales.id',
+                    'product_sales.invoice_no',
+                    'product_sales.payment_type_id',
+                    'product_sales.grand_total_amount',
+                    'product_sales.sale_date_time as date_time',
+                    'product_sales.user_id',
+                    'customers.id as customer_id',
+                    'customers.name as customer_name'
+                );
+
+            $product_sales->where('product_sales.customer_id',$customer_id)
+                ->whereBetween('product_sales.sale_date', [$from_date, $to_date]);
+
+            if($role !== 'Super Admin'){
+                $product_sales->where('product_sales.store_id',$store_id);
+            }
+
+            if($search){
+                $product_sales->where('product_sales.invoice_no','like','%'.$search.'%');
+                $product_sales->orWhere('customers.name','like','%'.$search.'%');
+            }
+
+            $product_sales_data = $product_sales->latest('product_sales.id','desc')->paginate(12);
+
+            $total_amount = $product_sales->sum('product_sales.grand_total_amount');
+
+            if(count($product_sales_data) === 0){
+                $response = APIHelpers::createAPIResponse(true,404,'No Sale Report Found.',null);
+                return response()->json($response,404);
+            }else{
+//                $result_data = [
+//                    'sale_data' => $product_sales_data,
+//                    'total_amount' => $total_amount
+//                ];
+//                return new CustomerSaleCollection($result_data);
+                return response()->json(['success'=>true,'code' => 200,'data' => $product_sales_data,'total_amount'=>$total_amount], 200);
+            }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
+    }
+
+
+    public function productWholeSaleListSearchByCustomerPrint(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'customer_id' => 'required',
+                'from_date' => 'required',
+                'to_date'=> 'required'
+            ]);
+
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+            $user_id = Auth::user()->id;
+            $currentUserDetails = currentUserDetails($user_id);
+            $role = $currentUserDetails['role'];
+            $store_id = $currentUserDetails['store_id'];
+
+            $customer_id = $request->customer_id;
+            $from_date = $request->from_date;
+            $to_date = $request->to_date;
+            $search = $request->search;
+
+            $product_sales = ProductSale::join('customers', 'product_sales.customer_id', 'customers.id')
+                ->select(
+                    'product_sales.id',
+                    'product_sales.invoice_no',
+                    'product_sales.payment_type_id',
+                    'product_sales.grand_total_amount',
+                    'product_sales.sale_date_time as date_time',
+                    'product_sales.user_id',
+                    'customers.id as customer_id',
+                    'customers.name as customer_name'
+                );
+
+            $product_sales->where('product_sales.customer_id',$customer_id)
+                ->whereBetween('product_sales.sale_date', [$from_date, $to_date]);
+
+            if($role !== 'Super Admin'){
+                $product_sales->where('product_sales.store_id',$store_id);
+            }
+
+            if($search){
+                $product_sales->where('product_sales.invoice_no','like','%'.$search.'%');
+                $product_sales->orWhere('customers.name','like','%'.$search.'%');
+            }
+
+            $product_sales_data = $product_sales->latest('product_sales.id','desc')->get();
+
+            $total_amount = $product_sales->sum('product_sales.grand_total_amount');
+
+            if(count($product_sales_data) === 0){
+                $response = APIHelpers::createAPIResponse(true,404,'No Sale Report Found.',null);
+                return response()->json($response,404);
+            }else{
+//                $result_data = [
+//                    'sale_data' => $product_sales_data,
+//                    'total_amount' => $total_amount
+//                ];
+//                return new CustomerSaleCollection($result_data);
+                return response()->json(['success'=>true,'code' => 200,'data' => $product_sales_data,'total_amount'=>$total_amount], 200);
+            }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
 
