@@ -312,63 +312,10 @@ class CustomerController extends Controller
                     $date_time = date('Y-m-d h:i:s');
                     $user_id = Auth::user()->id;
 
-                    $chart_of_account_transactions = new ChartOfAccountTransaction();
-                    $chart_of_account_transactions->ref_id = $customer->id;
-                    $chart_of_account_transactions->transaction_type = 'Opening Balance of '.$coa->head_name;
-                    $chart_of_account_transactions->user_id = $user_id;
-                    $chart_of_account_transactions->warehouse_id = NULL;
-                    $chart_of_account_transactions->store_id = NULL;
-                    $chart_of_account_transactions->payment_type_id = 1;
-                    $chart_of_account_transactions->voucher_type_id = 8;
-                    $chart_of_account_transactions->voucher_no = $final_voucher_no;
-                    $chart_of_account_transactions->is_approved = 'approved';
-                    $chart_of_account_transactions->transaction_date = $date;
-                    $chart_of_account_transactions->transaction_date_time = $date_time;
-                    $chart_of_account_transactions->save();
-                    $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
-
-                    if($chart_of_account_transactions_insert_id) {
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = NULL;
-                        $chart_of_account_transaction_details->store_id = NULL;
-                        $chart_of_account_transactions->payment_type_id = 1;
-                        $chart_of_account_transaction_details->payment_type_id = 8;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $coa->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $coa->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $coa->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $coa->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $coa->head_type;
-                        $chart_of_account_transaction_details->debit = $request->initial_due;
-                        $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = 'Opening Balance of '.$coa->head_name;
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $date_time;
-                        $chart_of_account_transaction_details->save();
-
-                        // Cash In Hand account
-                        $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = NULL;
-                        $chart_of_account_transaction_details->store_id = NULL;
-                        $chart_of_account_transaction_details->payment_type_id = 8;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $cash_in_hand_account->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $cash_in_hand_account->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $cash_in_hand_account->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_in_hand_account->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $cash_in_hand_account->head_type;
-                        $chart_of_account_transaction_details->debit = NULL;
-                        $chart_of_account_transaction_details->credit = $request->initial_due;
-                        $chart_of_account_transaction_details->description = 'Opening Balance of '.$coa->head_name;
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $date_time;
-                        $chart_of_account_transaction_details->save();
-                    }
+                    $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
+                    $description = 'Opening Balance of '.$coa->head_name;
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }
 
                 $response = APIHelpers::createAPIResponse(false,201,'Customer Added Successfully.',null);
@@ -378,7 +325,6 @@ class CustomerController extends Controller
                 return response()->json($response,500);
             }
 //        } catch (\Exception $e) {
-//            //return $e->getMessage();
 //            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
 //            return response()->json($response,500);
 //        }
@@ -577,64 +523,10 @@ class CustomerController extends Controller
                     $date_time = date('Y-m-d h:i:s');
                     $user_id = Auth::user()->id;
 
-                    $chart_of_account_transactions = new ChartOfAccountTransaction();
-                    $chart_of_account_transactions->ref_id = $customer->id;
-                    $chart_of_account_transactions->transaction_type = 'Opening Balance';
-                    $chart_of_account_transactions->user_id = $user_id;
-                    $chart_of_account_transactions->warehouse_id = NULL;
-                    $chart_of_account_transactions->store_id = NULL;
-                    $chart_of_account_transactions->payment_type_id = 1;
-                    $chart_of_account_transactions->voucher_type_id = 8;
-                    $chart_of_account_transactions->voucher_no = $final_voucher_no;
-                    $chart_of_account_transactions->is_approved = 'approved';
-                    $chart_of_account_transactions->transaction_date = $date;
-                    $chart_of_account_transactions->transaction_date_time = $date_time;
-                    $chart_of_account_transactions->save();
-                    $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
-
-                    if($chart_of_account_transactions_insert_id) {
-
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = NULL;
-                        $chart_of_account_transaction_details->store_id = NULL;
-                        $chart_of_account_transactions->payment_type_id = 1;
-                        $chart_of_account_transaction_details->payment_type_id = 8;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $coa->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $coa->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $coa->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $coa->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $coa->head_type;
-                        $chart_of_account_transaction_details->debit = $request->initial_due;
-                        $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = 'Opening Balance';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $date_time;
-                        $chart_of_account_transaction_details->save();
-
-                        // Cash In Hand account
-                        $supplier_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = NULL;
-                        $chart_of_account_transaction_details->store_id = NULL;
-                        $chart_of_account_transaction_details->payment_type_id = 8;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $supplier_account->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $supplier_account->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $supplier_account->head_name;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_account->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $supplier_account->head_type;
-                        $chart_of_account_transaction_details->debit = NULL;
-                        $chart_of_account_transaction_details->credit = $request->initial_due;
-                        $chart_of_account_transaction_details->description = 'Opening Balance';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $date_time;
-                        $chart_of_account_transaction_details->save();
-                    }
+                    $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
+                    $description = 'Opening Balance of '.$coa->head_name;
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }
 
                 $response = APIHelpers::createAPIResponse(false,201,'Customer Added Successfully.',null);
@@ -814,6 +706,10 @@ class CustomerController extends Controller
             $update_customer = $customer->save();
 
             if($update_customer){
+                $coa = ChartOfAccount::where('name_code',$customer->code)->first();
+                $coa->head_name=$request->name.'-'.$customer->code;
+                $coa->save();
+
                 // customer initial due
                 if( ($previous_initial_due == 0) && ($request->initial_due > 0) ) {
                     $chart_of_account_transaction = ChartOfAccountTransaction::where('transaction_type','Opening Balance')
@@ -858,71 +754,12 @@ class CustomerController extends Controller
                         $date_time = date('Y-m-d h:i:s');
                         $user_id = Auth::user()->id;
 
-                        $chart_of_account_transactions = new ChartOfAccountTransaction();
-                        $chart_of_account_transactions->ref_id = $customer->id;
-                        $chart_of_account_transactions->transaction_type = 'Opening Balance';
-                        $chart_of_account_transactions->user_id = $user_id;
-                        $chart_of_account_transactions->warehouse_id = NULL;
-                        $chart_of_account_transactions->store_id = NULL;
-                        $chart_of_account_transactions->payment_type_id = 1;
-                        $chart_of_account_transactions->voucher_type_id = 8;
-                        $chart_of_account_transactions->voucher_no = $final_voucher_no;
-                        $chart_of_account_transactions->is_approved = 'approved';
-                        $chart_of_account_transactions->transaction_date = $date;
-                        $chart_of_account_transactions->transaction_date_time = $date_time;
-                        $chart_of_account_transactions->save();
-                        $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
-
-                        if($chart_of_account_transactions_insert_id) {
-                            $chart_of_account_name = $customer->name.'-'.$customer->code;
-                            $coa = ChartOfAccount::where('head_name',$chart_of_account_name)->first();
-
-                            $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                            $chart_of_account_transaction_details->warehouse_id = NULL;
-                            $chart_of_account_transaction_details->store_id = NULL;
-                            $chart_of_account_transactions->payment_type_id = 1;
-                            $chart_of_account_transaction_details->payment_type_id = 8;
-                            $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                            $chart_of_account_transaction_details->chart_of_account_id = $coa->id;
-                            $chart_of_account_transaction_details->chart_of_account_number = $coa->head_code;
-                            $chart_of_account_transaction_details->chart_of_account_name = $coa->head_name;
-                            $chart_of_account_transaction_details->chart_of_account_parent_name = $coa->parent_head_name;
-                            $chart_of_account_transaction_details->chart_of_account_type = $coa->head_type;
-                            $chart_of_account_transaction_details->debit = $request->initial_due;
-                            $chart_of_account_transaction_details->credit = NULL;
-                            $chart_of_account_transaction_details->description = 'Opening Balance';
-                            $chart_of_account_transaction_details->year = $year;
-                            $chart_of_account_transaction_details->month = $month;
-                            $chart_of_account_transaction_details->transaction_date = $date;
-                            $chart_of_account_transaction_details->transaction_date_time = $date_time;
-                            $chart_of_account_transaction_details->save();
-
-                            // Cash In Hand account
-                            $supplier_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
-                            $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                            $chart_of_account_transaction_details->warehouse_id = NULL;
-                            $chart_of_account_transaction_details->store_id = NULL;
-                            $chart_of_account_transaction_details->payment_type_id = 8;
-                            $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                            $chart_of_account_transaction_details->chart_of_account_id = $supplier_account->id;
-                            $chart_of_account_transaction_details->chart_of_account_number = $supplier_account->head_code;
-                            $chart_of_account_transaction_details->chart_of_account_name = $supplier_account->head_name;
-                            $chart_of_account_transaction_details->chart_of_account_parent_name = $supplier_account->parent_head_name;
-                            $chart_of_account_transaction_details->chart_of_account_type = $supplier_account->head_type;
-                            $chart_of_account_transaction_details->debit = NULL;
-                            $chart_of_account_transaction_details->credit = $request->initial_due;
-                            $chart_of_account_transaction_details->description = 'Opening Balance';
-                            $chart_of_account_transaction_details->year = $year;
-                            $chart_of_account_transaction_details->month = $month;
-                            $chart_of_account_transaction_details->transaction_date = $date;
-                            $chart_of_account_transaction_details->transaction_date_time = $date_time;
-                            $chart_of_account_transaction_details->save();
-                        }
+                        $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
+                        $description = 'Opening Balance of '.$coa->head_name;
+                        chartOfAccountTransactionDetails($request->customer_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                        chartOfAccountTransactionDetails($request->customer_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                     }
                 }elseif( $request->initial_due !== $previous_initial_due ){
-                    $chart_of_account = ChartOfAccount::where('name_code',$customer->code)->first();
-                    $chart_of_account->head_name=$request->name.'-'.$customer->code;
-                    $chart_of_account->save();
 
                     $chart_of_account_name = $customer->name.'-'.$customer->code;
                     $customer_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
@@ -1101,106 +938,21 @@ class CustomerController extends Controller
             // Account Receivable Account Info
             $account_receivable_info = ChartOfAccount::where('head_name','Account Receivable')->first();
 
-            $chart_of_account_transactions = new ChartOfAccountTransaction();
-            $chart_of_account_transactions->ref_id = NULL;
-            $chart_of_account_transactions->user_id = $user_id;
-            $chart_of_account_transactions->warehouse_id = $warehouse_id;
-            $chart_of_account_transactions->store_id = $store_id;
-            $chart_of_account_transactions->payment_type_id = $payment_type_id;
-            $chart_of_account_transactions->transaction_type = 'Due Paid';
-            $chart_of_account_transactions->voucher_type_id = 2;
-            $chart_of_account_transactions->voucher_no = $final_voucher_no;
-            $chart_of_account_transactions->is_approved = 'approved';
-            $chart_of_account_transactions->transaction_date = $date;
-            $chart_of_account_transactions->transaction_date_time = $transaction_date_time;
-            $chart_of_account_transactions->save();
-            $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
-
-            if($chart_of_account_transactions_insert_id){
-                if($payment_type_id == '1') {
-                    // Cash In Hand debit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $cash_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = $paid_amount;
-                    $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = $description ? $description : $cash_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    // Account Receivable credit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $account_receivable_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $account_receivable_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $account_receivable_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $account_receivable_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $account_receivable_info->head_type;
-                    $chart_of_account_transaction_details->debit = NULL;
-                    $chart_of_account_transaction_details->credit = $paid_amount;
-                    $chart_of_account_transaction_details->description = $description ? $description : $account_receivable_info->head_name . ' Credited For Due Amount Paid';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-                }
-
-                if($payment_type_id == '2') {
-                    // Cheque debit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cheque_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cheque_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $cheque_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cheque_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = $paid_amount;
-                    $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = $description ? $description : $cheque_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    // Account Receivable credit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $account_receivable_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $account_receivable_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $account_receivable_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $account_receivable_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $account_receivable_info->head_type;
-                    $chart_of_account_transaction_details->debit = NULL;
-                    $chart_of_account_transaction_details->credit = $paid_amount;
-                    $chart_of_account_transaction_details->description = $description ? $description : $account_receivable_info->head_name . ' Credited For Due Amount Paid';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-                }
+            if($payment_type_id == '1') {
+                // Cash In Hand debit
+                $description = $description ? $description : $cash_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
+                chartOfAccountTransactionDetails(NULL, NULL, $user_id, 2, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, $paid_amount, NULL, $description, 'Approved');
             }
+
+            if($payment_type_id == '2') {
+                // Cheque debit
+                $description = $description ? $description : $cheque_chart_of_account_info->head_name . ' Debited For Due Amount Paid';
+                chartOfAccountTransactionDetails(NULL, NULL, $user_id, 2, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $cheque_chart_of_account_info->id, $cheque_chart_of_account_info->head_code, $cheque_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $cheque_chart_of_account_info->head_type, $paid_amount, NULL, $description, 'Approved');
+            }
+
+            // Account Receivable credit
+            $description = $description ? $description : $account_receivable_info->head_name . ' Credited For Due Amount Paid';
+            chartOfAccountTransactionDetails(NULL, NULL, $user_id, 2, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $account_receivable_info->id, $account_receivable_info->head_code, $account_receivable_info->head_name, $account_receivable_info->parent_head_name, $account_receivable_info->head_type, NULL, $paid_amount, $description, 'Approved');
 
             $response = APIHelpers::createAPIResponse(false,200,'Supplier Updated Successfully.',null);
             return response()->json($response,200);

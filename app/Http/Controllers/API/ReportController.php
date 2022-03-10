@@ -1309,15 +1309,14 @@ class ReportController extends Controller
 
         if($request->from_date && $request->to_date){
             $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
-                ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                ->leftJoin('voucher_types','chart_of_account_transaction_details.voucher_type_id','=','voucher_types.id')
                 ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
                 ->where('chart_of_account_transaction_details.transaction_date','>=',$request->from_date)
                 ->where('chart_of_account_transaction_details.transaction_date','<=',$request->to_date)
                 ->where('chart_of_account_transaction_details.store_id','<=',$request->store_id)
                 ->select(
                     'voucher_types.name as voucher_type_name',
-                    'chart_of_account_transactions.voucher_no',
+                    'chart_of_account_transaction_details.voucher_no',
                     'chart_of_account_transaction_details.debit',
                     'chart_of_account_transaction_details.credit',
                     'chart_of_account_transaction_details.description',
@@ -1326,13 +1325,12 @@ class ReportController extends Controller
                 ->get();
         }else{
             $chart_of_account_transaction = DB::table("chart_of_account_transaction_details")
-                ->join('chart_of_account_transactions','chart_of_account_transaction_details.chart_of_account_transaction_id','=','chart_of_account_transactions.id')
-                ->leftJoin('voucher_types','chart_of_account_transactions.voucher_type_id','=','voucher_types.id')
+                ->leftJoin('voucher_types','chart_of_account_transaction_details.voucher_type_id','=','voucher_types.id')
                 ->where('chart_of_account_transaction_details.chart_of_account_name',$request->chart_of_account_name)
                 ->where('chart_of_account_transaction_details.store_id','<=',$request->store_id)
                 ->select(
                     'voucher_types.name as voucher_type_name',
-                    'chart_of_account_transactions.voucher_no',
+                    'chart_of_account_transaction_details.voucher_no',
                     'chart_of_account_transaction_details.debit',
                     'chart_of_account_transaction_details.debit',
                     'chart_of_account_transaction_details.credit',

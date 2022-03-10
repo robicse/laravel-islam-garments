@@ -1,6 +1,7 @@
 <?php
 //filter products published
 use App\ChartOfAccountTransaction;
+use App\ChartOfAccountTransactionDetail;
 use App\LeaveApplication;
 use App\Stock;
 use App\User;
@@ -1678,30 +1679,58 @@ if(!function_exists('stock')){
 if (! function_exists('chartOfAccountTransactionDetails')) {
     function chartOfAccountTransactionDetails(
         $ref_id=NULL,
+        $invoice_no=NULL,
         $user_id,
+        $voucher_type_id,
+        $voucher_no,
+        $transaction_type,
+        $transaction_date,
+        $transaction_date_time,
+        $year,
+        $month,
         $warehouse_id=NULL,
         $store_id=NULL,
         $payment_type_id,
-        $transaction_type,
-        $voucher_type_id,
-        $voucher_no,
-        $is_approved,
-        $transaction_date,
-        $transaction_date_time
+        $cheque_date,
+        $cheque_approved_status,
+        $chart_of_account_transaction_id=NULL,
+        $chart_of_account_id,
+        $chart_of_account_number,
+        $chart_of_account_name,
+        $chart_of_account_parent_name,
+        $chart_of_account_type,
+        $debit,
+        $credit,
+        $description,
+        $approved_status
     ) {
-        $chart_of_account_transactions = new ChartOfAccountTransaction();
-        $chart_of_account_transactions->ref_id = $ref_id;
-        $chart_of_account_transactions->user_id = $user_id;
-        $chart_of_account_transactions->warehouse_id = $warehouse_id;
-        $chart_of_account_transactions->store_id = $store_id;
-        $chart_of_account_transactions->payment_type_id = $payment_type_id;
-        $chart_of_account_transactions->transaction_type = $transaction_type;
-        $chart_of_account_transactions->voucher_type_id = $voucher_type_id;
-        $chart_of_account_transactions->voucher_no = $voucher_no;
-        $chart_of_account_transactions->is_approved = $is_approved;
-        $chart_of_account_transactions->transaction_date = $transaction_date;
-        $chart_of_account_transactions->transaction_date_time = $transaction_date_time;
-        if ($chart_of_account_transactions->save()) {
+        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
+        $chart_of_account_transaction_details->ref_id = $ref_id;
+        $chart_of_account_transaction_details->invoice_no = $invoice_no;
+        $chart_of_account_transaction_details->user_id = $user_id;
+        $chart_of_account_transaction_details->voucher_type_id = $voucher_type_id;
+        $chart_of_account_transaction_details->voucher_no = $voucher_no;
+        $chart_of_account_transaction_details->transaction_type = $transaction_type;
+        $chart_of_account_transaction_details->transaction_date = $transaction_date;
+        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
+        $chart_of_account_transaction_details->year = $year;
+        $chart_of_account_transaction_details->month = $month;
+        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
+        $chart_of_account_transaction_details->store_id = $store_id;
+        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
+        $chart_of_account_transaction_details->cheque_date = $cheque_date;
+        $chart_of_account_transaction_details->cheque_approved_status = $cheque_approved_status;
+        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transaction_id;
+        $chart_of_account_transaction_details->chart_of_account_id = $chart_of_account_id;
+        $chart_of_account_transaction_details->chart_of_account_number = $chart_of_account_number;
+        $chart_of_account_transaction_details->chart_of_account_name = $chart_of_account_name;
+        $chart_of_account_transaction_details->chart_of_account_parent_name = $chart_of_account_parent_name;
+        $chart_of_account_transaction_details->chart_of_account_type = $chart_of_account_type;
+        $chart_of_account_transaction_details->debit = $debit;
+        $chart_of_account_transaction_details->credit = $credit;
+        $chart_of_account_transaction_details->description = $description;
+        $chart_of_account_transaction_details->approved_status = $approved_status;
+        if ($chart_of_account_transaction_details->save()) {
             return true;
         }else{
             return false;

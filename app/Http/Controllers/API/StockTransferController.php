@@ -215,245 +215,29 @@ class StockTransferController extends Controller
                 $voucher_no = 1000;
             }
             $final_voucher_no = $get_voucher_name.'-'.$voucher_no;
-            $chart_of_account_transactions = new ChartOfAccountTransaction();
-            $chart_of_account_transactions->ref_id = $stock_transfer_insert_id;
-            $chart_of_account_transactions->user_id = $user_id;
-            $chart_of_account_transactions->warehouse_id = $warehouse_id;
-            $chart_of_account_transactions->store_id = $store_id;
-            $chart_of_account_transactions->payment_type_id = $payment_type_id;
-            $chart_of_account_transactions->transaction_type = 'Stock Transfer From Warehouse '.$warehouse_id.' To Store '.$store_id;
-            $chart_of_account_transactions->voucher_type_id = 1;
-            $chart_of_account_transactions->voucher_no = $final_voucher_no;
-            $chart_of_account_transactions->is_approved = 'approved';
-            $chart_of_account_transactions->transaction_date = $date;
-            $chart_of_account_transactions->transaction_date_time = $transaction_date_time;
-            $chart_of_account_transactions->save();
-            $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
 
-            if($chart_of_account_transactions_insert_id){
-                // Inventory Account Info
-                $inventory_chart_of_account_info = ChartOfAccount::where('head_name', 'Inventory')->first();
+            // Inventory Account Info
+            $inventory_chart_of_account_info = ChartOfAccount::where('head_name', 'Inventory')->first();
 
-                // Cash In Hand Account Info
-                $cash_chart_of_account_info = ChartOfAccount::where('head_name', 'Cash In Hand')->first();
+            // Cash In Hand Account Info
+            $cash_chart_of_account_info = ChartOfAccount::where('head_name', 'Cash In Hand')->first();
 
-                // Cheque Account Info
-                $cheque_chart_of_account_info = ChartOfAccount::where('head_name', 'Cheque')->first();
+            // Cash In Hand Debit
+            $description = $cash_chart_of_account_info->head_name.' Store Debited For Stock Transfer';
+            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, $total_amount, NULL, $description, 'Approved');
+
+            // Cash In Hand Credit
+            $description = $cash_chart_of_account_info->head_name.' Warehouse Credited For Stock Transfer';
+            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, NULL, $total_amount, $description, 'Approved');
 
 
-                // 1st theme
+            // Inventory Debit
+            $description = $inventory_chart_of_account_info->head_name.' Store Inventory Debited For Stock Transfer';
+            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $inventory_chart_of_account_info->id, $inventory_chart_of_account_info->head_code, $inventory_chart_of_account_info->head_name, $inventory_chart_of_account_info->parent_head_name, $inventory_chart_of_account_info->head_type, $total_amount, NULL, $description, 'Approved');
 
-//                if($payment_type_id === '1') {
-//                    // Cash In Hand debit
-//                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-//                    $chart_of_account_transaction_details->store_id = NULL;
-//                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-//                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-//                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-//                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-//                    $chart_of_account_transaction_details->chart_of_account_name = $cash_chart_of_account_info->head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-//                    $chart_of_account_transaction_details->debit = $total_amount;
-//                    $chart_of_account_transaction_details->credit = NULL;
-//                    $chart_of_account_transaction_details->description = $cash_chart_of_account_info->head_name.' Warehouse Debit For Stock Transfer';
-//                    $chart_of_account_transaction_details->year = $year;
-//                    $chart_of_account_transaction_details->month = $month;
-//                    $chart_of_account_transaction_details->transaction_date = $date;
-//                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-//                    $chart_of_account_transaction_details->save();
-//
-//                    // Cash In Hand credit
-//                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                    $chart_of_account_transaction_details->warehouse_id = NULL;
-//                    $chart_of_account_transaction_details->store_id = $store_id;
-//                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-//                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-//                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-//                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-//                    $chart_of_account_transaction_details->chart_of_account_name = $cash_chart_of_account_info->head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-//                    $chart_of_account_transaction_details->debit = NULL;
-//                    $chart_of_account_transaction_details->credit = $total_amount;
-//                    $chart_of_account_transaction_details->description = $cash_chart_of_account_info->head_name.' Store Credit For Stock Transfer';
-//                    $chart_of_account_transaction_details->year = $year;
-//                    $chart_of_account_transaction_details->month = $month;
-//                    $chart_of_account_transaction_details->transaction_date = $date;
-//                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-//                    $chart_of_account_transaction_details->save();
-//                }
-//
-//                if($payment_type_id === '2') {
-//                    //Check debit
-//                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-//                    $chart_of_account_transaction_details->store_id = NULL;
-//                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-//                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-//                    $chart_of_account_transaction_details->chart_of_account_id = $cheque_chart_of_account_info->id;
-//                    $chart_of_account_transaction_details->chart_of_account_number = $cheque_chart_of_account_info->head_code;
-//                    $chart_of_account_transaction_details->chart_of_account_name = $cheque_chart_of_account_info->head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cheque_chart_of_account_info->parent_head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
-//                    $chart_of_account_transaction_details->debit = $total_amount;
-//                    $chart_of_account_transaction_details->credit = NULL;
-//                    $chart_of_account_transaction_details->description = $cheque_chart_of_account_info->head_name.' Warehouse Debit For Stock Transfer';
-//                    $chart_of_account_transaction_details->year = $year;
-//                    $chart_of_account_transaction_details->month = $month;
-//                    $chart_of_account_transaction_details->transaction_date = $date;
-//                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-//                    $chart_of_account_transaction_details->save();
-//
-//                    //Cheque credit
-//                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                    $chart_of_account_transaction_details->warehouse_id = NULL;
-//                    $chart_of_account_transaction_details->store_id = $store_id;
-//                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-//                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-//                    $chart_of_account_transaction_details->chart_of_account_id = $cheque_chart_of_account_info->id;
-//                    $chart_of_account_transaction_details->chart_of_account_number = $cheque_chart_of_account_info->head_code;
-//                    $chart_of_account_transaction_details->chart_of_account_name = $cheque_chart_of_account_info->head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cheque_chart_of_account_info->parent_head_name;
-//                    $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
-//                    $chart_of_account_transaction_details->debit = NULL;
-//                    $chart_of_account_transaction_details->credit = $total_amount;
-//                    $chart_of_account_transaction_details->description = $cheque_chart_of_account_info->head_name.' Store Credit For Stock Transfer';
-//                    $chart_of_account_transaction_details->year = $year;
-//                    $chart_of_account_transaction_details->month = $month;
-//                    $chart_of_account_transaction_details->transaction_date = $date;
-//                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-//                    $chart_of_account_transaction_details->save();
-//                }
-
-
-                // 2nd theme
-                if($payment_type_id === '1') {
-                    // Cash In Hand Debit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = NULL;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $cash_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = $total_amount;
-                    $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = $cash_chart_of_account_info->head_name.' Store Debited For Stock Transfer';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    // Cash In Hand Credit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = NULL;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $cash_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = NULL;
-                    $chart_of_account_transaction_details->credit = $total_amount;
-                    $chart_of_account_transaction_details->description = $cash_chart_of_account_info->head_name.' Warehouse Credited For Stock Transfer';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-                }
-
-                if($payment_type_id === '2') {
-                    //Cheque Debit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = NULL;
-                    $chart_of_account_transaction_details->store_id = $store_id;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cheque_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cheque_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $cheque_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cheque_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = $total_amount;
-                    $chart_of_account_transaction_details->credit = NULL;
-                    $chart_of_account_transaction_details->description = $cheque_chart_of_account_info->head_name.' Store Debited For Stock Transfer';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-
-                    //Check Credit
-                    $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                    $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                    $chart_of_account_transaction_details->store_id = NULL;
-                    $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                    $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                    $chart_of_account_transaction_details->chart_of_account_id = $cheque_chart_of_account_info->id;
-                    $chart_of_account_transaction_details->chart_of_account_number = $cheque_chart_of_account_info->head_code;
-                    $chart_of_account_transaction_details->chart_of_account_name = $cheque_chart_of_account_info->head_name;
-                    $chart_of_account_transaction_details->chart_of_account_parent_name = $cheque_chart_of_account_info->parent_head_name;
-                    $chart_of_account_transaction_details->chart_of_account_type = $cheque_chart_of_account_info->head_type;
-                    $chart_of_account_transaction_details->debit = NULL;
-                    $chart_of_account_transaction_details->credit = $total_amount;
-                    $chart_of_account_transaction_details->description = $cheque_chart_of_account_info->head_name.' Warehouse Credited For Stock Transfer';
-                    $chart_of_account_transaction_details->year = $year;
-                    $chart_of_account_transaction_details->month = $month;
-                    $chart_of_account_transaction_details->transaction_date = $date;
-                    $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transaction_details->save();
-                }
-
-                // Inventory Debit
-                $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                $chart_of_account_transaction_details->warehouse_id = NULL;
-                $chart_of_account_transaction_details->store_id = $store_id;
-                $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                $chart_of_account_transaction_details->chart_of_account_id = $inventory_chart_of_account_info->id;
-                $chart_of_account_transaction_details->chart_of_account_number = $inventory_chart_of_account_info->head_code;
-                $chart_of_account_transaction_details->chart_of_account_name = $inventory_chart_of_account_info->head_name;
-                $chart_of_account_transaction_details->chart_of_account_parent_name = $inventory_chart_of_account_info->parent_head_name;
-                $chart_of_account_transaction_details->chart_of_account_type = $inventory_chart_of_account_info->head_type;
-                $chart_of_account_transaction_details->debit = $total_amount;
-                $chart_of_account_transaction_details->credit = NULL;
-                $chart_of_account_transaction_details->description = $inventory_chart_of_account_info->head_name.' Store Inventory Debited For Stock Transfer';
-                $chart_of_account_transaction_details->year = $year;
-                $chart_of_account_transaction_details->month = $month;
-                $chart_of_account_transaction_details->transaction_date = $date;
-                $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                $chart_of_account_transaction_details->save();
-
-                //Inventory Credit
-                $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                $chart_of_account_transaction_details->store_id = NULL;
-                $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                $chart_of_account_transaction_details->chart_of_account_id = $inventory_chart_of_account_info->id;
-                $chart_of_account_transaction_details->chart_of_account_number = $inventory_chart_of_account_info->head_code;
-                $chart_of_account_transaction_details->chart_of_account_name = $inventory_chart_of_account_info->head_name;
-                $chart_of_account_transaction_details->chart_of_account_parent_name = $inventory_chart_of_account_info->parent_head_name;
-                $chart_of_account_transaction_details->chart_of_account_type = $inventory_chart_of_account_info->head_type;
-                $chart_of_account_transaction_details->debit = NULL;
-                $chart_of_account_transaction_details->credit = $total_amount;
-                $chart_of_account_transaction_details->description = $inventory_chart_of_account_info->head_name.' Warehouse Inventory Credited For Stock Transfer';
-                $chart_of_account_transaction_details->year = $year;
-                $chart_of_account_transaction_details->month = $month;
-                $chart_of_account_transaction_details->transaction_date = $date;
-                $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                $chart_of_account_transaction_details->save();
-
-            }
+            //Inventory Credit
+            $description = $inventory_chart_of_account_info->head_name.' Warehouse Inventory Credited For Stock Transfer';
+            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $inventory_chart_of_account_info->id, $inventory_chart_of_account_info->head_code, $inventory_chart_of_account_info->head_name, $inventory_chart_of_account_info->parent_head_name, $inventory_chart_of_account_info->head_type, NULL, $total_amount, $description, 'Approved');
 
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse To Store Stock Added Successfully.',null);
             return response()->json($response,201);

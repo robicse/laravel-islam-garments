@@ -133,109 +133,22 @@ class ExpenseController extends Controller
                         $voucher_no = 9000;
                     }
                     $final_voucher_no = $get_voucher_name . '-' . $voucher_no;
-                    $chart_of_account_transactions = new ChartOfAccountTransaction();
-                    $chart_of_account_transactions->ref_id = $insert_id;
-                    $chart_of_account_transactions->user_id = $user_id;
-                    $chart_of_account_transactions->warehouse_id = $warehouse_id;
-                    $chart_of_account_transactions->store_id = $store_id;
-                    $chart_of_account_transactions->payment_type_id = $payment_type_id;
-                    $chart_of_account_transactions->transaction_type = 'Expense paid';
-                    $chart_of_account_transactions->voucher_type_id = 9;
-                    $chart_of_account_transactions->voucher_no = $final_voucher_no;
-                    $chart_of_account_transactions->is_approved = 'approved';
-                    $chart_of_account_transactions->transaction_date = $date;
-                    $chart_of_account_transactions->transaction_date_time = $transaction_date_time;
-                    $chart_of_account_transactions->save();
-                    $chart_of_account_transactions_insert_id = $chart_of_account_transactions->id;
 
-                    if ($chart_of_account_transactions_insert_id) {
-                        // Cash In Hand Account Info
-                        $cash_chart_of_account_info = ChartOfAccount::where('head_name', 'Cash In Hand')->first();
+                    // Cash In Hand Account Info
+                    $cash_chart_of_account_info = ChartOfAccount::where('head_name', 'Cash In Hand')->first();
 
-                        // expense head
-                        $code = ExpenseCategory::where('id', $expense_category_id)->pluck('code')->first();
-                        $expense_chart_of_account_info = ChartOfAccount::where('name_code', $code)->first();
+                    // expense head
+                    $code = ExpenseCategory::where('id', $expense_category_id)->pluck('code')->first();
+                    $expense_chart_of_account_info = ChartOfAccount::where('name_code', $code)->first();
 
-                        // expense debit
-//                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-//                        $chart_of_account_transaction_details->store_id = $store_id;
-//                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-//                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-//                        $chart_of_account_transaction_details->chart_of_account_id = $expense_chart_of_account_info->id;
-//                        $chart_of_account_transaction_details->chart_of_account_number = $expense_chart_of_account_info->head_code;
-//                        $chart_of_account_transaction_details->chart_of_account_name = $code;
-//                        $chart_of_account_transaction_details->chart_of_account_parent_name = $expense_chart_of_account_info->parent_head_name;
-//                        $chart_of_account_transaction_details->chart_of_account_type = $expense_chart_of_account_info->head_type;
-//                        $chart_of_account_transaction_details->debit = $amount;
-//                        $chart_of_account_transaction_details->credit = NULL;
-//                        $chart_of_account_transaction_details->description = $expense_chart_of_account_info->head_name . ' Expense Debited For Expense Paid';
-//                        $chart_of_account_transaction_details->year = $year;
-//                        $chart_of_account_transaction_details->month = $month;
-//                        $chart_of_account_transaction_details->transaction_date = $date;
-//                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-//                        $chart_of_account_transaction_details->save();
+                    // Cash In Hand debit
+                    $description = 'Cash In Hand Debit For Expense Paid';
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 9, $final_voucher_no, 'Expense Paid', $date, $transaction_date_time, $year, $month, $warehouse_id, $store_id, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, $amount, NULL, $description, 'Approved');
 
-                        // Cash In Hand credit
-//                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-//                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-//                        $chart_of_account_transaction_details->store_id = $store_id;
-//                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-//                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-//                        $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-//                        $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-//                        $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
-//                        $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-//                        $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-//                        $chart_of_account_transaction_details->debit = NULL;
-//                        $chart_of_account_transaction_details->credit = $amount;
-//                        $chart_of_account_transaction_details->description = 'Cash In Hand Credit For Expense Paid';
-//                        $chart_of_account_transaction_details->year = $year;
-//                        $chart_of_account_transaction_details->month = $month;
-//                        $chart_of_account_transaction_details->transaction_date = $date;
-//                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-//                        $chart_of_account_transaction_details->save();
+                    // expense credit
+                    $description = $expense_chart_of_account_info->head_name . ' Expense Credited For Expense Paid';
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 9, $final_voucher_no, 'Expense Paid', $date, $transaction_date_time, $year, $month, $warehouse_id, $store_id, $payment_type_id, NULL, NULL, NULL, $expense_chart_of_account_info->id, $expense_chart_of_account_info->head_code, $expense_chart_of_account_info->head_name, $expense_chart_of_account_info->parent_head_name, $expense_chart_of_account_info->head_type, NULL, $amount, $description, 'Approved');
 
-                        // Cash In Hand debit
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                        $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $cash_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $cash_chart_of_account_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = 'Cash In Hand';
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $cash_chart_of_account_info->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $cash_chart_of_account_info->head_type;
-                        $chart_of_account_transaction_details->debit = $amount;
-                        $chart_of_account_transaction_details->credit = NULL;
-                        $chart_of_account_transaction_details->description = 'Cash In Hand Debit For Expense Paid';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                        $chart_of_account_transaction_details->save();
-
-                        // expense credit
-                        $chart_of_account_transaction_details = new ChartOfAccountTransactionDetail();
-                        $chart_of_account_transaction_details->warehouse_id = $warehouse_id;
-                        $chart_of_account_transaction_details->store_id = $store_id;
-                        $chart_of_account_transaction_details->payment_type_id = $payment_type_id;
-                        $chart_of_account_transaction_details->chart_of_account_transaction_id = $chart_of_account_transactions_insert_id;
-                        $chart_of_account_transaction_details->chart_of_account_id = $expense_chart_of_account_info->id;
-                        $chart_of_account_transaction_details->chart_of_account_number = $expense_chart_of_account_info->head_code;
-                        $chart_of_account_transaction_details->chart_of_account_name = $code;
-                        $chart_of_account_transaction_details->chart_of_account_parent_name = $expense_chart_of_account_info->parent_head_name;
-                        $chart_of_account_transaction_details->chart_of_account_type = $expense_chart_of_account_info->head_type;
-                        $chart_of_account_transaction_details->debit = NULL;
-                        $chart_of_account_transaction_details->credit = $amount;
-                        $chart_of_account_transaction_details->description = $expense_chart_of_account_info->head_name . ' Expense Credited For Expense Paid';
-                        $chart_of_account_transaction_details->year = $year;
-                        $chart_of_account_transaction_details->month = $month;
-                        $chart_of_account_transaction_details->transaction_date = $date;
-                        $chart_of_account_transaction_details->transaction_date_time = $transaction_date_time;
-                        $chart_of_account_transaction_details->save();
-                    }
                 }
 
                 $response = APIHelpers::createAPIResponse(false,200,'Expense Created Successfully.',null);
