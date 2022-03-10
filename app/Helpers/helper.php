@@ -1,6 +1,8 @@
 <?php
 //filter products published
+use App\ChartOfAccountTransaction;
 use App\LeaveApplication;
+use App\Stock;
 use App\User;
 
 use Illuminate\Database\Eloquent\Model;
@@ -1629,3 +1631,82 @@ if (! function_exists('customerCurrentTotalDueByCustomerId')) {
         return $current_total_due;
     }
 }
+
+if(!function_exists('stock')){
+    function stock(
+        $ref_id=NULL,
+        $user_id,
+        $warehouse_id=NULL,
+        $store_id=NULL,
+        $product_info,
+        $stock_type,
+        $stock_where,
+        $stock_in_out,
+        $previous_stock,
+        $stock_in_qty,
+        $stock_out_qty,
+        $current_stock_qty,
+        $stock_date,
+        $stock_date_time
+    ){
+        $stock = new Stock();
+        $stock->ref_id = $ref_id;
+        $stock->user_id = $user_id;
+        $stock->warehouse_id = $warehouse_id;
+        $stock->store_id = $store_id;
+        $stock->product_id = $product_info->id;
+        $stock->product_name = $product_info->name;
+        $stock->product_type = $product_info->type;
+        $stock->stock_type = $stock_type;
+        $stock->stock_where = $stock_where;
+        $stock->stock_in_out = $stock_in_out;
+        $stock->previous_stock = $previous_stock;
+        $stock->stock_in = $stock_in_qty;
+        $stock->stock_out = $stock_out_qty;
+        $stock->current_stock = $current_stock_qty;
+        $stock->stock_date = $stock_date;
+        $stock->stock_date_time = $stock_date_time;
+        $stock->save();
+        if($stock->id){
+            return true;
+        }else{
+            return false;
+        }
+    }
+}
+
+if (! function_exists('chartOfAccountTransactionDetails')) {
+    function chartOfAccountTransactionDetails(
+        $ref_id=NULL,
+        $user_id,
+        $warehouse_id=NULL,
+        $store_id=NULL,
+        $payment_type_id,
+        $transaction_type,
+        $voucher_type_id,
+        $voucher_no,
+        $is_approved,
+        $transaction_date,
+        $transaction_date_time
+    ) {
+        $chart_of_account_transactions = new ChartOfAccountTransaction();
+        $chart_of_account_transactions->ref_id = $ref_id;
+        $chart_of_account_transactions->user_id = $user_id;
+        $chart_of_account_transactions->warehouse_id = $warehouse_id;
+        $chart_of_account_transactions->store_id = $store_id;
+        $chart_of_account_transactions->payment_type_id = $payment_type_id;
+        $chart_of_account_transactions->transaction_type = $transaction_type;
+        $chart_of_account_transactions->voucher_type_id = $voucher_type_id;
+        $chart_of_account_transactions->voucher_no = $voucher_no;
+        $chart_of_account_transactions->is_approved = $is_approved;
+        $chart_of_account_transactions->transaction_date = $transaction_date;
+        $chart_of_account_transactions->transaction_date_time = $transaction_date_time;
+        if ($chart_of_account_transactions->save()) {
+            return true;
+        }else{
+            return false;
+        }
+    }
+}
+
+
