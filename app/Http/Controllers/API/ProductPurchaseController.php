@@ -30,7 +30,7 @@ class ProductPurchaseController extends Controller
                     'date'=> 'required',
                     'warehouse_id'=> 'required',
                     //'supplier_id'=> 'required',
-                    'payment_type_id'=> 'required',
+                    //'payment_type_id'=> 'required',
                     'sub_total_amount'=> 'required',
                     'discount_percent'=> 'required',
                     'discount_amount'=> 'required',
@@ -62,7 +62,7 @@ class ProductPurchaseController extends Controller
             $supplier_id=$request->supplier_id ? $request->supplier_id : 1;
             $warehouse_id = $request->warehouse_id;
             $store_id = NULL;
-            $payment_type_id = $request->payment_type_id;
+            $payment_type_id = $request->payment_type_id ? $request->payment_type_id : NULL;
             $cheque_date = $request->cheque_date;
             $sub_total_amount = $request->sub_total_amount;
             $grand_total_amount = $request->grand_total_amount;
@@ -103,6 +103,7 @@ class ProductPurchaseController extends Controller
             $productPurchase ->warehouse_id = $warehouse_id;
             $productPurchase ->payment_type_id = $payment_type_id;
             $productPurchase ->cheque_date = $cheque_date ? $cheque_date : NULL;
+            $productPurchase ->cheque_approved_status = 'Pending';
             $productPurchase ->sub_total_amount = $sub_total_amount;
             $productPurchase ->discount_type = $discount_type;
             $productPurchase ->discount_percent = $discount_percent;
@@ -123,10 +124,17 @@ class ProductPurchaseController extends Controller
                 // for postman also api workable
                 foreach ($products as $data) {
                     $product_id =  $data->id;
-
                     $product_code =  $data->product_code;
-                    $purchase_price =  $data->purchase_price;
                     $qty =  $data->qty;
+                    //$purchase_price =  $data->purchase_price;
+                    if($data->type === 'Buy'){
+                        $tempTotalPrice =  $data->temptotalPrice;
+                        $purchase_price =  $tempTotalPrice/$qty;
+                    }else{
+                        $purchase_price =  0;
+                        $tempTotalPrice =  0;
+                    }
+
                     $product = Product::where('id',$product_id)->first();
 
                     // product purchase detail
@@ -140,7 +148,8 @@ class ProductPurchaseController extends Controller
                     $purchase_purchase_detail->qty = $qty;
                     $purchase_purchase_detail->purchase_price = $purchase_price;
                     $purchase_purchase_detail->mrp_price = $purchase_price;
-                    $purchase_purchase_detail->sub_total = $qty*$purchase_price;
+                    //$purchase_purchase_detail->sub_total = $qty*$purchase_price;
+                    $purchase_purchase_detail->sub_total = $tempTotalPrice;
                     $purchase_purchase_detail->save();
 
                     $check_previous_stock = Stock::where('product_id',$product_id)->latest()->pluck('current_stock')->first();
@@ -190,7 +199,7 @@ class ProductPurchaseController extends Controller
                     }
                 }
 
-                if($check_type == 'Buy'){
+                if($check_type === 'Buy'){
                     // posting
                     $month = date('m', strtotime($date));
                     $year = date('Y', strtotime($date));
@@ -833,6 +842,7 @@ class ProductPurchaseController extends Controller
                     'product_purchases.warehouse_id',
                     'products.id as product_id',
                     'products.name as product_name',
+                    'products.type',
                     'products.product_code',
                     'products.product_unit_id',
                     'products.product_category_id',
@@ -853,6 +863,7 @@ class ProductPurchaseController extends Controller
                     $nested_data['product_id'] = $product_purchase_detail->product_id;
                     $nested_data['product_name'] = $product_purchase_detail->product_name;
                     $nested_data['product_code'] = $product_purchase_detail->product_code;
+                    $nested_data['type'] = $product_purchase_detail->type;
                     $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
                     $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
@@ -890,6 +901,7 @@ class ProductPurchaseController extends Controller
                     'product_purchases.warehouse_id',
                     'products.id as product_id',
                     'products.name as product_name',
+                    'products.type',
                     'products.product_code',
                     'products.product_unit_id',
                     'products.product_category_id',
@@ -909,6 +921,7 @@ class ProductPurchaseController extends Controller
                     $nested_data['product_id'] = $product_purchase_detail->product_id;
                     $nested_data['product_name'] = $product_purchase_detail->product_name;
                     $nested_data['product_code'] = $product_purchase_detail->product_code;
+                    $nested_data['type'] = $product_purchase_detail->type;
                     $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
                     $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
