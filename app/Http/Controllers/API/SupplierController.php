@@ -270,8 +270,8 @@ class SupplierController extends Controller
 
                 // supplier initial due
                 if($request->initial_due > 0){
-                    $get_voucher_name = 'Opening Balance';
-                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',8)->latest()->pluck('voucher_no')->first();
+                    $get_voucher_name = 'Previous Balance';
+                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',10)->latest()->pluck('voucher_no')->first();
                     if(!empty($get_voucher_no)){
                         $get_voucher_name_str = $get_voucher_name."-";
                         $get_voucher = str_replace($get_voucher_name_str,"",$get_voucher_no);
@@ -291,9 +291,9 @@ class SupplierController extends Controller
                     $supplier_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
 
                     // coa
-                    $description = 'Opening Balance of '.$supplier_account->head_name;
-                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
-                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $supplier_account->id, $supplier_account->head_code, $supplier_account->head_name, $supplier_account->parent_head_name, $supplier_account->head_type, NULL, $request->initial_due, $description, 'Approved');
+                    $description = 'Previous Balance of '.$supplier_account->head_name;
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $supplier_account->id, $supplier_account->head_code, $supplier_account->head_name, $supplier_account->parent_head_name, $supplier_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }
 
 
@@ -481,8 +481,8 @@ class SupplierController extends Controller
 
                 // supplier initial due
                 if( ($previous_initial_due == 0) && ($request->initial_due > 0) ) {
-                    $get_voucher_name = 'Opening Balance';
-                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',8)->latest()->pluck('voucher_no')->first();
+                    $get_voucher_name = 'Previous Balance';
+                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',10)->latest()->pluck('voucher_no')->first();
                     if(!empty($get_voucher_no)){
                         $get_voucher_name_str = $get_voucher_name."-";
                         $get_voucher = str_replace($get_voucher_name_str,"",$get_voucher_no);
@@ -499,29 +499,29 @@ class SupplierController extends Controller
                     $user_id = Auth::user()->id;
 
                     $supplier_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
-                    $description = 'Opening Balance of '.$supplier_account->head_name;
-                    chartOfAccountTransactionDetails($request->supplier_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
-                    chartOfAccountTransactionDetails($request->supplier_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $supplier_account->id, $supplier_account->head_code, $supplier_account->head_name, $supplier_account->parent_head_name, $supplier_account->head_type, NULL, $request->initial_due, $description, 'Approved');
+                    $description = 'Previous Balance of '.$supplier_account->head_name;
+                    chartOfAccountTransactionDetails($request->supplier_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                    chartOfAccountTransactionDetails($request->supplier_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $supplier_account->id, $supplier_account->head_code, $supplier_account->head_name, $supplier_account->parent_head_name, $supplier_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }elseif( $request->initial_due !== $previous_initial_due ){
 
                     $chart_of_account_name = $supplier->name.'-'.$supplier->code;
-                    $supplier_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
+                    $supplier_previous_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
                         ->where('chart_of_account_name',$chart_of_account_name)
                         ->first();
-                    if(!empty($supplier_opening_balance)){
-                        $supplier_opening_balance->debit = $request->initial_due;
-                        $supplier_opening_balance->credit = NULL;
-                        $supplier_opening_balance->save();
+                    if(!empty($supplier_previous_balance)){
+                        $supplier_previous_balance->debit = $request->initial_due;
+                        $supplier_previous_balance->credit = NULL;
+                        $supplier_previous_balance->save();
                     }
 
                     // Cash In Hand account
-                    $cash_in_hand_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
+                    $cash_in_hand_previous_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
                         ->where('chart_of_account_name','Cash In Hand')
                         ->first();
-                    if(!empty($cash_in_hand_opening_balance)){
-                        $cash_in_hand_opening_balance->debit = NULL;
-                        $cash_in_hand_opening_balance->credit = $request->initial_due;
-                        $cash_in_hand_opening_balance->save();
+                    if(!empty($cash_in_hand_previous_balance)){
+                        $cash_in_hand_previous_balance->debit = NULL;
+                        $cash_in_hand_previous_balance->credit = $request->initial_due;
+                        $cash_in_hand_previous_balance->save();
                     }
                 }
 

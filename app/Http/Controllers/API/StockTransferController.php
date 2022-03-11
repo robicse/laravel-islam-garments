@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Validator;
 class StockTransferController extends Controller
 {
     public function warehouseToStoreStockCreate(Request $request){
-        try {
+//        try {
             // required and unique
             $validator = Validator::make($request->all(), [
                 'warehouse_id'=> 'required',
@@ -41,7 +41,8 @@ class StockTransferController extends Controller
             $date_time = date('Y-m-d h:i:s');
 
             $user_id = Auth::user()->id;
-            $payment_type_id = $request->payment_type_id;
+            //$payment_type_id = $request->payment_type_id;
+            $payment_type_id = NULL;
             $warehouse_id = $request->warehouse_id;
             $store_id = $request->store_id;
             $miscellaneous_comment = $request->miscellaneous_comment;
@@ -173,10 +174,19 @@ class StockTransferController extends Controller
                 $warehouse_current_stock_update = WarehouseCurrentStock::where('warehouse_id',$warehouse_id)
                     ->where('product_id',$product_id)
                     ->first();
-                $exists_current_stock = $warehouse_current_stock_update->current_stock;
-                $final_warehouse_current_stock = $exists_current_stock - $qty;
-                $warehouse_current_stock_update->current_stock=$final_warehouse_current_stock;
-                $warehouse_current_stock_update->save();
+                if(!empty($warehouse_current_stock_update)){
+                    $exists_current_stock = $warehouse_current_stock_update->current_stock;
+                    $final_warehouse_current_stock = $exists_current_stock - $qty;
+                    $warehouse_current_stock_update->current_stock=$final_warehouse_current_stock;
+                    $warehouse_current_stock_update->save();
+                }else{
+                    $warehouse_store_current_stock = new WarehouseCurrentStock();
+                    $warehouse_store_current_stock->warehouse_id=$warehouse_id;
+                    $warehouse_store_current_stock->product_id=$product_id;
+                    $warehouse_store_current_stock->current_stock=$qty;
+                    $warehouse_store_current_stock->save();
+                }
+
 
                 // warehouse store current stock
                 $check_exists_warehouse_store_current_stock = WarehouseStoreCurrentStock::where('warehouse_id',$warehouse_id)
@@ -223,29 +233,28 @@ class StockTransferController extends Controller
             $cash_chart_of_account_info = ChartOfAccount::where('head_name', 'Cash In Hand')->first();
 
             // Cash In Hand Debit
-            $description = $cash_chart_of_account_info->head_name.' Store Debited For Stock Transfer';
-            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, $total_amount, NULL, $description, 'Approved');
+//            $description = $cash_chart_of_account_info->head_name.' Store Debited For Stock IN';
+//            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer To Store', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, $total_amount, NULL, $description, 'Approved');
 
             // Cash In Hand Credit
-            $description = $cash_chart_of_account_info->head_name.' Warehouse Credited For Stock Transfer';
-            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, NULL, $total_amount, $description, 'Approved');
+//            $description = $cash_chart_of_account_info->head_name.' Warehouse Credited For Stock OUT';
+//            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer From Warehouse', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, NULL, $total_amount, $description, 'Approved');
 
 
             // Inventory Debit
-            $description = $inventory_chart_of_account_info->head_name.' Store Inventory Debited For Stock Transfer';
-            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $inventory_chart_of_account_info->id, $inventory_chart_of_account_info->head_code, $inventory_chart_of_account_info->head_name, $inventory_chart_of_account_info->parent_head_name, $inventory_chart_of_account_info->head_type, $total_amount, NULL, $description, 'Approved');
+            $description = $inventory_chart_of_account_info->head_name.' Store Inventory Debited For Stock IN';
+            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer To Store', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $inventory_chart_of_account_info->id, $inventory_chart_of_account_info->head_code, $inventory_chart_of_account_info->head_name, $inventory_chart_of_account_info->parent_head_name, $inventory_chart_of_account_info->head_type, $total_amount, NULL, $description, 'Approved');
 
             //Inventory Credit
-            $description = $inventory_chart_of_account_info->head_name.' Warehouse Inventory Credited For Stock Transfer';
-            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer Warehouse To Store', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $inventory_chart_of_account_info->id, $inventory_chart_of_account_info->head_code, $inventory_chart_of_account_info->head_name, $inventory_chart_of_account_info->parent_head_name, $inventory_chart_of_account_info->head_type, NULL, $total_amount, $description, 'Approved');
+            $description = $inventory_chart_of_account_info->head_name.' Warehouse Inventory Credited For Stock OUT';
+            chartOfAccountTransactionDetails($stock_transfer_insert_id, $final_invoice, $user_id, 9, $final_voucher_no, 'Stock Transfer From Warehouse', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $inventory_chart_of_account_info->id, $inventory_chart_of_account_info->head_code, $inventory_chart_of_account_info->head_name, $inventory_chart_of_account_info->parent_head_name, $inventory_chart_of_account_info->head_type, NULL, $total_amount, $description, 'Approved');
 
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse To Store Stock Added Successfully.',null);
             return response()->json($response,201);
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function stockTransferListWithSearch(Request $request){

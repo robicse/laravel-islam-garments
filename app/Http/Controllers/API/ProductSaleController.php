@@ -60,6 +60,8 @@ class ProductSaleController extends Controller
             $discount_amount = $request->discount_amount;
             $payment_type_id = $request->payment_type_id;
             $grand_total_amount = $request->grand_total_amount;
+            $less_amount = $request->less_amount ? $request->less_amount : 0;
+            $after_less_amount = $request->after_less_amount ? $request->after_less_amount : 0;
             $paid_amount = $request->paid_amount;
             $due_amount = $request->due_amount;
             $products = json_decode($request->products);
@@ -78,6 +80,8 @@ class ProductSaleController extends Controller
             $productSale ->discount_percent = $request->discount_percent ? $request->discount_percent : 0;
             $productSale ->discount_amount = $request->discount_amount ? $request->discount_amount : 0;
             $productSale ->after_discount_amount = $request->after_discount_amount ? $request->after_discount_amount : 0;
+            $productSale ->less_amount = $less_amount;
+            $productSale ->after_less_amount = $after_less_amount;
             $productSale ->paid_amount = $paid_amount;
             $productSale ->due_amount = $due_amount;
             $productSale ->grand_total_amount = $grand_total_amount;
@@ -99,7 +103,6 @@ class ProductSaleController extends Controller
                 foreach ($products as $data) {
                     $product_id =  $data->id;
                     $price =  $data->purchase_price;
-                    $qty =  $data->qty;
                     $product = Product::where('id',$product_id)->first();
 
                     // discount start
@@ -118,7 +121,7 @@ class ProductSaleController extends Controller
                     $product_sale_detail = new ProductSaleDetail();
                     $product_sale_detail->product_sale_id = $insert_id;
                     $product_sale_detail->product_id = $product_id;
-                    $product_sale_detail->purchase_price = $product->purchase_price;
+                    $product_sale_detail->purchase_price = $price;
                     $product_sale_detail->qty = $qty;
                     $product_sale_detail->price = $price;
                     $product_sale_detail->discount = $discount;

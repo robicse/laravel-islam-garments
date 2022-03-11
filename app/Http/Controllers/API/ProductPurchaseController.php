@@ -103,7 +103,7 @@ class ProductPurchaseController extends Controller
             $productPurchase ->warehouse_id = $warehouse_id;
             $productPurchase ->payment_type_id = $payment_type_id;
             $productPurchase ->cheque_date = $cheque_date ? $cheque_date : NULL;
-            $productPurchase ->cheque_approved_status = 'Pending';
+            $productPurchase ->cheque_approved_status = $payment_type_id == '2' ? 'Pending' : NULL;
             $productPurchase ->sub_total_amount = $sub_total_amount;
             $productPurchase ->discount_type = $discount_type;
             $productPurchase ->discount_percent = $discount_percent;
@@ -231,6 +231,9 @@ class ProductPurchaseController extends Controller
                     // Cheque Account Info
                     $cheque_chart_of_account_info = ChartOfAccount::where('head_name','Cheque')->first();
 
+                    // Mobile Banking Account Info
+                    $mobile_banking_chart_of_account_info = ChartOfAccount::where('head_name','Mobile Banking')->first();
+
                     // supplier head
                     $code = Supplier::where('id',$supplier_id)->pluck('code')->first();
                     $supplier_chart_of_account_info = ChartOfAccount::where('name_code',$code)->first();
@@ -291,7 +294,7 @@ class ProductPurchaseController extends Controller
 
                     // Supplier Debit
                     $description = $supplier_chart_of_account_info->head_name.' Supplier Debited For Paid Amount Purchases';
-                    chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 1, $final_voucher_no, 'Purchases', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $supplier_chart_of_account_info->id, $supplier_chart_of_account_info->head_code, $supplier_chart_of_account_info->head_name, $supplier_chart_of_account_info->parent_head_name, $supplier_chart_of_account_info->head_type, NULL,$paid_amount, $description, 'Approved');
+                    chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 1, $final_voucher_no, 'Purchases', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $supplier_chart_of_account_info->id, $supplier_chart_of_account_info->head_code, $supplier_chart_of_account_info->head_name, $supplier_chart_of_account_info->parent_head_name, $supplier_chart_of_account_info->head_type,$paid_amount, NULL, $description, 'Approved');
 
                     if($payment_type_id === '1'){
                         // Cash In Hand credit
@@ -302,7 +305,13 @@ class ProductPurchaseController extends Controller
                     if($payment_type_id === '2') {
                         // Cheque
                         $description = $cheque_chart_of_account_info->head_name. ' For Paid Amount Purchases';
-                        chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 1, $final_voucher_no, 'Purchases', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $cheque_chart_of_account_info->id, $cheque_chart_of_account_info->head_code, $cheque_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $cheque_chart_of_account_info->head_type, NULL, $paid_amount, $description, 'Approved');
+                        chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 1, $final_voucher_no, 'Purchases', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $cheque_chart_of_account_info->id, $cheque_chart_of_account_info->head_code, $cheque_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $cheque_chart_of_account_info->head_type, $paid_amount, NULL, $description, 'Pending');
+                    }
+
+                    if($payment_type_id === '3') {
+                        // Mobile Banking
+                        $description = $mobile_banking_chart_of_account_info->head_name. ' For Paid Amount Purchases';
+                        chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 1, $final_voucher_no, 'Purchases', $date, $transaction_date_time, $year, $month, $warehouse_id, NULL, $payment_type_id, NULL, NULL, NULL, $mobile_banking_chart_of_account_info->id, $mobile_banking_chart_of_account_info->head_code, $mobile_banking_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $mobile_banking_chart_of_account_info->head_type, $paid_amount, NULL, $description, 'Approved');
                     }
                 }
 

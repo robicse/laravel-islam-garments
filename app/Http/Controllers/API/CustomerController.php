@@ -295,8 +295,8 @@ class CustomerController extends Controller
 
                 // customer initial due
                 if($request->initial_due > 0) {
-                    $get_voucher_name = 'Opening Balance';
-                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',8)->latest()->pluck('voucher_no')->first();
+                    $get_voucher_name = 'Previous Balance';
+                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',10)->latest()->pluck('voucher_no')->first();
                     if(!empty($get_voucher_no)){
                         $get_voucher_name_str = $get_voucher_name."-";
                         $get_voucher = str_replace($get_voucher_name_str,"",$get_voucher_no);
@@ -313,9 +313,9 @@ class CustomerController extends Controller
                     $user_id = Auth::user()->id;
 
                     $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
-                    $description = 'Opening Balance of '.$coa->head_name;
-                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
-                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
+                    $description = 'Previous Balance of '.$coa->head_name;
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }
 
                 $response = APIHelpers::createAPIResponse(false,201,'Customer Added Successfully.',null);
@@ -506,8 +506,8 @@ class CustomerController extends Controller
 
                 // customer initial due
                 if($request->initial_due > 0) {
-                    $get_voucher_name = 'Opening Balance';
-                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',8)->latest()->pluck('voucher_no')->first();
+                    $get_voucher_name = 'Previous Balance';
+                    $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',10)->latest()->pluck('voucher_no')->first();
                     if(!empty($get_voucher_no)){
                         $get_voucher_name_str = $get_voucher_name."-";
                         $get_voucher = str_replace($get_voucher_name_str,"",$get_voucher_no);
@@ -524,9 +524,9 @@ class CustomerController extends Controller
                     $user_id = Auth::user()->id;
 
                     $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
-                    $description = 'Opening Balance of '.$coa->head_name;
-                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
-                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
+                    $description = 'Previous Balance of '.$coa->head_name;
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                    chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }
 
                 $response = APIHelpers::createAPIResponse(false,201,'Customer Added Successfully.',null);
@@ -712,33 +712,33 @@ class CustomerController extends Controller
 
                 // customer initial due
                 if( ($previous_initial_due == 0) && ($request->initial_due > 0) ) {
-                    $chart_of_account_transaction = ChartOfAccountTransaction::where('transaction_type','Opening Balance')
+                    $chart_of_account_transaction = ChartOfAccountTransaction::where('transaction_type','Previous Balance')
                     ->where('ref_id',$customer->id)
                     ->first();
 
                     if(!empty($chart_of_account_transaction)){
                         $chart_of_account_name = $customer->name . '-' . $customer->code;
-                        $customer_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id', 8)
+                        $customer_previous_balance = ChartOfAccountTransactionDetail::where('payment_type_id', 8)
                             ->where('chart_of_account_name', $chart_of_account_name)
                             ->first();
-                        if (!empty($customer_opening_balance)) {
-                            $customer_opening_balance->debit = NULL;
-                            $customer_opening_balance->credit = $request->initial_due;
-                            $customer_opening_balance->save();
+                        if (!empty($customer_previous_balance)) {
+                            $customer_previous_balance->debit = NULL;
+                            $customer_previous_balance->credit = $request->initial_due;
+                            $customer_previous_balance->save();
                         }
 
                         // Cash In Hand account
-                        $cash_in_hand_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id', 8)
+                        $cash_in_hand_previous_balance = ChartOfAccountTransactionDetail::where('payment_type_id', 8)
                             ->where('chart_of_account_name', 'Cash In Hand')
                             ->first();
-                        if (!empty($cash_in_hand_opening_balance)) {
-                            $cash_in_hand_opening_balance->debit = $request->initial_due;
-                            $cash_in_hand_opening_balance->credit = NULL;
-                            $cash_in_hand_opening_balance->save();
+                        if (!empty($cash_in_hand_previous_balance)) {
+                            $cash_in_hand_previous_balance->debit = $request->initial_due;
+                            $cash_in_hand_previous_balance->credit = NULL;
+                            $cash_in_hand_previous_balance->save();
                         }
                     }else{
-                        $get_voucher_name = 'Opening Balance';
-                        $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',8)->latest()->pluck('voucher_no')->first();
+                        $get_voucher_name = 'Previous Balance';
+                        $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',10)->latest()->pluck('voucher_no')->first();
                         if(!empty($get_voucher_no)){
                             $get_voucher_name_str = $get_voucher_name."-";
                             $get_voucher = str_replace($get_voucher_name_str,"",$get_voucher_no);
@@ -755,30 +755,30 @@ class CustomerController extends Controller
                         $user_id = Auth::user()->id;
 
                         $cash_in_hand_account = ChartOfAccount::where('head_name','Cash In Hand')->first();
-                        $description = 'Opening Balance of '.$coa->head_name;
-                        chartOfAccountTransactionDetails($request->customer_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
-                        chartOfAccountTransactionDetails($request->customer_id, NULL, $user_id, 8, $final_voucher_no, 'Opening Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
+                        $description = 'Previous Balance of '.$coa->head_name;
+                        chartOfAccountTransactionDetails($request->customer_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $coa->id, $coa->head_code, $coa->head_name, $coa->parent_head_name, $coa->head_type, $request->initial_due, NULL, $description, 'Approved');
+                        chartOfAccountTransactionDetails($request->customer_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                     }
                 }elseif( $request->initial_due !== $previous_initial_due ){
 
                     $chart_of_account_name = $customer->name.'-'.$customer->code;
-                    $customer_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
+                    $customer_previous_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
                         ->where('chart_of_account_name',$chart_of_account_name)
                         ->first();
-                    if(!empty($customer_opening_balance)){
-                        $customer_opening_balance->debit = NULL;
-                        $customer_opening_balance->credit = $request->initial_due;
-                        $customer_opening_balance->save();
+                    if(!empty($customer_previous_balance)){
+                        $customer_previous_balance->debit = NULL;
+                        $customer_previous_balance->credit = $request->initial_due;
+                        $customer_previous_balance->save();
                     }
 
                     // Cash In Hand account
-                    $cash_in_hand_opening_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
+                    $cash_in_hand_previous_balance = ChartOfAccountTransactionDetail::where('payment_type_id',8)
                         ->where('chart_of_account_name','Cash In Hand')
                         ->first();
-                    if(!empty($cash_in_hand_opening_balance)){
-                        $cash_in_hand_opening_balance->debit = $request->initial_due;
-                        $cash_in_hand_opening_balance->credit = NULL;
-                        $cash_in_hand_opening_balance->save();
+                    if(!empty($cash_in_hand_previous_balance)){
+                        $cash_in_hand_previous_balance->debit = $request->initial_due;
+                        $cash_in_hand_previous_balance->credit = NULL;
+                        $cash_in_hand_previous_balance->save();
                     }
                 }
 
