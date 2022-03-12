@@ -23,7 +23,7 @@ class StockTransferRequestController extends Controller
 {
 
     public function storeToWarehouseStockRequestCreate(Request $request){
-        try {
+//        try {
             // required and unique
             $validator = Validator::make($request->all(), [
                 'request_from_store_id'=> 'required',
@@ -101,11 +101,10 @@ class StockTransferRequestController extends Controller
 
             $response = APIHelpers::createAPIResponse(false,201,'Stock Transfer Request Added Successfully.',null);
             return response()->json($response,201);
-        } catch (\Exception $e) {
-            //return $e->getMessage();
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function storeToWarehouseStockRequestListPaginationWithSearch(Request $request){
@@ -163,7 +162,7 @@ class StockTransferRequestController extends Controller
                     'stock_transfer_requests.request_to_warehouse_id',
                     'stock_transfer_request_details.request_qty as qty',
                     'stock_transfer_request_details.id as stock_transfer_request_detail_id',
-                    'stock_transfer_request_details.price',
+                    'stock_transfer_request_details.price as purchase_price',
                     'stock_transfer_request_details.sub_total',
                     'stock_transfer_request_details.vat_amount'
                 )
@@ -190,7 +189,7 @@ class StockTransferRequestController extends Controller
                     $nested_data['product_size_name'] = $product->size->name;
                     $nested_data['qty']=$stock_transfer_request_detail->qty;
                     $nested_data['stock_transfer_request_detail_id']=$stock_transfer_request_detail->stock_transfer_request_detail_id;
-                    $nested_data['price']=$stock_transfer_request_detail->price;
+                    $nested_data['purchase_price']=$stock_transfer_request_detail->purchase_price;
                     $nested_data['sub_total']=$stock_transfer_request_detail->sub_total;
                     $nested_data['vat_amount']=$stock_transfer_request_detail->vat_amount;
                     $nested_data['current_stock']=$current_stock;
@@ -226,7 +225,7 @@ class StockTransferRequestController extends Controller
                     'stock_transfer_requests.request_to_warehouse_id',
                     'stock_transfer_request_details.request_qty as qty',
                     'stock_transfer_request_details.id as stock_transfer_request_detail_id',
-                    'stock_transfer_request_details.price',
+                    'stock_transfer_request_details.price as purchase_price',
                     'stock_transfer_request_details.sub_total',
                     'stock_transfer_request_details.vat_amount'
                 )
@@ -253,7 +252,7 @@ class StockTransferRequestController extends Controller
                     $nested_data['product_size_name'] = $product->size->name;
                     $nested_data['qty']=$stock_transfer_request_detail->qty;
                     $nested_data['stock_transfer_request_detail_id']=$stock_transfer_request_detail->stock_transfer_request_detail_id;
-                    $nested_data['price']=$stock_transfer_request_detail->price;
+                    $nested_data['purchase_price']=$stock_transfer_request_detail->purchase_price;
                     $nested_data['sub_total']=$stock_transfer_request_detail->sub_total;
                     $nested_data['vat_amount']=$stock_transfer_request_detail->vat_amount;
                     $nested_data['current_stock']=$current_stock;

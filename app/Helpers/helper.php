@@ -87,45 +87,59 @@ if (! function_exists('todayPurchase')) {
         $store_id = $currentUserDetails['store_id'];
 
         $today_purchase = 0;
-        if($role === 'Super Admin'){
-            $today_purchase_history = DB::table('product_purchases')
-                ->where('purchase_date', date('Y-m-d'))
-                ->select(DB::raw('SUM(grand_total_amount) as today_purchase'))
-                ->first();
-        }else{
-            if(!empty($warehouse_id) && !empty($store_id)){
-                $today_purchase_history = DB::table('product_purchases')
-                    ->where('purchase_date', date('Y-m-d'))
-                    ->where('warehouse_id', $warehouse_id)
-                    ->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as today_purchase'))
-                    ->first();
-            }elseif(!empty($warehouse_id)){
-                $today_purchase_history = DB::table('product_purchases')
-                    ->where('purchase_date', date('Y-m-d'))
-                    ->where('warehouse_id', $warehouse_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as today_purchase'))
-                    ->first();
-            }elseif(!empty($store_id)){
-                $today_purchase_history = DB::table('product_purchases')
-                    ->where('purchase_date', date('Y-m-d'))
-                    //->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as today_purchase'))
-                    ->first();
-            }else{
-                $today_purchase_history = DB::table('product_purchases')
-                    ->where('purchase_date', date('Y-m-d'))
-                    ->select(DB::raw('SUM(grand_total_amount) as today_purchase'))
-                    ->first();
-            }
+        $today_purchase_history = \App\ProductPurchase::select(DB::raw('SUM(grand_total_amount) as today_purchase'))
+            ->where('product_purchases.purchase_date',date('Y-m-d'));
 
+        if($role !== 'Super Admin'){
+            $today_purchase_history->where('product_purchases.warehouse_id',$warehouse_id);
+        }
+        $today_purchase_data = $today_purchase_history->first();
+        if(!empty($today_purchase_data)){
+            $today_purchase = $today_purchase_data->today_purchase;
         }
 
-        if(!empty($today_purchase_history)){
-            $today_purchase = $today_purchase_history->today_purchase;
-        }
+
+//        $today_purchase_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(debit) as today_purchase'))
+//            ->where('chart_of_account_transaction_details.chart_of_account_name','Inventory')
+//            ->where('chart_of_account_transaction_details.transaction_type','Purchases')
+//            ->where('chart_of_account_transaction_details.transaction_date',date('Y-m-d'));
+//
+//        if($role !== 'Super Admin'){
+//            $today_purchase_history->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
+//            $today_purchase_history->where('chart_of_account_transaction_details.store_id',$store_id);
+//        }
+//        $today_purchase_data = $today_purchase_history->first();
+//        if(!empty($today_purchase_data)){
+//            $today_purchase = $today_purchase_data->today_purchase;
+//        }
 
         return $today_purchase;
+    }
+}
+
+// today cash purchase sum
+if (! function_exists('todayCashPurchase')) {
+    function todayCashPurchase() {
+        $currentUserDetails = currentUserDetails(Auth::user()->id);
+        $role = $currentUserDetails['role'];
+        $warehouse_id = $currentUserDetails['warehouse_id'];
+        $store_id = $currentUserDetails['store_id'];
+
+        $today_cash_purchase = 0;
+        $today_cash_purchase_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(credit) as today_cash_purchase'))
+            ->where('chart_of_account_transaction_details.chart_of_account_name','Cash In Hand')
+            ->where('chart_of_account_transaction_details.transaction_type','Purchases')
+            ->where('chart_of_account_transaction_details.transaction_date',date('Y-m-d'));
+
+        if($role !== 'Super Admin'){
+            $today_cash_purchase_history->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
+        }
+        $today_cash_purchase_data = $today_cash_purchase_history->first();
+        if(!empty($today_cash_purchase_data)){
+            $today_cash_purchase = $today_cash_purchase_data->today_cash_purchase;
+        }
+
+        return $today_cash_purchase;
     }
 }
 
@@ -138,39 +152,59 @@ if (! function_exists('totalPurchase')) {
         $store_id = $currentUserDetails['store_id'];
 
         $total_purchase = 0;
-        if($role === 'Super Admin'){
-            $total_purchase_history = DB::table('product_purchases')
-                ->select(DB::raw('SUM(grand_total_amount) as total_purchase'))
-                ->first();
-        }else {
-            if (!empty($warehouse_id) && !empty($store_id)) {
-                $total_purchase_history = DB::table('product_purchases')
-                    ->where('warehouse_id', $warehouse_id)
-                    ->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as total_purchase'))
-                    ->first();
-            }elseif(!empty($warehouse_id)){
-                $total_purchase_history = DB::table('product_purchases')
-                    ->where('warehouse_id', $warehouse_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as total_purchase'))
-                    ->first();
-            }elseif(!empty($store_id)){
-                $total_purchase_history = DB::table('product_purchases')
-                    //->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as total_purchase'))
-                    ->first();
-            }else{
-                $total_purchase_history = DB::table('product_purchases')
-                    ->select(DB::raw('SUM(grand_total_amount) as total_purchase'))
-                    ->first();
-            }
+        $total_purchase_history = \App\ProductPurchase::select(DB::raw('SUM(grand_total_amount) as today_purchase'));
+
+        if($role !== 'Super Admin'){
+            $total_purchase_history->where('product_purchases.warehouse_id',$warehouse_id);
+        }
+        $total_purchase_data = $total_purchase_history->first();
+        if(!empty($total_purchase_data)){
+            $total_purchase = $total_purchase_data->today_purchase;
         }
 
-        if(!empty($total_purchase_history)){
-            $total_purchase = $total_purchase_history->total_purchase;
-        }
+
+
+
+//        $total_purchase_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(debit) as total_purchase'))
+//            ->where('chart_of_account_transaction_details.chart_of_account_name','Inventory')
+//            ->where('chart_of_account_transaction_details.transaction_type','Purchases');
+//
+//        if($role !== 'Super Admin'){
+//            $total_purchase_history->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
+//            $total_purchase_history->where('chart_of_account_transaction_details.store_id',$store_id);
+//        }
+//        $total_purchase_data = $total_purchase_history->first();
+//        if(!empty($total_purchase_data)){
+//            $total_purchase = $total_purchase_data->total_purchase;
+//        }
 
         return $total_purchase;
+    }
+}
+
+// total cash purchase sum
+if (! function_exists('totalCashPurchase')) {
+    function totalCashPurchase() {
+        $currentUserDetails = currentUserDetails(Auth::user()->id);
+        $role = $currentUserDetails['role'];
+        $warehouse_id = $currentUserDetails['warehouse_id'];
+        $store_id = $currentUserDetails['store_id'];
+
+        $total_cash_purchase = 0;
+        $total_cash_purchase_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(credit) as total_cash_purchase'))
+            ->where('chart_of_account_transaction_details.chart_of_account_name','Cash In Hand')
+            ->where('chart_of_account_transaction_details.transaction_type','Purchases')
+            ->where('chart_of_account_transaction_details.transaction_date',date('Y-m-d'));
+
+        if($role !== 'Super Admin'){
+            $total_cash_purchase_history->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
+        }
+        $total_cash_purchase_data = $total_cash_purchase_history->first();
+        if(!empty($total_cash_purchase_data)){
+            $total_cash_purchase = $total_cash_purchase_data->total_cash_purchase;
+        }
+
+        return $total_cash_purchase;
     }
 }
 
@@ -215,42 +249,66 @@ if (! function_exists('todaySale')) {
         $store_id = $currentUserDetails['store_id'];
 
         $today_sale = 0;
-        if($role === 'Super Admin') {
-            $today_sale_history = DB::table('product_sales')
-                ->where('sale_date', date('Y-m-d'))
-                ->select(DB::raw('SUM(grand_total_amount) as today_sale'), DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
-                ->first();
-        }else{
-            if (!empty($warehouse_id) && !empty($store_id)) {
-                $today_sale_history = DB::table('product_sales')
-                    ->where('sale_date', date('Y-m-d'))
-                    ->where('warehouse_id', $warehouse_id)
-                    ->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as today_sale'), DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
-                    ->first();
-            }elseif(!empty($warehouse_id)){
-                $today_sale_history = DB::table('product_sales')
-                    ->where('sale_date', date('Y-m-d'))
-                    ->where('warehouse_id', $warehouse_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as today_sale'), DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
-                    ->first();
-            }elseif(!empty($store_id)){
-                $today_sale_history = DB::table('product_sales')
-                    ->where('sale_date', date('Y-m-d'))
-                    ->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as today_sale'), DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
-                    ->first();
-            }else{
-                $today_sale_history = DB::table('product_sales')
-                    ->where('sale_date', date('Y-m-d'))
-                    ->select(DB::raw('SUM(grand_total_amount) as today_sale'), DB::raw('SUM(total_vat_amount) as today_sale_vat_amount'))
-                    ->first();
-            }
+        $today_sale_history = \App\ProductSale::select(DB::raw('SUM(grand_total_amount) as today_sale'))
+            ->where('product_sales.sale_date',date('Y-m-d'));
+
+        if($role !== 'Super Admin'){
+            $today_sale_history->where('product_sales.store_id',$store_id);
         }
-        if(!empty($today_sale_history)){
-            $today_sale = $today_sale_history->today_sale - $today_sale_history->today_sale_vat_amount;
+        $today_sale_data = $today_sale_history->first();
+        if(!empty($today_sale_data)){
+            $today_sale = $today_sale_data->today_sale;
         }
+
+
+
+
+
+//        $today_sale_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(credit) as today_sale'))
+//            ->where('chart_of_account_transaction_details.chart_of_account_name','Inventory')
+//            ->where('chart_of_account_transaction_details.transaction_type','Sales')
+//            ->where('chart_of_account_transaction_details.transaction_date',date('Y-m-d'));
+//
+//        if($role !== 'Super Admin'){
+//            $today_sale_history->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
+//            $today_sale_history->where('chart_of_account_transaction_details.store_id',$store_id);
+//        }
+//        $today_sale_data = $today_sale_history->first();
+//        if(!empty($today_sale_data)){
+//            $today_sale = $today_sale_data->today_sale;
+//        }
+
+
+
+
+
         return $today_sale;
+    }
+}
+
+// today cash sale sum
+if (! function_exists('todayCashSale')) {
+    function todayCashSale() {
+        $currentUserDetails = currentUserDetails(Auth::user()->id);
+        $role = $currentUserDetails['role'];
+        $warehouse_id = $currentUserDetails['warehouse_id'];
+        $store_id = $currentUserDetails['store_id'];
+
+        $today_cash_sale = 0;
+        $today_cash_sale_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(debit) as today_cash_sale'))
+            ->where('chart_of_account_transaction_details.chart_of_account_name','Cash In Hand')
+            ->where('chart_of_account_transaction_details.transaction_type','Sales')
+            ->where('chart_of_account_transaction_details.transaction_date',date('Y-m-d'));
+
+        if($role !== 'Super Admin'){
+            $today_cash_sale_history->where('chart_of_account_transaction_details.store_id',$store_id);
+        }
+        $today_cash_sale_data = $today_cash_sale_history->first();
+        if(!empty($today_cash_sale_data)){
+            $today_cash_sale = $today_cash_sale_data->today_cash_sale;
+        }
+
+        return $today_cash_sale;
     }
 }
 
@@ -263,37 +321,59 @@ if (! function_exists('totalSale')) {
         $store_id = $currentUserDetails['store_id'];
 
         $total_sale = 0;
-        if($role === 'Super Admin'){
-            $total_sale_history = DB::table('product_sales')
-                ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
-                ->first();
-        }else {
-            if (!empty($warehouse_id) && !empty($store_id)) {
-                $total_sale_history = DB::table('product_sales')
-                    ->where('warehouse_id', $warehouse_id)
-                    ->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
-                    ->first();
-            }elseif(!empty($warehouse_id)){
-                $total_sale_history = DB::table('product_sales')
-                    ->where('warehouse_id', $warehouse_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
-                    ->first();
-            }elseif(!empty($store_id)){
-                $total_sale_history = DB::table('product_sales')
-                    ->where('store_id', $store_id)
-                    ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
-                    ->first();
-            }else{
-                $total_sale_history = DB::table('product_sales')
-                    ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
-                    ->first();
-            }
+        $total_sale_history = \App\ProductSale::select(DB::raw('SUM(grand_total_amount) as total_sale'))
+            ->where('product_sales.sale_date',date('Y-m-d'));
+
+        if($role !== 'Super Admin'){
+            $total_sale_history->where('product_sales.store_id',$store_id);
         }
-        if (!empty($total_sale_history)) {
-            $total_sale = $total_sale_history->total_sale - $total_sale_history->total_sale_vat_amount;
+        $total_sale_data = $total_sale_history->first();
+        if(!empty($total_sale_data)){
+            $total_sale = $total_sale_data->total_sale;
         }
+
+
+//        $total_sale_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(credit) as today_sale'))
+//            ->where('chart_of_account_transaction_details.chart_of_account_name','Inventory')
+//            ->where('chart_of_account_transaction_details.transaction_type','Sales');
+//
+//        if($role !== 'Super Admin'){
+//            $total_sale_history->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
+//            $total_sale_history->where('chart_of_account_transaction_details.store_id',$store_id);
+//        }
+//        $total_sale_data = $total_sale_history->first();
+//        if(!empty($total_sale_data)){
+//            $total_sale = $total_sale_data->today_sale;
+//        }
+
+
         return $total_sale;
+    }
+}
+
+// total cash sale sum
+if (! function_exists('totalCashSale')) {
+    function totalCashSale() {
+        $currentUserDetails = currentUserDetails(Auth::user()->id);
+        $role = $currentUserDetails['role'];
+        $warehouse_id = $currentUserDetails['warehouse_id'];
+        $store_id = $currentUserDetails['store_id'];
+
+        $total_cash_sale = 0;
+        $total_cash_sale_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(debit) as total_cash_sale'))
+            ->where('chart_of_account_transaction_details.chart_of_account_name','Cash In Hand')
+            ->where('chart_of_account_transaction_details.transaction_type','Sales')
+            ->where('chart_of_account_transaction_details.transaction_date',date('Y-m-d'));
+
+        if($role !== 'Super Admin'){
+            $total_cash_sale_history->where('chart_of_account_transaction_details.store_id',$store_id);
+        }
+        $total_cash_sale_data = $total_cash_sale_history->first();
+        if(!empty($total_cash_sale_data)){
+            $total_cash_sale = $total_cash_sale_data->total_cash_sale;
+        }
+
+        return $total_cash_sale;
     }
 }
 
@@ -460,6 +540,18 @@ if (! function_exists('warehouseWiseInformation')) {
                     $today_purchase_amount = 0;
                 }
 
+                $today_cash_purchase_history = DB::table('product_purchases')
+                    ->where('purchase_date', date('Y-m-d'))
+                    ->where('payment_type_id', 1)
+                    ->where('warehouse_id', $warehouse->id)
+                    ->select(DB::raw('SUM(grand_total_amount) as today_cash_purchase'))
+                    ->first();
+                if(!empty($today_cash_purchase_history)){
+                    $today_cash_purchase_amount = (int) $today_cash_purchase_history->today_cash_purchase;
+                }else{
+                    $today_cash_purchase_amount = 0;
+                }
+
                 //
                 $total_purchase_history = DB::table('product_purchases')
                     ->where('warehouse_id',$warehouse->id)
@@ -469,6 +561,17 @@ if (! function_exists('warehouseWiseInformation')) {
                     $total_purchase_amount = (int) $total_purchase_history->total_purchase;
                 }else{
                     $total_purchase_amount = 0;
+                }
+
+                $total_cash_purchase_history = DB::table('product_purchases')
+                    ->where('payment_type_id', 1)
+                    ->where('warehouse_id', $warehouse->id)
+                    ->select(DB::raw('SUM(grand_total_amount) as total_cash_purchase'))
+                    ->first();
+                if(!empty($total_cash_purchase_history)){
+                    $total_cash_purchase_amount = (int) $total_cash_purchase_history->total_cash_purchase;
+                }else{
+                    $total_cash_purchase_amount = 0;
                 }
 
                 //
@@ -500,6 +603,8 @@ if (! function_exists('warehouseWiseInformation')) {
                 $nested_data['warehouse_staff']=$staff;
                 $nested_data['warehouse_today_purchase_amount']=$today_purchase_amount;
                 $nested_data['warehouse_total_purchase_amount']=$total_purchase_amount;
+                $nested_data['warehouse_today_cash_purchase_amount']=$today_cash_purchase_amount;
+                $nested_data['warehouse_total_cash_purchase_amount']=$total_cash_purchase_amount;
                 $nested_data['warehouse_current_stock']=$total_stock;
                 $nested_data['warehouse_current_stock_amount']=$total_stock_amount;
 
@@ -541,7 +646,9 @@ if (! function_exists('storeWiseInformation')) {
                 $total_stock = 0;
                 $total_stock_amount = 0;
                 $today_sale = 0;
+                $today_cash_sale = 0;
                 $total_sale = 0;
+                $total_cash_sale = 0;
                 if(count($store_current_stocks) > 0){
                     foreach ($store_current_stocks as $store_current_stock){
                         $total_stock += $store_current_stock->current_stock;
@@ -558,12 +665,31 @@ if (! function_exists('storeWiseInformation')) {
                     $today_sale = $today_sale_history->today_sale - $today_sale_history->today_sale_vat_amount;
                 }
 
+                $today_cash_sale_history = DB::table('product_sales')
+                    ->where('sale_date', date('Y-m-d'))
+                    ->where('payment_type_id',1)
+                    ->where('store_id',$store->id)
+                    ->select(DB::raw('SUM(grand_total_amount) as today_cash_sale'),DB::raw('SUM(total_vat_amount) as today_cash_sale_vat_amount'))
+                    ->first();
+                if(!empty($today_cash_sale_history)){
+                    $today_cash_sale = $today_cash_sale_history->today_cash_sale - $today_cash_sale_history->today_cash_sale_vat_amount;
+                }
+
                 $total_sale_history = DB::table('product_sales')
                     ->where('store_id',$store->id)
                     ->select(DB::raw('SUM(grand_total_amount) as total_sale'),DB::raw('SUM(total_vat_amount) as total_sale_vat_amount'))
                     ->first();
                 if(!empty($total_sale_history)){
                     $total_sale = $total_sale_history->total_sale - $total_sale_history->total_sale_vat_amount;
+                }
+
+                $total_cash_sale_history = DB::table('product_sales')
+                    ->where('payment_type_id',1)
+                    ->where('store_id',$store->id)
+                    ->select(DB::raw('SUM(grand_total_amount) as total_cash_sale'),DB::raw('SUM(total_vat_amount) as total_cash_sale_vat_amount'))
+                    ->first();
+                if(!empty($total_cash_sale_history)){
+                    $total_cash_sale = $total_cash_sale_history->total_cash_sale - $total_cash_sale_history->total_cash_sale_vat_amount;
                 }
 
                 $staff = DB::table('users')
@@ -575,7 +701,9 @@ if (! function_exists('storeWiseInformation')) {
                 $nested_data['store_name']=$store->name;
                 $nested_data['store_staff']=$staff;
                 $nested_data['store_today_sale_amount']=$today_sale;
+                $nested_data['store_today_cash_sale_amount']=$today_cash_sale;
                 $nested_data['store_total_sale_amount']=$total_sale;
+                $nested_data['store_total_cash_sale_amount']=$total_cash_sale;
                 $nested_data['store_current_stock']=$total_stock;
                 $nested_data['store_current_stock_amount']=$total_stock_amount;
 

@@ -18,6 +18,9 @@ class ProductPurchaseCollection extends ResourceCollection
                     'discount_type' => $data->discount_type,
                     'discount_amount' => $data->discount_amount,
                     'discount_percent' => $data->discount_percent,
+                    'after_discount_amount' => $data->after_discount_amount,
+                    'less_amount' => $data->less_amount,
+                    'after_less_amount' => $data->after_less_amount,
                     'grand_total_amount' => $data->grand_total_amount,
                     'paid_amount' => $data->paid_amount,
                     'due_amount' => $data->due_amount,
@@ -28,6 +31,8 @@ class ProductPurchaseCollection extends ResourceCollection
                     'warehouse_id' => $data->warehouse_id,
                     'warehouse_name' => warehouseName($data->warehouse_id),
                     'payment_type' => paymentType($data->payment_type_id),
+                    'cheque_date' => $data->cheque_date,
+                    'cheque_approved_status' => $data->cheque_approved_status,
                 ];
             })
         ];

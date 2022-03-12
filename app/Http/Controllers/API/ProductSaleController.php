@@ -74,17 +74,19 @@ class ProductSaleController extends Controller
             $productSale->warehouse_id = NULL;
             $productSale->customer_id = $customer_id;
             $productSale->sale_type = 'Whole Sale';
-            $productSale ->payment_type_id = $payment_type_id;
-            $productSale ->sub_total_amount = $request->sub_total_amount;
-            $productSale ->discount_type = $request->discount_type ? $request->discount_type : NULL;
-            $productSale ->discount_percent = $request->discount_percent ? $request->discount_percent : 0;
-            $productSale ->discount_amount = $request->discount_amount ? $request->discount_amount : 0;
-            $productSale ->after_discount_amount = $request->after_discount_amount ? $request->after_discount_amount : 0;
-            $productSale ->less_amount = $less_amount;
-            $productSale ->after_less_amount = $after_less_amount;
-            $productSale ->paid_amount = $paid_amount;
-            $productSale ->due_amount = $due_amount;
-            $productSale ->grand_total_amount = $grand_total_amount;
+            $productSale->payment_type_id = $payment_type_id;
+            $productSale->cheque_date= $request->cheque_date;
+            $productSale->cheque_approved_status = $payment_type_id == '2' ? 'Pending' : NULL;
+            $productSale->sub_total_amount = $request->sub_total_amount;
+            $productSale->discount_type = $request->discount_type ? $request->discount_type : NULL;
+            $productSale->discount_percent = $request->discount_percent ? $request->discount_percent : 0;
+            $productSale->discount_amount = $request->discount_amount ? $request->discount_amount : 0;
+            $productSale->after_discount_amount = $request->after_discount_amount ? $request->after_discount_amount : 0;
+            $productSale->less_amount = $less_amount;
+            $productSale->after_less_amount = $after_less_amount;
+            $productSale->paid_amount = $paid_amount;
+            $productSale->due_amount = $due_amount;
+            $productSale->grand_total_amount = $grand_total_amount;
             $productSale->sale_date = $date;
             $productSale->sale_date_time = $date_time;
             $productSale->save();
@@ -204,6 +206,9 @@ class ProductSaleController extends Controller
                 // Account Receivable Account Info
                 $account_receivable_info = ChartOfAccount::where('head_name','Account Receivable')->first();
 
+                // Mobile Banking Account Info
+                $mobile_banking_chart_of_account_info = ChartOfAccount::where('head_name','Mobile Banking')->first();
+
                 // customer due update
                 $customer = Customer::find($customer_id);
                 $previous_current_total_due = $customer->current_total_due;
@@ -282,7 +287,13 @@ class ProductSaleController extends Controller
                 if($payment_type_id === '2') {
                     // Cheque Debit
                     $description = $cheque_chart_of_account_info->head_name. ' Store Cheque Debited For Paid Amount Sales';
-                    chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $cheque_chart_of_account_info->id, $cheque_chart_of_account_info->head_code, $cheque_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $cheque_chart_of_account_info->head_type, $paid_amount, NULL, $description, 'Approved');
+                    chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $cheque_chart_of_account_info->id, $cheque_chart_of_account_info->head_code, $cheque_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $cheque_chart_of_account_info->head_type, $paid_amount, NULL, $description, 'Pending');
+                }
+
+                if($payment_type_id === '3') {
+                    // Mobile Banking
+                    $description = $mobile_banking_chart_of_account_info->head_name. ' For Paid Amount Sales';
+                    chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $mobile_banking_chart_of_account_info->id, $mobile_banking_chart_of_account_info->head_code, $mobile_banking_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $mobile_banking_chart_of_account_info->head_type, $paid_amount, NULL, $description, 'Approved');
                 }
 
                 // Customer Credit
@@ -309,69 +320,117 @@ class ProductSaleController extends Controller
         $role = $currentUserDetails['role'];
         $store_id = $currentUserDetails['store_id'];
 
-        if($role == 'Super Admin') {
-            if ($request->search) {
-                $product_pos_sales = DB::table('product_sales')
-                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-                    ->where('product_sales.sale_type', 'Whole Sale')
-                    ->where('product_sales.invoice_no', 'like', '%' . $request->search . '%')
-                    ->orWhere('product_sales.total_amount', 'like', '%' . $request->search . '%')
-                    ->orWhere('customers.name', 'like', '%' . $request->search . '%')
-                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-                    ->orderBy('product_sales.id', 'desc')
-                    ->paginate(12);
+        $search = $request->search;
+        $product_pos_sales = DB::table('product_sales')
+            ->leftJoin('users', 'product_sales.user_id', 'users.id')
+            ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
+            ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
+            ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
+            ->select(
+                'product_sales.id',
+                'product_sales.invoice_no',
+                'product_sales.discount_type',
+                'product_sales.discount_percent',
+                'product_sales.discount_amount',
+                'product_sales.after_discount_amount',
+                'product_sales.less_amount',
+                'product_sales.after_less_amount',
+                'product_sales.total_vat_amount',
+                'product_sales.after_discount_amount',
+                'product_sales.grand_total_amount',
+                'payment_types.name as payment_type',
+                'product_sales.cheque_date',
+                'product_sales.cheque_approved_status',
+                'product_sales.paid_amount',
+                'product_sales.due_amount',
+                'product_sales.sale_date_time as date_time',
+                'users.name as user_name',
+                'customers.id as customer_id',
+                'customers.name as customer_name',
+                'stores.id as store_id',
+                'stores.name as store_name',
+                'stores.address as store_address',
+                'stores.phone'
+            );
 
+        $product_pos_sales->where('product_sales.sale_type', 'Whole Sale');
 
-            } else {
-                $product_pos_sales = DB::table('product_sales')
-                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-                    ->where('product_sales.sale_type', 'Whole Sale')
-                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-                    ->orderBy('product_sales.id', 'desc')
-                    ->paginate(12);
-            }
-        }else{
-            if ($request->search) {
-                $product_pos_sales = DB::table('product_sales')
-                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-                    ->where('product_sales.store_id',$store_id)
-                    ->where('product_sales.sale_type', 'Whole Sale')
-                    ->where('product_sales.invoice_no', 'like', '%' . $request->search . '%')
-                    ->orWhere('product_sales.total_amount', 'like', '%' . $request->search . '%')
-                    ->orWhere('customers.name', 'like', '%' . $request->search . '%')
-                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-                    ->orderBy('product_sales.id', 'desc')
-                    ->paginate(12);
-
-
-            } else {
-                $product_pos_sales = DB::table('product_sales')
-                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-                    ->where('product_sales.store_id',$store_id)
-                    ->where('product_sales.sale_type', 'Whole Sale')
-                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-                    ->orderBy('product_sales.id', 'desc')
-                    ->paginate(12);
-            }
+        if($role !== 'Super Admin'){
+            $product_pos_sales->where('product_purchases.store_id',$store_id);
         }
+
+        if($search){
+            $product_pos_sales->where('product_sales.invoice_no', 'like', '%' . $request->search . '%')
+                ->orWhere('product_sales.total_amount', 'like', '%' . $request->search . '%')
+                ->orWhere('customers.name', 'like', '%' . $request->search . '%');
+        }
+
+        $product_sale_data = $product_pos_sales->latest('product_sales.id', 'desc')->paginate(12);
+
+
+//        if($role == 'Super Admin') {
+//            if ($request->search) {
+//                $product_pos_sales = DB::table('product_sales')
+//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
+//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
+//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
+//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
+//                    ->where('product_sales.sale_type', 'Whole Sale')
+//                    ->where('product_sales.invoice_no', 'like', '%' . $request->search . '%')
+//                    ->orWhere('product_sales.total_amount', 'like', '%' . $request->search . '%')
+//                    ->orWhere('customers.name', 'like', '%' . $request->search . '%')
+//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
+//                    ->orderBy('product_sales.id', 'desc')
+//                    ->paginate(12);
+//
+//
+//            } else {
+//                $product_pos_sales = DB::table('product_sales')
+//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
+//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
+//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
+//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
+//                    ->where('product_sales.sale_type', 'Whole Sale')
+//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
+//                    ->orderBy('product_sales.id', 'desc')
+//                    ->paginate(12);
+//            }
+//        }else{
+//            if ($request->search) {
+//                $product_pos_sales = DB::table('product_sales')
+//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
+//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
+//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
+//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
+//                    ->where('product_sales.store_id',$store_id)
+//                    ->where('product_sales.sale_type', 'Whole Sale')
+//                    ->where('product_sales.invoice_no', 'like', '%' . $request->search . '%')
+//                    ->orWhere('product_sales.total_amount', 'like', '%' . $request->search . '%')
+//                    ->orWhere('customers.name', 'like', '%' . $request->search . '%')
+//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
+//                    ->orderBy('product_sales.id', 'desc')
+//                    ->paginate(12);
+//
+//
+//            } else {
+//                $product_pos_sales = DB::table('product_sales')
+//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
+//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
+//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
+//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
+//                    ->where('product_sales.store_id',$store_id)
+//                    ->where('product_sales.sale_type', 'Whole Sale')
+//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
+//                    ->orderBy('product_sales.id', 'desc')
+//                    ->paginate(12);
+//            }
+//        }
 
         if($product_pos_sales === null){
             $response = APIHelpers::createAPIResponse(true,404,'No Product POS SaleFound.',null);
             return response()->json($response,404);
         }else{
-            $response = APIHelpers::createAPIResponse(false,200,'',$product_pos_sales);
+            $response = APIHelpers::createAPIResponse(false,200,'',$product_sale_data);
             return response()->json($response,200);
         }
 

@@ -276,6 +276,86 @@ class ProductSaleReturnController extends Controller
                 $update_store_current_stock->save();
             }
 
+            // customer due update
+            $customer = Customer::find($customer_id);
+            $previous_current_total_due = $customer->current_total_due;
+            $update_current_total_due = $previous_current_total_due - $grand_total_amount;
+
+            $customer->current_total_due = $update_current_total_due;
+            $customer->save();
+
+
+            // 2nd theme
+
+            // Cash In Hand Account Info
+//            $cash_chart_of_account_info = ChartOfAccount::where('head_name','Cash In Hand')->first();
+//
+//            // Cheque Account Info
+//            $cheque_chart_of_account_info = ChartOfAccount::where('head_name','Cheque')->first();
+//
+//            // Account Receivable Account Info
+//            $account_receivable_info = ChartOfAccount::where('head_name','Account Receivable')->first();
+//
+//            // Mobile Banking Account Info
+//            $mobile_banking_chart_of_account_info = ChartOfAccount::where('head_name','Mobile Banking')->first();
+//
+//            // Inventory Account Info
+//            $inventory_chart_of_account_info = ChartOfAccount::where('head_name', 'Inventory')->first();
+//
+//            // Product Sale Info
+//            $product_sale_chart_of_account_info = ChartOfAccount::where('head_name', 'Product Sale')->first();
+//
+//            // customer head
+//            $code = Customer::where('id',$customer_id)->pluck('code')->first();
+//            $customer_chart_of_account_info = ChartOfAccount::where('name_code',$code)->first();
+//
+//            // voucher no
+//            $get_voucher_name = VoucherType::where('id',7)->pluck('name')->first();
+//            $get_voucher_no = ChartOfAccountTransaction::where('voucher_type_id',7)->latest()->pluck('voucher_no')->first();
+//            if(!empty($get_voucher_no)){
+//                $get_voucher_name_str = $get_voucher_name."-";
+//                $get_voucher = str_replace($get_voucher_name_str,"",$get_voucher_no);
+//                $voucher_no = $get_voucher+1;
+//            }else{
+//                $voucher_no = 7000;
+//            }
+//            $final_voucher_no = $get_voucher_name.'-'.$voucher_no;
+//
+//            //Inventory Debit
+//            $description = $inventory_chart_of_account_info->head_name.' Store Inventory Debited For Sales';
+//            chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $inventory_chart_of_account_info->id, $inventory_chart_of_account_info->head_code, $inventory_chart_of_account_info->head_name, $inventory_chart_of_account_info->parent_head_name, $inventory_chart_of_account_info->head_type, $grand_total_amount, NULL, $description, 'Approved');
+//
+//            // Customer Credit
+//            $description = $customer_chart_of_account_info->head_name.' Customer Credited For Paid Amount Sales';
+//            chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $customer_chart_of_account_info->id, $customer_chart_of_account_info->head_code, $customer_chart_of_account_info->head_name, $customer_chart_of_account_info->parent_head_name, $customer_chart_of_account_info->head_type, NULL, $grand_total_amount, $description, 'Approved');
+//
+//            // Customer Debit
+//            $description = $customer_chart_of_account_info->head_name.' Customer Debited For Paid Amount Sales';
+//            chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $customer_chart_of_account_info->id, $customer_chart_of_account_info->head_code, $customer_chart_of_account_info->head_name, $customer_chart_of_account_info->parent_head_name, $customer_chart_of_account_info->head_type, NULL, $grand_total_amount, $description, 'Approved');
+//
+//            if($payment_type_id === '1'){
+//                // Cash In Hand Debit
+//                $description = $cash_chart_of_account_info->head_name. 'Store Cash In Hand Debited For Paid Amount sales';
+//                chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $cash_chart_of_account_info->id, $cash_chart_of_account_info->head_code, $cash_chart_of_account_info->head_name, $cash_chart_of_account_info->parent_head_name, $cash_chart_of_account_info->head_type, $grand_total_amount, NULL, $description, 'Approved');
+//            }
+//
+//            if($payment_type_id === '2') {
+//                // Cheque Debit
+//                $description = $cheque_chart_of_account_info->head_name. ' Store Cheque Debited For Paid Amount Sales';
+//                chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $cheque_chart_of_account_info->id, $cheque_chart_of_account_info->head_code, $cheque_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $cheque_chart_of_account_info->head_type, $grand_total_amount, NULL, $description, 'Pending');
+//            }
+//
+//            if($payment_type_id === '3') {
+//                // Mobile Banking
+//                $description = $mobile_banking_chart_of_account_info->head_name. ' For Paid Amount Sales';
+//                chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $mobile_banking_chart_of_account_info->id, $mobile_banking_chart_of_account_info->head_code, $mobile_banking_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $mobile_banking_chart_of_account_info->head_type, $grand_total_amount, NULL, $description, 'Approved');
+//            }
+
+
+
+
+
+
             $response = APIHelpers::createAPIResponse(false,201,'Product Sale Return Added Successfully.',null);
             return response()->json($response,201);
         }else{

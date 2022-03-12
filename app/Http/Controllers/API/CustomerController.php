@@ -52,7 +52,7 @@ class CustomerController extends Controller
     public function wholeCustomerActiveList(){
         try {
             $customers = DB::table('customers')
-                ->select('id','name','status')
+                ->select('id','name','shop_name','phone','status')
                 ->where('status',1)
                 ->where('customer_type','Whole Sale')
                 ->orderBy('id','desc')
@@ -529,7 +529,14 @@ class CustomerController extends Controller
                     chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $cash_in_hand_account->id, $cash_in_hand_account->head_code, $cash_in_hand_account->head_name, $cash_in_hand_account->parent_head_name, $cash_in_hand_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }
 
-                $response = APIHelpers::createAPIResponse(false,201,'Customer Added Successfully.',null);
+                $customer_data = [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'shop_name' => $customer->shop_name,
+                    'phone' => $customer->phone
+                ];
+
+                $response = APIHelpers::createAPIResponse(false,201,'Customer Added Successfully.',$customer_data);
                 return response()->json($response,201);
             }else{
                 $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);

@@ -374,116 +374,50 @@ class ProductPurchaseController extends Controller
             $role = $currentUserDetails['role'];
             $warehouse_id = $currentUserDetails['warehouse_id'];
 
-            if($role == 'Super Admin'){
-                if($request->search){
-                    $product_purchases = ProductPurchase::join('suppliers','product_purchases.supplier_id','suppliers.id')
-                        //                    ->where('product_purchases.purchase_type','whole_purchase')
-                        //                    ->where(function ($q) use ($request){
-                        //                        $q->where('product_purchases.invoice_no','like','%'.$request->search.'%')
-                        //                            ->orWhere('suppliers.name','like','%'.$request->search.'%');
-                        //                    })
-                        ->where('product_purchases.invoice_no','like','%'.$request->search.'%')
-                        ->orWhere('suppliers.name','like','%'.$request->search.'%')
-                        ->select(
-                            'product_purchases.id',
-                            'product_purchases.invoice_no',
-                            'product_purchases.payment_type_id',
-                            'product_purchases.sub_total_amount',
-                            'product_purchases.discount_type',
-                            'product_purchases.discount_percent',
-                            'product_purchases.discount_amount',
-                            'product_purchases.grand_total_amount',
-                            'product_purchases.paid_amount',
-                            'product_purchases.due_amount',
-                            'product_purchases.purchase_date_time as date_time',
-                            'product_purchases.user_id',
-                            'product_purchases.supplier_id',
-                            'product_purchases.warehouse_id'
-                        )
-                        ->latest('product_purchases.id','desc')->paginate(12);
+            $search = $request->search;
+            $product_purchases = ProductPurchase::join('suppliers','product_purchases.supplier_id','suppliers.id')
+                ->select(
+                    'product_purchases.id',
+                    'product_purchases.invoice_no',
+                    'product_purchases.payment_type_id',
+                    'product_purchases.cheque_date',
+                    'product_purchases.cheque_approved_status',
+                    'product_purchases.sub_total_amount',
+                    'product_purchases.discount_type',
+                    'product_purchases.discount_percent',
+                    'product_purchases.discount_amount',
+                    'product_purchases.after_discount_amount',
+                    'product_purchases.less_amount',
+                    'product_purchases.after_less_amount',
+                    'product_purchases.grand_total_amount',
+                    'product_purchases.paid_amount',
+                    'product_purchases.due_amount',
+                    'product_purchases.purchase_date_time as date_time',
+                    'product_purchases.user_id',
+                    'product_purchases.supplier_id',
+                    'product_purchases.warehouse_id'
+                );
 
-                }else{
-                    //$product_purchases = ProductPurchase::latest()->paginate(12);
-                    $product_purchases = ProductPurchase::join('suppliers','product_purchases.supplier_id','suppliers.id')
-                        ->select(
-                            'product_purchases.id',
-                            'product_purchases.invoice_no',
-                            'product_purchases.payment_type_id',
-                            'product_purchases.sub_total_amount',
-                            'product_purchases.discount_type',
-                            'product_purchases.discount_percent',
-                            'product_purchases.discount_amount',
-                            'product_purchases.grand_total_amount',
-                            'product_purchases.paid_amount',
-                            'product_purchases.due_amount',
-                            'product_purchases.purchase_date_time as date_time',
-                            'product_purchases.user_id',
-                            'product_purchases.supplier_id',
-                            'product_purchases.warehouse_id'
-                        )
-                        ->latest('product_purchases.id','desc')->paginate(12);
-                }
-            }else{
-                if($request->search){
-                    $product_purchases = ProductPurchase::join('suppliers','product_purchases.supplier_id','suppliers.id')
-                        //                    ->where('product_purchases.purchase_type','whole_purchase')
-                        //                    ->where(function ($q) use ($request){
-                        //                        $q->where('product_purchases.invoice_no','like','%'.$request->search.'%')
-                        //                            ->orWhere('suppliers.name','like','%'.$request->search.'%');
-                        //                    })
-                        ->where('product_purchases.warehouse_id',$warehouse_id)
-                        ->where('product_purchases.invoice_no','like','%'.$request->search.'%')
-                        ->orWhere('suppliers.name','like','%'.$request->search.'%')
-                        ->select(
-                            'product_purchases.id',
-                            'product_purchases.invoice_no',
-                            'product_purchases.payment_type_id',
-                            'product_purchases.sub_total_amount',
-                            'product_purchases.discount_type',
-                            'product_purchases.discount_percent',
-                            'product_purchases.discount_amount',
-                            'product_purchases.grand_total_amount',
-                            'product_purchases.paid_amount',
-                            'product_purchases.due_amount',
-                            'product_purchases.purchase_date_time as date_time',
-                            'product_purchases.user_id',
-                            'product_purchases.supplier_id',
-                            'product_purchases.warehouse_id'
-                        )
-                        ->latest('product_purchases.id','desc')->paginate(12);
 
-                }else{
-                    //$product_purchases = ProductPurchase::latest()->paginate(12);
-                    $product_purchases = ProductPurchase::join('suppliers','product_purchases.supplier_id','suppliers.id')
-                        ->where('product_purchases.warehouse_id',$warehouse_id)
-                        ->select(
-                            'product_purchases.id',
-                            'product_purchases.invoice_no',
-                            'product_purchases.payment_type_id',
-                            'product_purchases.sub_total_amount',
-                            'product_purchases.discount_type',
-                            'product_purchases.discount_percent',
-                            'product_purchases.discount_amount',
-                            'product_purchases.grand_total_amount',
-                            'product_purchases.paid_amount',
-                            'product_purchases.due_amount',
-                            'product_purchases.purchase_date_time as date_time',
-                            'product_purchases.user_id',
-                            'product_purchases.supplier_id',
-                            'product_purchases.warehouse_id'
-                        )
-                        ->latest('product_purchases.id','desc')->paginate(12);
-                }
+            if($role !== 'Super Admin'){
+                $product_purchases->where('product_purchases.warehouse_id',$warehouse_id);
             }
 
-            if(count($product_purchases) === 0){
-                $response = APIHelpers::createAPIResponse(true,404,'No Purchase Found.',null);
+            if($search){
+                $product_purchases->where('product_purchases.invoice_no','like','%'.$search.'%');
+                $product_purchases->orWhere('suppliers.name','like','%'.$search.'%');
+            }
+
+            $product_purchase_data = $product_purchases->latest('product_purchases.id','desc')->paginate(12);
+
+
+            if(count($product_purchase_data) === 0){
+                $response = APIHelpers::createAPIResponse(true,404,'No Purchase Report Found.',null);
                 return response()->json($response,404);
             }else{
-                return new ProductPurchaseCollection($product_purchases);
+                return new ProductPurchaseCollection($product_purchase_data);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
