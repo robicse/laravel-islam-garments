@@ -511,10 +511,10 @@ class StockTransferController extends Controller
                     'warehouses.name as warehouse_name',
                     'warehouses.phone as warehouse_phone',
                     'warehouses.address as warehouse_address',
-                    'stores.id as stores_id',
-                    'stores.name as stores_name',
-                    'stores.phone as stores_phone',
-                    'stores.address as stores_address'
+                    'store.id as stores_id',
+                    'store.name as stores_name',
+                    'store.phone as stores_phone',
+                    'store.address as stores_address'
                 )
                 ->first();
 

@@ -8,6 +8,7 @@ use App\ChartOfAccountTransactionDetail;
 use App\Customer;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductSaleReturnCollection;
 use App\Party;
 use App\PaymentCollection;
 use App\PaymentType;
@@ -421,158 +422,52 @@ class ProductSaleReturnController extends Controller
         }
     }
 
-    public function productSaleReturnListPaginationWithSearch(Request $request){
 
+    public function productSaleReturnListPaginationWithSearch(Request $request){
         $user_id = Auth::user()->id;
         $currentUserDetails = currentUserDetails($user_id);
         $role = $currentUserDetails['role'];
         $store_id = $currentUserDetails['store_id'];
 
-        if($role == 'Super Admin') {
-            if ($request->search) {
-                $product_sales = DB::table('product_sale_returns')
-                    ->leftJoin('users','product_sale_returns.user_id','users.id')
-                    ->leftJoin('stores','product_sale_returns.store_id','stores.id')
-                    ->where('product_sale_returns.invoice_no','like','%'.$request->search.'%')
-                    ->orWhere('stores.name','like','%'.$request->search.'%')
-                    ->select(
-                        'product_sale_returns.id',
-                        'product_sale_returns.invoice_no',
-                        'product_sale_returns.product_sale_invoice_no',
-                        'product_sale_returns.discount_type',
-                        'product_sale_returns.discount_amount',
-                        //'product_sale_returns.total_vat_amount',
-                        'product_sale_returns.grand_total_amount',
-                        'product_sale_returns.paid_amount',
-                        'product_sale_returns.due_amount',
-                        'product_sale_returns.payment_type_id',
-                        'users.name as user_name',
-                        'stores.id as store_id',
-                        'stores.name as store_name',
-                        'stores.address as store_address'
-                    )
-                    ->orderBy('product_sale_returns.id','desc')
-                    ->paginate(12);
-            } else {
+        $search = $request->search;
+        $product_sale_returns = ProductSaleReturn::leftJoin('users','product_sale_returns.user_id','users.id')
+            ->leftJoin('stores','product_sale_returns.store_id','stores.id')
+            ->select(
+                'product_sale_returns.id',
+                'product_sale_returns.invoice_no',
+                'product_sale_returns.user_id',
+                'product_sale_returns.product_sale_invoice_no',
+                'product_sale_returns.sub_total_amount',
+                'product_sale_returns.discount_type',
+                'product_sale_returns.discount_amount',
+                //'product_sale_returns.total_vat_amount',
+                'product_sale_returns.grand_total_amount',
+                'product_sale_returns.paid_amount',
+                'product_sale_returns.due_amount',
+                'product_sale_returns.payment_type_id',
+                'product_sale_returns.store_id',
+                'product_sale_returns.customer_id',
+                'product_sale_returns.created_at as date_time',
+                'stores.id as store_id'
+            );
 
-                $product_sales = DB::table('product_sale_returns')
-                    ->leftJoin('users','product_sale_returns.user_id','users.id')
-                    ->leftJoin('stores','product_sale_returns.store_id','stores.id')
-                    ->select(
-                        'product_sale_returns.id',
-                        'product_sale_returns.invoice_no',
-                        'product_sale_returns.product_sale_invoice_no',
-                        'product_sale_returns.discount_type',
-                        'product_sale_returns.discount_amount',
-                        //'product_sale_returns.total_vat_amount',
-                        'product_sale_returns.grand_total_amount',
-                        'product_sale_returns.paid_amount',
-                        'product_sale_returns.due_amount',
-                        'product_sale_returns.payment_type_id',
-                        'users.name as user_name',
-                        'stores.id as store_id',
-                        'stores.name as store_name',
-                        'stores.address as store_address'
-                    )
-                    ->orderBy('product_sale_returns.id','desc')
-                    ->paginate(12);
-            }
-        }else{
-            if ($request->search) {
-                $product_sales = DB::table('product_sale_returns')
-                    ->leftJoin('users','product_sale_returns.user_id','users.id')
-                    ->leftJoin('stores','product_sale_returns.store_id','stores.id')
-                    ->where('product_sale_returns.store_id',$store_id)
-                    ->where('product_sale_returns.invoice_no','like','%'.$request->search.'%')
-                    ->orWhere('stores.name','like','%'.$request->search.'%')
-                    ->select(
-                        'product_sale_returns.id',
-                        'product_sale_returns.invoice_no',
-                        'product_sale_returns.product_sale_invoice_no',
-                        'product_sale_returns.discount_type',
-                        'product_sale_returns.discount_amount',
-                        //'product_sale_returns.total_vat_amount',
-                        'product_sale_returns.grand_total_amount',
-                        'product_sale_returns.paid_amount',
-                        'product_sale_returns.due_amount',
-                        'product_sale_returns.payment_type_id',
-                        'users.name as user_name',
-                        'stores.id as store_id',
-                        'stores.name as store_name',
-                        'stores.address as store_address'
-                    )
-                    ->orderBy('product_sale_returns.id','desc')
-                    ->paginate(12);
-
-            } else {
-                $product_sales = DB::table('product_sale_returns')
-                    ->leftJoin('users','product_sale_returns.user_id','users.id')
-                    ->leftJoin('stores','product_sale_returns.store_id','stores.id')
-                    ->where('product_sale_returns.store_id',$store_id)
-                    ->select(
-                        'product_sale_returns.id',
-                        'product_sale_returns.invoice_no',
-                        'product_sale_returns.product_sale_invoice_no',
-                        'product_sale_returns.discount_type',
-                        'product_sale_returns.discount_amount',
-                        //'product_sale_returns.total_vat_amount',
-                        'product_sale_returns.grand_total_amount',
-                        'product_sale_returns.paid_amount',
-                        'product_sale_returns.due_amount',
-                        'product_sale_returns.payment_type_id',
-                        'users.name as user_name',
-                        'stores.id as store_id',
-                        'stores.name as store_name',
-                        'stores.address as store_address'
-                    )
-                    ->orderBy('product_sale_returns.id','desc')
-                    ->paginate(12);
-            }
+        if($role !== 'Super Admin'){
+            $product_sale_returns->where('product_sale_returns.store_id',$store_id);
         }
 
-        if($product_sales === null){
-            $response = APIHelpers::createAPIResponse(true,404,'No Product Sale Return Found.',null);
+        if($search){
+            $product_sale_returns->where('product_sale_returns.invoice_no','like','%'.$request->search.'%')
+                ->orWhere('stores.name','like','%'.$request->search.'%');
+        }
+
+        $product_sale_data = $product_sale_returns->latest('product_sale_returns.id','desc')->paginate(12);
+
+        if(count($product_sale_data) === 0){
+            $response = APIHelpers::createAPIResponse(true,404,'No Sale Return List Found.',null);
             return response()->json($response,404);
         }else{
-            $response = APIHelpers::createAPIResponse(false,200,'',$product_sales);
-            return response()->json($response,200);
+            return new ProductSaleReturnCollection($product_sale_data);
         }
-
-
-
-
-//        $product_sales = DB::table('product_sale_returns')
-//            ->leftJoin('users','product_sale_returns.user_id','users.id')
-//            ->leftJoin('stores','product_sale_returns.store_id','stores.id')
-//            ->where('product_sale_returns.invoice_no','like','%'.$request->search.'%')
-//            ->orWhere('stores.name','like','%'.$request->search.'%')
-//            ->select(
-//                'product_sale_returns.id',
-//                'product_sale_returns.invoice_no',
-//                'product_sale_returns.product_sale_invoice_no',
-//                'product_sale_returns.discount_type',
-//                'product_sale_returns.discount_amount',
-//                //'product_sale_returns.total_vat_amount',
-//                'product_sale_returns.grand_total_amount',
-//                'product_sale_returns.paid_amount',
-//                'product_sale_returns.due_amount',
-//                'product_sale_returns.payment_type_id',
-//                'users.name as user_name',
-//                'stores.id as store_id',
-//                'stores.name as store_name',
-//                'stores.address as store_address'
-//            )
-//            ->orderBy('product_sale_returns.id','desc')
-//            ->paginate(12);
-//
-//        if(count($product_sales) > 0)
-//        {
-//            $response = APIHelpers::createAPIResponse(false,200,'',$product_sales);
-//            return response()->json($response,200);
-//        }else{
-//            $response = APIHelpers::createAPIResponse(true,404,'No Sale Return List Found.',null);
-//            return response()->json($response,404);
-//        }
     }
 
     public function productSaleReturnDetails(Request $request){

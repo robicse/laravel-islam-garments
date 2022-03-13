@@ -151,8 +151,18 @@ if (! function_exists('totalPurchase')) {
         $warehouse_id = $currentUserDetails['warehouse_id'];
         $store_id = $currentUserDetails['store_id'];
 
+
+        $this_year = date('Y');
+        $this_month = date('m');
+        $today = date('d');
+        $from_date_this_month = $this_year.'-'.$this_month.'-01';
+        $current_date_this_month = $this_year.'-'.$this_month.'-'.$today;
+
+
         $total_purchase = 0;
         $total_purchase_history = \App\ProductPurchase::select(DB::raw('SUM(grand_total_amount) as today_purchase'));
+
+        $total_purchase_history->whereBetween('product_purchases.purchase_date',[$from_date_this_month, $current_date_this_month]);
 
         if($role !== 'Super Admin'){
             $total_purchase_history->where('product_purchases.warehouse_id',$warehouse_id);
@@ -190,12 +200,19 @@ if (! function_exists('totalCashPurchase')) {
         $warehouse_id = $currentUserDetails['warehouse_id'];
         $store_id = $currentUserDetails['store_id'];
 
+        $this_year = date('Y');
+        $this_month = date('m');
+        $today = date('d');
+        $from_date_this_month = $this_year.'-'.$this_month.'-01';
+        $current_date_this_month = $this_year.'-'.$this_month.'-'.$today;
+
         $total_cash_purchase = 0;
         $total_cash_purchase_history = ChartOfAccountTransactionDetail::select(DB::raw('SUM(credit) as total_cash_purchase'))
             ->where('chart_of_account_transaction_details.chart_of_account_name','Cash In Hand')
             ->where('chart_of_account_transaction_details.transaction_type','Purchases')
             ->where('chart_of_account_transaction_details.transaction_date',date('Y-m-d'));
 
+        $total_cash_purchase_history->whereBetween('chart_of_account_transaction_details.transaction_date',[$from_date_this_month, $current_date_this_month]);
         if($role !== 'Super Admin'){
             $total_cash_purchase_history->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
@@ -435,12 +452,30 @@ if (! function_exists('customerName')) {
     }
 }
 
+// customer info as id
+if (! function_exists('customerInfo')) {
+    function customerInfo($customer_id) {
+        return DB::table('customers')
+            ->where('id',$customer_id)
+            ->first();
+    }
+}
+
 // supplier name as id
 if (! function_exists('supplierName')) {
     function supplierName($supplier_id) {
         return DB::table('suppliers')
             ->where('id',$supplier_id)
             ->pluck('name')
+            ->first();
+    }
+}
+
+// supplier info as id
+if (! function_exists('supplierInfo')) {
+    function supplierInfo($supplier_id) {
+        return DB::table('suppliers')
+            ->where('id',$supplier_id)
             ->first();
     }
 }

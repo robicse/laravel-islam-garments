@@ -379,6 +379,7 @@ class ProductPurchaseController extends Controller
                 ->select(
                     'product_purchases.id',
                     'product_purchases.invoice_no',
+                    'product_purchases.supplier_invoice_no',
                     'product_purchases.payment_type_id',
                     'product_purchases.cheque_date',
                     'product_purchases.cheque_approved_status',

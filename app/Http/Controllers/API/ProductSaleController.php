@@ -51,7 +51,8 @@ class ProductSaleController extends Controller
             }
             $final_invoice = 'sale-'.$invoice_no;
 
-            $date = $request->date;
+            //$date = $request->date;
+            $date = date('Y-m-d');
             $date_time = $date." ".date('h:i:s');
 
             $user_id = Auth::user()->id;
