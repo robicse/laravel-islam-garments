@@ -211,7 +211,13 @@ Route::middleware('auth:api')->post('/product_whole_sale_list_search', 'API\Prod
 Route::middleware('auth:api')->post('/product_whole_sale_list_search_by_customer', 'API\ProductSaleController@productWholeSaleListSearchByCustomer');
 Route::middleware('auth:api')->post('/product_whole_sale_list_search_by_customer_print', 'API\ProductSaleController@productWholeSaleListSearchByCustomerPrint');
 
-
+// product purchase return
+//Route::middleware('auth:api')->post('/product_sale_invoice_list_pagination_with_search', 'API\ProductSaleReturnController@productSaleInvoiceListPaginationWithSearch');
+//Route::middleware('auth:api')->post('/product_sale_return_list_with_search', 'API\ProductSaleReturnController@productSaleReturnListWithSearch');
+Route::middleware('auth:api')->post('/product_purchase_return_list_pagination_with_search', 'API\ProductPurchaseReturnController@productPurchaseReturnListPaginationWithSearch');
+Route::middleware('auth:api')->post('/product_purchase_return_details', 'API\ProductPurchaseReturnController@productPurchaseReturnDetails');
+Route::middleware('auth:api')->post('/product_purchase_return_details_print', 'API\ProductPurchaseReturnController@productPurchaseReturnDetailsPrint');
+Route::middleware('auth:api')->post('/product_purchase_return_create', 'API\ProductPurchaseReturnController@productPurchaseReturnCreate');
 
 // product sale return
 //Route::middleware('auth:api')->get('/product_sale_invoice_list', 'API\ProductSaleController@productSaleInvoiceList');

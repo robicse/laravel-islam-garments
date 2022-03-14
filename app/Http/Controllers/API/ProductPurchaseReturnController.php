@@ -8,17 +8,22 @@ use App\ChartOfAccountTransactionDetail;
 use App\Customer;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductPurchaseReturnCollection;
 use App\Http\Resources\ProductSaleReturnCollection;
 use App\Party;
 use App\PaymentCollection;
 use App\PaymentType;
 use App\Product;
+use App\ProductPurchase;
+use App\ProductPurchaseReturn;
+use App\ProductPurchaseReturnDetail;
 use App\ProductSale;
 use App\ProductSaleDetail;
 use App\ProductSaleReturn;
 use App\ProductSaleReturnDetail;
 use App\Stock;
 use App\Store;
+use App\Supplier;
 use App\Transaction;
 use App\VoucherType;
 use App\WarehouseCurrentStock;
@@ -30,7 +35,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 
-class ProductSaleReturnController extends Controller
+class ProductPurchaseReturnController extends Controller
 {
 // product sale invoice list pagination
     public function productSaleInvoiceListPaginationWithSearch(Request $request){
@@ -152,12 +157,12 @@ class ProductSaleReturnController extends Controller
         }
     }
 
-    public function productSaleReturnCreate(Request $request){
+    public function productPurchaseReturnCreate(Request $request){
         //dd($request->all());
         $this->validate($request, [
             //'product_sale_invoice_no'=> 'required',
-            'store_id'=> 'required',
-            'customer_id'=> 'required',
+            'warehouse_id'=> 'required',
+            'supplier_id'=> 'required',
             //'payment_type_id'=> 'required',
             //'paid_amount'=> 'required',
             //'due_amount'=> 'required',
@@ -165,23 +170,23 @@ class ProductSaleReturnController extends Controller
             //'grand_total_amount'=> 'required',
         ]);
 
-        $get_invoice_no = ProductSaleReturn::latest('id','desc')->pluck('invoice_no')->first();
+        $get_invoice_no = ProductPurchaseReturn::latest('id','desc')->pluck('invoice_no')->first();
         if(!empty($get_invoice_no)){
-            $get_invoice = str_replace("SalRet","",$get_invoice_no);
+            $get_invoice = str_replace("PurRet","",$get_invoice_no);
             $invoice_no = $get_invoice+1;
         }else{
-            $invoice_no = 800800;
+            $invoice_no = 120120;
         }
-        $final_invoice = 'SalRet'.$invoice_no;
+        $final_invoice = 'PurRet-'.$invoice_no;
 
         $date = date('Y-m-d');
         $date_time = date('Y-m-d h:i:s');
 
         $user_id = Auth::user()->id;
-        $store_id = $request->store_id;
-        $warehouse_id = NULL;
-        $product_sale_invoice_no = $request->product_sale_invoice_no ? $request->product_sale_invoice_no : NULL;
-        $customer_id = $request->customer_id;
+        $store_id = NULL;
+        $warehouse_id = $request->warehouse_id;
+        $product_purchase_invoice_no = $request->product_purchase_invoice_no ? $request->product_purchase_invoice_no : NULL;
+        $supplier_id = $request->supplier_id;
         $payment_type_id = $request->payment_type_id ? $request->payment_type_id : NULL;
         $sub_total_amount = $request->sub_total_amount;
         $discount_type = $request->discount_type ? $request->discount_type : NULL;
@@ -190,26 +195,26 @@ class ProductSaleReturnController extends Controller
         //$sale_invoice_no = $request->sale_invoice_no;
         $products = json_decode($request->products);
 
-        $product_sale_info = ProductSale::where('invoice_no',$product_sale_invoice_no)->first();
+        $product_purchase_info = ProductPurchase::where('invoice_no',$product_purchase_invoice_no)->first();
         //$product_sale_id = $product_sale_info->id;
 
-        // product sale return
-        $productSaleReturn = new ProductSaleReturn();
-        $productSaleReturn ->invoice_no = $final_invoice;
-        $productSaleReturn ->product_sale_invoice_no = $product_sale_invoice_no;
-        $productSaleReturn ->user_id = $user_id;
-        $productSaleReturn ->customer_id = $customer_id;
-        $productSaleReturn ->store_id = $store_id;
-        $productSaleReturn ->sub_total_amount = $sub_total_amount;
-        $productSaleReturn ->product_sale_return_type = 'Sales Return';
-        $productSaleReturn ->discount_type = $discount_type;
-        $productSaleReturn ->discount_amount = $discount_amount;
-        $productSaleReturn ->grand_total_amount = $grand_total_amount;
-        $productSaleReturn ->paid_amount = $grand_total_amount;
-        $productSaleReturn ->due_amount = 0;
-        $productSaleReturn ->product_sale_return_date = $date;
-        $productSaleReturn->save();
-        $insert_id = $productSaleReturn->id;
+        // product purchase return
+        $productPurchaseReturn = new ProductPurchaseReturn();
+        $productPurchaseReturn->invoice_no = $final_invoice;
+        $productPurchaseReturn->product_purchase_invoice_no = $product_purchase_invoice_no;
+        $productPurchaseReturn->user_id = $user_id;
+        $productPurchaseReturn->supplier_id = $supplier_id;
+        $productPurchaseReturn->warehouse_id = $warehouse_id;
+        $productPurchaseReturn->sub_total_amount = $sub_total_amount;
+        $productPurchaseReturn->product_purchase_return_type = 'Purchases Return';
+        $productPurchaseReturn->discount_type = $discount_type;
+        $productPurchaseReturn->discount_amount = $discount_amount;
+        $productPurchaseReturn->grand_total_amount = $grand_total_amount;
+        $productPurchaseReturn->paid_amount = $grand_total_amount;
+        $productPurchaseReturn->due_amount = 0;
+        $productPurchaseReturn->product_purchase_return_date = $date;
+        $productPurchaseReturn->save();
+        $insert_id = $productPurchaseReturn->id;
 
         if($insert_id)
         {
@@ -219,20 +224,20 @@ class ProductSaleReturnController extends Controller
                 $product_id =  $data->id;
                 $qty =  $data->qty;
                 $price =  $data->purchase_price;
-                //$product_sale_detail_id =  $data->product_sale_detail_id ? $data->product_sale_detail_id : NULL;
+                //$product_purchase_detail_id =  $data->product_purchase_detail_id ? $data->product_purchase_detail_id : NULL;
 
                 $get_purchase_price = Product::where('id',$product_id)->pluck('purchase_price')->first();
 
                 // product purchase detail
-                $purchase_sale_return_detail = new ProductSaleReturnDetail();
-                $purchase_sale_return_detail->product_sale_return_id = $insert_id;
-                $purchase_sale_return_detail->product_sale_detail_id = NULL;
-                $purchase_sale_return_detail->product_id = $product_id;
-                $purchase_sale_return_detail->purchase_price = $get_purchase_price;
-                $purchase_sale_return_detail->qty = $qty;
-                $purchase_sale_return_detail->price = $price;
-                $purchase_sale_return_detail->sub_total = $qty*$price;
-                $purchase_sale_return_detail->save();
+                $purchase_purchase_return_detail = new ProductPurchaseReturnDetail();
+                $purchase_purchase_return_detail->product_purchase_return_id = $insert_id;
+                $purchase_purchase_return_detail->product_purchase_detail_id = NULL;
+                $purchase_purchase_return_detail->product_id = $product_id;
+                $purchase_purchase_return_detail->purchase_price = $get_purchase_price;
+                $purchase_purchase_return_detail->qty = $qty;
+                $purchase_purchase_return_detail->price = $price;
+                $purchase_purchase_return_detail->sub_total = $qty*$price;
+                $purchase_purchase_return_detail->save();
 
 //                $sale_type = ProductSale::where('invoice_no',$sale_invoice_no)->pluck('sale_type')->first();
 //
@@ -240,7 +245,7 @@ class ProductSaleReturnController extends Controller
 //                    $check_previous_stock = Stock::where('store_id', $store_id)->where('stock_where', 'store')->where('product_id', $product_id)->latest()->pluck('current_stock')->first();
 //                }
 
-                $check_previous_stock = Stock::where('store_id', $store_id)->where('stock_where', 'store')->where('product_id', $product_id)->latest()->pluck('current_stock')->first();
+                $check_previous_stock = Stock::where('warehouse_id', $warehouse_id)->where('stock_where', 'warehouse')->where('product_id', $product_id)->latest()->pluck('current_stock')->first();
 
                 if(!empty($check_previous_stock)){
                     $previous_stock = $check_previous_stock;
@@ -255,7 +260,7 @@ class ProductSaleReturnController extends Controller
                 $stock->warehouse_id = $warehouse_id;
                 $stock->store_id = $store_id;
                 $stock->product_id = $product_id;
-                $stock->stock_type = 'Sales Return';
+                $stock->stock_type = 'Purchases Return';
                 $stock->stock_where = 'store';
                 $stock->stock_in_out = 'stock_in';
                 $stock->previous_stock = $previous_stock;
@@ -267,23 +272,23 @@ class ProductSaleReturnController extends Controller
                 $stock->save();
 
                 // warehouse current stock
-                $update_store_current_stock = WarehouseStoreCurrentStock::where('store_id',$store_id)
+                $update_warehouse_current_stock = WarehouseCurrentStock::where('warehouse_id',$warehouse_id)
                     ->where('product_id',$product_id)
                     ->first();
 
-                $exists_current_stock = $update_store_current_stock->current_stock;
-                $final_store_current_stock = $exists_current_stock + $qty;
-                $update_store_current_stock->current_stock=$final_store_current_stock;
-                $update_store_current_stock->save();
+                $exists_current_stock = $update_warehouse_current_stock->current_stock;
+                $final_warehouse_current_stock = $exists_current_stock + $qty;
+                $update_warehouse_current_stock->current_stock=$final_warehouse_current_stock;
+                $update_warehouse_current_stock->save();
             }
 
             // customer due update
-            $customer = Customer::find($customer_id);
-            $previous_current_total_due = $customer->current_total_due;
+            $supplier = Supplier::find($supplier_id);
+            $previous_current_total_due = $supplier->current_total_due;
             $update_current_total_due = $previous_current_total_due - $grand_total_amount;
 
-            $customer->current_total_due = $update_current_total_due;
-            $customer->save();
+            $supplier->current_total_due = $update_current_total_due;
+            $supplier->save();
 
 
             // 2nd theme
@@ -357,7 +362,7 @@ class ProductSaleReturnController extends Controller
 
 
 
-            $response = APIHelpers::createAPIResponse(false,201,'Product Sale Return Added Successfully.',null);
+            $response = APIHelpers::createAPIResponse(false,201,'Product Purchase Return Added Successfully.',null);
             return response()->json($response,201);
         }else{
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
@@ -423,69 +428,66 @@ class ProductSaleReturnController extends Controller
     }
 
 
-    public function productSaleReturnListPaginationWithSearch(Request $request){
+    public function productPurchaseReturnListPaginationWithSearch(Request $request){
         $user_id = Auth::user()->id;
         $currentUserDetails = currentUserDetails($user_id);
         $role = $currentUserDetails['role'];
-        $store_id = $currentUserDetails['store_id'];
+        $warehouse_id = $currentUserDetails['warehouse_id'];
 
         $search = $request->search;
-        $product_sale_returns = ProductSaleReturn::leftJoin('users','product_sale_returns.user_id','users.id')
-            ->leftJoin('stores','product_sale_returns.store_id','stores.id')
+        $product_purchase_returns = ProductPurchaseReturn::leftJoin('warehouses','product_purchase_returns.warehouse_id','warehouses.id')
             ->select(
-                'product_sale_returns.id',
-                'product_sale_returns.invoice_no',
-                'product_sale_returns.user_id',
-                'product_sale_returns.product_sale_invoice_no',
-                'product_sale_returns.sub_total_amount',
-                'product_sale_returns.discount_type',
-                'product_sale_returns.discount_amount',
-                //'product_sale_returns.total_vat_amount',
-                'product_sale_returns.grand_total_amount',
-                'product_sale_returns.paid_amount',
-                'product_sale_returns.due_amount',
-                'product_sale_returns.payment_type_id',
-                'product_sale_returns.store_id',
-                'product_sale_returns.customer_id',
-                'product_sale_returns.created_at as date_time',
-                'stores.id as store_id'
+                'product_purchase_returns.id',
+                'product_purchase_returns.invoice_no',
+                'product_purchase_returns.user_id',
+                'product_purchase_returns.product_purchase_invoice_no',
+                'product_purchase_returns.sub_total_amount',
+                'product_purchase_returns.discount_type',
+                'product_purchase_returns.discount_amount',
+                'product_purchase_returns.grand_total_amount',
+                'product_purchase_returns.paid_amount',
+                'product_purchase_returns.due_amount',
+                'product_purchase_returns.payment_type_id',
+                'product_purchase_returns.warehouse_id',
+                'product_purchase_returns.supplier_id',
+                'product_purchase_returns.created_at as date_time'
             );
 
         if($role !== 'Super Admin'){
-            $product_sale_returns->where('product_sale_returns.store_id',$store_id);
+            $product_purchase_returns->where('product_purchase_returns.warehouse_id',$warehouse_id);
         }
 
         if($search){
-            $product_sale_returns->where('product_sale_returns.invoice_no','like','%'.$request->search.'%')
-                ->orWhere('stores.name','like','%'.$request->search.'%');
+            $product_purchase_returns->where('product_purchase_returns.invoice_no','like','%'.$request->search.'%')
+                ->orWhere('warehouses.name','like','%'.$request->search.'%');
         }
 
-        $product_sale_data = $product_sale_returns->latest('product_sale_returns.id','desc')->paginate(12);
+        $product_purchase_data = $product_purchase_returns->latest('product_purchase_returns.id','desc')->paginate(12);
 
-        if(count($product_sale_data) === 0){
-            $response = APIHelpers::createAPIResponse(true,404,'No Sale Return List Found.',null);
+        if(count($product_purchase_data) === 0){
+            $response = APIHelpers::createAPIResponse(true,404,'No Purchase Return List Found.',null);
             return response()->json($response,404);
         }else{
-            return new ProductSaleReturnCollection($product_sale_data);
+            return new ProductPurchaseReturnCollection($product_purchase_data);
         }
     }
 
-    public function productSaleReturnDetails(Request $request){
+    public function productPurchaseReturnDetails(Request $request){
 //        try {
 //        $response = APIHelpers::createAPIResponse(false,200,'','come here');
 //        return response()->json($response,200);
-        $product_sale_details = DB::table('product_sale_returns')
-            ->join('product_sale_return_details','product_sale_returns.id','product_sale_return_details.product_sale_return_id')
-            ->join('products','product_sale_return_details.product_id','products.id')
-            ->where('product_sale_returns.id',$request->product_sale_return_id)
+        $product_purchase_details = DB::table('product_purchase_returns')
+            ->join('product_purchase_return_details','product_purchase_returns.id','product_purchase_return_details.product_purchase_return_id')
+            ->join('products','product_purchase_return_details.product_id','products.id')
+            ->where('product_purchase_returns.id',$request->product_purchase_return_id)
             ->select(
-                'product_sale_returns.store_id',
+                'product_purchase_returns.warehouse_id',
                 'products.id as product_id',
                 'products.name as product_name',
                 'products.product_code',
-                'product_sale_return_details.qty',
-                'product_sale_return_details.id as product_sale_detail_id',
-                'product_sale_return_details.purchase_price',
+                'product_purchase_return_details.qty',
+                'product_purchase_return_details.id as product_purchase_detail_id',
+                'product_purchase_return_details.purchase_price',
                 //'product_sale_return_details.vat_amount',
                 'products.product_unit_id',
                 'products.product_category_id',
@@ -494,38 +496,38 @@ class ProductSaleReturnController extends Controller
             )
             ->get();
 
-        $sale_product = [];
-        if(count($product_sale_details) > 0){
-            foreach ($product_sale_details as $product_sale_detail){
-                $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
-                $product = Product::find($product_sale_detail->product_id);
+        $purchase_product = [];
+        if(count($product_purchase_details) > 0){
+            foreach ($product_purchase_details as $product_purchase_detail){
+                $current_stock = warehouseProductCurrentStock($product_purchase_detail->warehouse_id,$product_purchase_detail->product_id);
+                $product = Product::find($product_purchase_detail->product_id);
 
-                $nested_data['product_id']=$product_sale_detail->product_id;
-                $nested_data['product_name']=$product_sale_detail->product_name;
-                $nested_data['product_code']=$product_sale_detail->product_code;
-                $nested_data['product_category_id'] = $product_sale_detail->product_category_id;
+                $nested_data['product_id']=$product_purchase_detail->product_id;
+                $nested_data['product_name']=$product_purchase_detail->product_name;
+                $nested_data['product_code']=$product_purchase_detail->product_code;
+                $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
                 $nested_data['product_category_name'] = $product->category->name;
-                $nested_data['product_unit_id'] = $product_sale_detail->product_unit_id;
+                $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
                 $nested_data['product_unit_name'] = $product->unit->name;
-                $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
-                $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_id ? $product->sub_unit->name : '';
-                $nested_data['product_size_id'] = $product_sale_detail->product_size_id;
-                $nested_data['product_size_name'] = $product_sale_detail->product_size_id ? $product->size->name : '';
-                $nested_data['qty']=$product_sale_detail->qty;
-                $nested_data['product_sale_detail_id']=$product_sale_detail->product_sale_detail_id;
-                $nested_data['purchase_price']=$product_sale_detail->purchase_price;
+                $nested_data['product_sub_unit_id']=$product_purchase_detail->product_sub_unit_id;
+                $nested_data['product_sub_unit_name']=$product_purchase_detail->product_sub_unit_id ? $product->sub_unit->name : '';
+                $nested_data['product_size_id'] = $product_purchase_detail->product_size_id;
+                $nested_data['product_size_name'] = $product_purchase_detail->product_size_id ? $product->size->name : '';
+                $nested_data['qty']=$product_purchase_detail->qty;
+                $nested_data['product_purchase_detail_id']=$product_purchase_detail->product_purchase_detail_id;
+                $nested_data['purchase_price']=$product_purchase_detail->purchase_price;
                 //$nested_data['vat_amount']=$product_sale_detail->vat_amount;
                 $nested_data['current_stock']=$current_stock;
 
-                array_push($sale_product, $nested_data);
+                array_push($purchase_product, $nested_data);
             }
         }
 
-        if($product_sale_details === null){
+        if($product_purchase_details === null){
             $response = APIHelpers::createAPIResponse(true,404,'No Product POS Sale Detail Found.',null);
             return response()->json($response,404);
         }else{
-            $response = APIHelpers::createAPIResponse(false,200,'',$sale_product);
+            $response = APIHelpers::createAPIResponse(false,200,'',$purchase_product);
             return response()->json($response,200);
         }
 //        } catch (\Exception $e) {
@@ -535,71 +537,71 @@ class ProductSaleReturnController extends Controller
     }
 
 
-    public function productSaleReturnDetailsPrint(Request $request){
+    public function productPurchaseReturnDetailsPrint(Request $request){
 
 //        try {
-            $product_sale_details = DB::table('product_sale_returns')
-                ->join('product_sale_return_details','product_sale_returns.id','product_sale_return_details.product_sale_return_id')
-                ->join('products','product_sale_return_details.product_id','products.id')
-                ->where('product_sale_returns.id',$request->product_sale_return_id)
-                ->select(
-                    'product_sale_returns.store_id',
-                    'products.id as product_id',
-                    'products.name as product_name',
-                    'products.product_code',
-                    'product_sale_return_details.qty',
-                    'product_sale_return_details.id as product_sale_return_detail_id',
-                    'product_sale_return_details.purchase_price',
-                    //'product_sale_return_details.vat_amount',
-                    'products.product_unit_id',
-                    'products.product_category_id',
-                    'products.product_size_id',
-                    'products.product_sub_unit_id'
-                )
+        $product_purchase_details = DB::table('product_purchase_returns')
+            ->join('product_purchase_return_details','product_purchase_returns.id','product_purchase_return_details.product_purchase_return_id')
+            ->join('products','product_purchase_return_details.product_id','products.id')
+            ->where('product_purchase_returns.id',$request->product_purchase_return_id)
+            ->select(
+                'product_purchase_returns.warehouse_id',
+                'products.id as product_id',
+                'products.name as product_name',
+                'products.product_code',
+                'product_purchase_return_details.qty',
+                'product_purchase_return_details.id as product_purchase_detail_id',
+                'product_purchase_return_details.purchase_price',
+                //'product_sale_return_details.vat_amount',
+                'products.product_unit_id',
+                'products.product_category_id',
+                'products.product_size_id',
+                'products.product_sub_unit_id'
+            )
                 ->get();
 
-            $sale_product = [];
-            if(count($product_sale_details) > 0){
-                foreach ($product_sale_details as $product_sale_detail){
-                    $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
-                    $product = Product::find($product_sale_detail->product_id);
+            $purchase_product = [];
+            if(count($product_purchase_details) > 0){
+                foreach ($product_purchase_details as $product_purchase_detail){
+                    $current_stock = warehouseProductCurrentStock($product_purchase_detail->warehouse_id,$product_purchase_detail->product_id);
+                    $product = Product::find($product_purchase_detail->product_id);
 
-                    $nested_data['product_id']=$product_sale_detail->product_id;
-                    $nested_data['product_name']=$product_sale_detail->product_name;
-                    $nested_data['product_code']=$product_sale_detail->product_code;
-                    $nested_data['product_category_id'] = $product_sale_detail->product_category_id;
+                    $nested_data['product_id']=$product_purchase_detail->product_id;
+                    $nested_data['product_name']=$product_purchase_detail->product_name;
+                    $nested_data['product_code']=$product_purchase_detail->product_code;
+                    $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
                     $nested_data['product_category_name'] = $product->category->name;
-                    $nested_data['product_unit_id'] = $product_sale_detail->product_unit_id;
+                    $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
                     $nested_data['product_unit_name'] = $product->unit->name;
-                    $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
-                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_id ? $product->sub_unit->name : '';
-                    $nested_data['product_size_id'] = $product_sale_detail->product_size_id;
-                    $nested_data['product_size_name'] = $product_sale_detail->product_size_id ? $product->size->name : '';
-                    $nested_data['qty']=$product_sale_detail->qty;
-                    $nested_data['product_sale_return_detail_id']=$product_sale_detail->product_sale_return_detail_id;
-                    $nested_data['purchase_price']=$product_sale_detail->purchase_price;
+                    $nested_data['product_sub_unit_id']=$product_purchase_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$product_purchase_detail->product_sub_unit_id ? $product->sub_unit->name : '';
+                    $nested_data['product_size_id'] = $product_purchase_detail->product_size_id;
+                    $nested_data['product_size_name'] = $product_purchase_detail->product_size_id ? $product->size->name : '';
+                    $nested_data['qty']=$product_purchase_detail->qty;
+                    $nested_data['product_purchase_detail_id']=$product_purchase_detail->product_purchase_detail_id;
+                    $nested_data['purchase_price']=$product_purchase_detail->purchase_price;
                     //$nested_data['vat_amount']=$product_sale_detail->vat_amount;
                     $nested_data['current_stock']=$current_stock;
 
-                    array_push($sale_product, $nested_data);
+                    array_push($purchase_product, $nested_data);
                 }
-                $customer_details = DB::table('product_sale_returns')
-                    ->join('customers','product_sale_returns.customer_id','customers.id')
-                    ->join('stores','product_sale_returns.store_id','stores.id')
-                    ->where('product_sale_returns.id',$request->product_sale_return_id)
+                $supplier_details = DB::table('product_purchase_returns')
+                    ->join('suppliers','product_purchase_returns.supplier_id','suppliers.id')
+                    ->join('warehouses','product_purchase_returns.warehouse_id','warehouses.id')
+                    ->where('product_purchase_returns.id',$request->product_purchase_return_id)
                     ->select(
-                        'customers.id as customer_id',
-                        'customers.name as customer_name',
-                        'customers.phone as customer_phone',
-                        'customers.address as customer_address',
-                        'stores.id as store_id',
-                        'stores.name as store_name',
-                        'stores.phone as store_phone',
-                        'stores.address as store_address'
+                        'suppliers.id as supplier_id',
+                        'suppliers.name as supplier_name',
+                        'suppliers.phone as supplier_phone',
+                        'suppliers.address as supplier_address',
+                        'warehouses.id as warehouse_id',
+                        'warehouses.name as warehouse_name',
+                        'warehouses.phone as warehouse_phone',
+                        'warehouses.address as warehouse_address'
                     )
                     ->first();
 
-                return response()->json(['success' => true,'code' => 200,'data' => $sale_product, 'info' => $customer_details], 200);
+                return response()->json(['success' => true,'code' => 200,'data' => $purchase_product, 'info' => $supplier_details], 200);
             }else{
                 $response = APIHelpers::createAPIResponse(true,404,'No Sale Found.',null);
                 return response()->json($response,404);
