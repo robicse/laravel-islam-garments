@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Helpers\APIHelpers;
+use App\Helpers\ImageHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductCollection;
 use App\Product;
@@ -38,7 +39,6 @@ class ProductController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -123,7 +123,6 @@ class ProductController extends Controller
                 return response()->json($response,404);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -135,39 +134,26 @@ class ProductController extends Controller
 
     public function productListWithSearch(Request $request){
         try {
-            if( ($request->search) && ($request->type)){
-                $products = Product::where('type',$request->type)
-                    ->where('name','like','%'.$request->search.'%')
-                    ->orWhere('name','like','%'.$request->search.'%')
-                    ->orWhere('product_code','like','%'.$request->search.'%')
-                    ->orWhere('barcode','like','%'.$request->search.'%')
-                    ->orWhere('whole_sale_price','like','%'.$request->search.'%')
-                    ->orWhere('selling_price','like','%'.$request->search.'%')
-                    ->latest()->paginate(12);
-            }elseif($request->search){
-                $products = Product::where('name','like','%'.$request->search.'%')
-                    ->orWhere('name','like','%'.$request->search.'%')
-                    ->orWhere('product_code','like','%'.$request->search.'%')
-                    ->orWhere('barcode','like','%'.$request->search.'%')
-                    ->orWhere('whole_sale_price','like','%'.$request->search.'%')
-                    ->orWhere('selling_price','like','%'.$request->search.'%')
-                    ->latest()->paginate(12);
+            $products = Product::where('type', $request->type);
 
-            }elseif($request->type){
-                $products = Product::where('type',$request->type)
-                    ->latest()->paginate(12);
-            }else{
-                $products = Product::latest()->paginate(12);
+            if($request->search) {
+                $products->where('name','like','%'.$request->search.'%')
+                    ->orWhere('name','like','%'.$request->search.'%')
+                    ->orWhere('product_code','like','%'.$request->search.'%')
+                    ->orWhere('barcode','like','%'.$request->search.'%')
+                    ->orWhere('whole_sale_price','like','%'.$request->search.'%')
+                    ->orWhere('selling_price','like','%'.$request->search.'%');
             }
 
-            if($products === null){
+            $product_data = $products->latest()->paginate(12);
+
+            if($product_data === null){
                 $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
                 return response()->json($response,404);
             }else{
-                return new ProductCollection($products);
+                return new ProductCollection($product_data);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -175,29 +161,22 @@ class ProductController extends Controller
 
     public function barcodeProductList(Request $request){
 
-        if($request->count == 0){
-            $products = DB::table('products')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_brands','products.product_brand_id','product_brands.id')
-                ->select('products.id','products.name as product_name','products.image','product_units.id as unit_id','product_units.name as unit_name','products.item_code','products.barcode','products.self_no','products.low_inventory_alert','product_brands.id as brand_id','product_brands.name as brand_name','products.purchase_price','products.whole_sale_price as whole_sale_price','products.selling_price','products.note','products.date','products.status','products.vat_status','products.vat_percentage','products.vat_amount','products.vat_whole_amount')
-                ->where('products.id', '>=',$request->first_product)
-                //->limit($request->count)
-                ->orderBy('products.id','desc')
-                ->get();
-        }else{
-            $products = DB::table('products')
-                ->leftJoin('product_units','products.product_unit_id','product_units.id')
-                ->leftJoin('product_brands','products.product_brand_id','product_brands.id')
-                ->select('products.id','products.name as product_name','products.image','product_units.id as unit_id','product_units.name as unit_name','products.item_code','products.barcode','products.self_no','products.low_inventory_alert','product_brands.id as brand_id','product_brands.name as brand_name','products.purchase_price','products.whole_sale_price as whole_sale_price','products.selling_price','products.note','products.date','products.status','products.vat_status','products.vat_percentage','products.vat_amount','products.vat_whole_amount')
-                ->where('products.id', '>=',$request->first_product)
-                ->limit($request->count)
-                ->orderBy('products.id','desc')
-                ->get();
+        $products = DB::table('products')
+            ->leftJoin('product_units','products.product_unit_id','product_units.id')
+            ->leftJoin('product_brands','products.product_brand_id','product_brands.id')
+            ->select('products.id','products.name as product_name','products.image','product_units.id as unit_id','product_units.name as unit_name','products.item_code','products.barcode','products.self_no','products.low_inventory_alert','product_brands.id as brand_id','product_brands.name as brand_name','products.purchase_price','products.whole_sale_price as whole_sale_price','products.selling_price','products.note','products.date','products.status','products.vat_status','products.vat_percentage','products.vat_amount','products.vat_whole_amount');
+
+        $products->where('products.id', '>=',$request->first_product);
+
+        if($request->count) {
+            $products->limit($request->count);
         }
 
-        if($products)
+        $product_data = $products->orderBy('products.id','desc')->get();
+
+        if(count($product_data) > 0)
         {
-            $success['products'] =  $products;
+            $success['products'] =  $product_data;
             return response()->json(['success'=>true,'response' => $success], $this->successStatus);
         }else{
             return response()->json(['success'=>false,'response'=>'No Product List Found!'], $this->failStatus);
@@ -257,7 +236,7 @@ class ProductController extends Controller
     }
 
     public function checkExistsProduct(Request $request){
-//        try {
+        try {
             $validator = Validator::make($request->all(), [
                 'type' => 'required',
                 'product_category_id'=> 'required',
@@ -278,18 +257,16 @@ class ProductController extends Controller
                 $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
                 return response()->json($response,409);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productInfoForStockIn(Request $request){
         try {
             $validator = Validator::make($request->all(), [
                 'type' => 'required',
-                //'name' => 'required',
                 'product_category_id'=> 'required',
                 'product_unit_id'=> 'required',
             ]);
@@ -300,73 +277,104 @@ class ProductController extends Controller
             }
 
             if($request->type === 'Buy'){
-                if(!empty($request->product_sub_unit_id)){
-                    $product_info = Product::where('type',$request->type)
-                        ->where('product_category_id',$request->product_category_id)
-                        ->where('product_unit_id',$request->product_unit_id)
-                        ->where('product_sub_unit_id',$request->product_sub_unit_id)
-                        ->latest()
-                        ->paginate(1);
-                }else{
-                    $product_info = Product::where('type',$request->type)
-                        ->where('product_category_id',$request->product_category_id)
-                        ->where('product_unit_id',$request->product_unit_id)
-                        ->latest()
-                        ->paginate(1);
+                $product_info = Product::where('type', $request->type)
+                    ->where('product_category_id', $request->product_category_id)
+                    ->where('product_unit_id', $request->product_unit_id);
+
+                if($request->product_sub_unit_id) {
+                    $product_info->where('product_sub_unit_id', $request->product_sub_unit_id);
                 }
+
+                $product_data = $product_info->latest()->paginate(1);
+
+
+//                if(!empty($request->product_sub_unit_id)){
+//                    $product_info = Product::where('type',$request->type)
+//                        ->where('product_category_id',$request->product_category_id)
+//                        ->where('product_unit_id',$request->product_unit_id)
+//                        ->where('product_sub_unit_id',$request->product_sub_unit_id)
+//                        ->latest()
+//                        ->paginate(1);
+//                }else{
+//                    $product_info = Product::where('type',$request->type)
+//                        ->where('product_category_id',$request->product_category_id)
+//                        ->where('product_unit_id',$request->product_unit_id)
+//                        ->latest()
+//                        ->paginate(1);
+//                }
 
             }else{
-                if( (!empty($request->product_sub_unit_id)) && (!empty($request->product_code))) {
-                    $product_info = Product::where('type', $request->type)
+
+                $product_info = Product::where('type', $request->type)
                         ->where('product_category_id', $request->product_category_id)
                         ->where('product_unit_id', $request->product_unit_id)
-                        ->where('product_sub_unit_id', $request->product_sub_unit_id)
-                        ->where('product_size_id', $request->product_size_id)
-                        ->where('product_code', $request->product_code)
-                        ->latest()
-                        ->paginate(1);
-                }elseif( (!empty($request->product_sub_unit_id)) && (empty($request->product_code))) {
-                    $product_info = Product::where('type', $request->type)
-                        ->where('product_category_id', $request->product_category_id)
-                        ->where('product_unit_id', $request->product_unit_id)
-                        ->where('product_sub_unit_id', $request->product_sub_unit_id)
-                        ->where('product_size_id', $request->product_size_id)
-                        ->latest()
-                        ->paginate(1);
-                }elseif( (empty($request->product_sub_unit_id)) && (!empty($request->product_code))) {
-                    $product_info = Product::where('type', $request->type)
-                        ->where('product_category_id', $request->product_category_id)
-                        ->where('product_unit_id', $request->product_unit_id)
-                        ->where('product_size_id', $request->product_size_id)
-                        ->where('product_code', $request->product_code)
-                        ->latest()
-                        ->paginate(1);
-                }else{
-                    $product_info = Product::where('type', $request->type)
-                        ->where('product_category_id', $request->product_category_id)
-                        ->where('product_unit_id', $request->product_unit_id)
-                        ->where('product_size_id', $request->product_size_id)
-                        ->latest()
-                        ->paginate(1);
+                        ->where('product_size_id', $request->product_size_id);
+
+                if($request->type) {
+                    $product_info->where('type', $request->type);
                 }
+
+
+                if($request->product_sub_unit_id) {
+                    $product_info->where('product_sub_unit_id', $request->product_sub_unit_id);
+                }
+
+                if($request->product_code) {
+                    $product_info->where('product_code', $request->product_code);
+                }
+
+                $product_data = $product_info->latest()->paginate(1);
+
+
+//                if( (!empty($request->product_sub_unit_id)) && (!empty($request->product_code))) {
+//                    $product_info = Product::where('type', $request->type)
+//                        ->where('product_category_id', $request->product_category_id)
+//                        ->where('product_unit_id', $request->product_unit_id)
+//                        ->where('product_sub_unit_id', $request->product_sub_unit_id)
+//                        ->where('product_size_id', $request->product_size_id)
+//                        ->where('product_code', $request->product_code)
+//                        ->latest()
+//                        ->paginate(1);
+//                }elseif( (!empty($request->product_sub_unit_id)) && (empty($request->product_code))) {
+//                    $product_info = Product::where('type', $request->type)
+//                        ->where('product_category_id', $request->product_category_id)
+//                        ->where('product_unit_id', $request->product_unit_id)
+//                        ->where('product_sub_unit_id', $request->product_sub_unit_id)
+//                        ->where('product_size_id', $request->product_size_id)
+//                        ->latest()
+//                        ->paginate(1);
+//                }elseif( (empty($request->product_sub_unit_id)) && (!empty($request->product_code))) {
+//                    $product_info = Product::where('type', $request->type)
+//                        ->where('product_category_id', $request->product_category_id)
+//                        ->where('product_unit_id', $request->product_unit_id)
+//                        ->where('product_size_id', $request->product_size_id)
+//                        ->where('product_code', $request->product_code)
+//                        ->latest()
+//                        ->paginate(1);
+//                }else{
+//                    $product_info = Product::where('type', $request->type)
+//                        ->where('product_category_id', $request->product_category_id)
+//                        ->where('product_unit_id', $request->product_unit_id)
+//                        ->where('product_size_id', $request->product_size_id)
+//                        ->latest()
+//                        ->paginate(1);
+//                }
             }
 
-
-            if(count($product_info) === 0){
+            if(count($product_data) === 0){
                 $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
                 return response()->json($response,404);
             }else{
-                return new ProductCollection($product_info);
+                return new ProductCollection($product_data);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
     }
 
     public function productCreate(Request $request){
-//        try {
+        try {
             $fourRandomDigit = rand(1000,9999);
             $barcode = time().$fourRandomDigit;
 
@@ -451,7 +459,6 @@ class ProductController extends Controller
                 }
             }
 
-
             $product = new Product();
             $product->type = $type;
             $product->product_category_id = $request->product_category_id;
@@ -478,20 +485,13 @@ class ProductController extends Controller
             $product->note = $request->note ? $request->note : NULL;
             $product->date = $date;
             $product->status = $request->status;
+
             // front image
             $front_image = $request->file('front_image');
             if (isset($front_image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $image_name = $currentDate.'-'.uniqid().'.'.$front_image->getClientOriginalExtension();
-
-    //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($front_image)->save($front_image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
-
-                // update image db
-                $product->front_image = $image_name;
+                $path = 'uploads/products/';
+                $field = $product->nid_front;
+                $product->front_image = ImageHelpers::imageUpload($front_image,$path,$field);
             }else{
                 $product->front_image = 'default.png';
             }
@@ -499,17 +499,9 @@ class ProductController extends Controller
             // back image
             $back_image = $request->file('back_image');
             if (isset($back_image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $image_name = $currentDate.'-'.uniqid().'.'.$back_image->getClientOriginalExtension();
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($back_image)->save($back_image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
-
-                // update image db
-                $product->back_image = $image_name;
+                $path = 'uploads/suppliers/';
+                $field = $product->back_image;
+                $product->back_image = ImageHelpers::imageUpload($back_image,$path,$field);
             }else{
                 $product->back_image = 'default.png';
             }
@@ -517,25 +509,16 @@ class ProductController extends Controller
 
             $response = APIHelpers::createAPIResponse(false,201,'Product Added Successfully.',$product->id,null);
             return response()->json($response,201);
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productEdit(Request $request){
         try {
             $validator = Validator::make($request->all(), [
                 'product_id'=> 'required',
-//                'name' => 'required|unique:products,name,'.$request->product_id,
-//                'product_category_id'=> 'required',
-//                'product_unit_id'=> 'required',
-//                'purchase_price'=> 'required',
-//                'whole_sale_price'=> 'required',
-//                'selling_price'=> 'required',
-//                'date'=> 'required',
-//                'status'=> 'required',
             ]);
 
             if ($validator->fails()) {
@@ -561,17 +544,9 @@ class ProductController extends Controller
             // front image
             $front_image = $request->file('front_image');
             if (isset($front_image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $image_name = $currentDate.'-'.uniqid().'.'.$front_image->getClientOriginalExtension();
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($front_image)->save($front_image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
-
-                // update image db
-                $product->front_image = $image_name;
+                $path = 'uploads/products/';
+                $field = $product->nid_front;
+                $product->front_image = ImageHelpers::imageUpload($front_image,$path,$field);
             }else{
                 $product->front_image = Product::where('id',$request->product_id)->pluck('front_image')->first();
             }
@@ -579,37 +554,13 @@ class ProductController extends Controller
             // back image
             $back_image = $request->file('back_image');
             if (isset($back_image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $image_name = $currentDate.'-'.uniqid().'.'.$back_image->getClientOriginalExtension();
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($back_image)->save($back_image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
-
-                // update image db
-                $product->back_image = $image_name;
+                $path = 'uploads/suppliers/';
+                $field = $product->back_image;
+                $product->back_image = ImageHelpers::imageUpload($back_image,$path,$field);
             }else{
                 $product->back_image = Product::where('id',$request->product_id)->pluck('back_image')->first();
             }
 
-//            $image = $request->file('image');
-//            if (isset($image)) {
-//                //make unique name for image
-//                $currentDate = Carbon::now()->toDateString();
-//                $image_name = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-//
-//                //            resize image for hospital and upload
-//                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-//                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-//                Storage::disk('public')->put('uploads/products/'. $image_name, $proImage);
-//
-//                // update image db
-//                $product->image = $image_name;
-//            }else{
-//                $product->image = Product::where('id',$request->product_id)->pluck('image')->first();
-//            }
             $update_product = $product->save();
 
             if($update_product){
@@ -620,7 +571,6 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -634,7 +584,6 @@ class ProductController extends Controller
                 return response()->json($response,404);
             }
 
-            //$delete_product = DB::table("products")->where('id',$request->product_id)->delete();
             $soft_delete_product = Product::find($request->product_id);
             $soft_delete_product->status=0;
             $affected_row = $soft_delete_product->update();
@@ -647,55 +596,9 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
-    }
-
-    public function productImage(Request $request)
-    {
-        $product=Product::find($request->product_id);
-        $base64_image_propic = $request->pro_img;
-        //return response()->json(['response' => $base64_image_propic], $this-> successStatus);
-
-        $data = $request->pro_img;
-        $pos = strpos($data, ';');
-        $type = explode(':', substr($data, 0, $pos))[1];
-        $type1 = explode('/', $type)[1];
-
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64_image_propic)) {
-            $data = substr($base64_image_propic, strpos($base64_image_propic, ',') + 1);
-            $data = base64_decode($data);
-
-            $currentDate = Carbon::now()->toDateString();
-            $imagename = $currentDate . '-' . uniqid() . 'product_pic.'.$type1 ;
-
-            // delete old image.....
-            if(Storage::disk('public')->exists('uploads/products/'.$product->image))
-            {
-                Storage::disk('public')->delete('uploads/products/'.$product->image);
-
-            }
-
-            // resize image for service category and upload
-            //$data = Image::make($data)->resize(100, 100)->save($data->getClientOriginalExtension());
-
-            // store image
-            Storage::disk('public')->put("uploads/products/". $imagename, $data);
-
-
-            // update image db
-            $product->image = $imagename;
-            $product->update();
-
-            $success['product'] = $product;
-            return response()->json(['response' => $success], $this-> successStatus);
-
-        }else{
-            return response()->json(['response'=>'failed'], $this-> failStatus);
-        }
-
     }
 
     public function productCodeList(){
@@ -715,7 +618,6 @@ class ProductController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }

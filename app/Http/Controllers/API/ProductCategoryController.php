@@ -23,7 +23,6 @@ class ProductCategoryController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -40,7 +39,6 @@ class ProductCategoryController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -58,7 +56,6 @@ class ProductCategoryController extends Controller
                 return response()->json($response,400);
             }
 
-
             $product_category = new ProductCategory();
             $product_category->name = $request->name;
             $product_category->status = $request->status;
@@ -67,7 +64,6 @@ class ProductCategoryController extends Controller
             $response = APIHelpers::createAPIResponse(false,201,'Product Category Added Successfully.',null);
             return response()->json($response,201);
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -105,7 +101,6 @@ class ProductCategoryController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -131,7 +126,6 @@ class ProductCategoryController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }

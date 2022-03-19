@@ -2,22 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
-
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 
 class PaginationController extends Controller
 {

@@ -86,7 +86,6 @@ Route::middleware('auth:api')->post('/supplier_create', 'API\SupplierController@
 Route::middleware('auth:api')->post('/supplier_details', 'API\SupplierController@supplierDetails');
 Route::middleware('auth:api')->post('/supplier_update', 'API\SupplierController@supplierUpdate');
 Route::middleware('auth:api')->post('/supplier_delete', 'API\SupplierController@supplierDelete');
-Route::middleware('auth:api')->post('/supplier_image', 'API\SupplierController@supplierImage');
 Route::middleware('auth:api')->get('/supplier_active_list', 'API\SupplierController@supplierActiveList');
 Route::middleware('auth:api')->post('/supplier_current_total_due_by_supplier_id', 'API\SupplierController@supplierCurrentTotalDueBySupplierId');
 Route::middleware('auth:api')->post('/supplier_due_paid', 'API\SupplierController@supplierDuePaid');
@@ -144,7 +143,6 @@ Route::middleware('auth:api')->post('/check_exists_product', 'API\ProductControl
 Route::middleware('auth:api')->post('/product_create', 'API\ProductController@productCreate');
 Route::middleware('auth:api')->post('/product_edit', 'API\ProductController@productEdit');
 Route::middleware('auth:api')->post('/product_delete', 'API\ProductController@productDelete');
-Route::middleware('auth:api')->post('/product_image', 'API\ProductController@productImage');
 Route::middleware('auth:api')->post('/product_list_with_search', 'API\ProductController@productListWithSearch');
 Route::middleware('auth:api')->post('/product_info_for_stock_in', 'API\ProductController@productInfoForStockIn');
 Route::middleware('auth:api')->get('/product_active_list', 'API\ProductController@productActiveList');
@@ -270,14 +268,12 @@ Route::middleware('auth:api')->get('/chart_of_account_transaction_list', 'API\Ac
 //Route::middleware('auth:api')->post('/chart_of_account_transaction_details', 'API\AccountController@chartOfAccountTransactionDetails');
 Route::middleware('auth:api')->post('/chart_of_account_transaction_create', 'API\AccountController@chartOfAccountTransactionCreate');
 //Route::middleware('auth:api')->post('/chart_of_account_transaction_edit', 'API\AccountController@chartOfAccountTransactionEdit');
-//Route::middleware('auth:api')->post('/chart_of_account_transaction_delete', 'API\AccountController@chartOfAccountTransactionDelete');
 
 // ledger
 Route::middleware('auth:api')->post('/trial_balance_report', 'API\AccountController@trialBalanceReport');
 Route::middleware('auth:api')->post('/ledger', 'API\AccountController@ledger');
 Route::middleware('auth:api')->post('/cash_book_report', 'API\AccountController@cashBookReport');
 Route::middleware('auth:api')->post('/ledger_report', 'API\AccountController@ledgerReport');
-//Route::middleware('auth:api')->post('/balance_sheet', 'API\AccountController@balanceSheet');
 
 // dashboard history
 Route::middleware('auth:api')->get('/dashboard_count_information', 'API\DashboardController@dashboardInformation');

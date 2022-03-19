@@ -24,14 +24,13 @@ class ProductSubUnitController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
     }
 
     public function productSubUnitList(){
-//        try {
+        try {
             $product_sub_units = DB::table('product_sub_units')
                 ->join('product_units','product_sub_units.product_unit_id','product_units.id')
                 ->select('product_units.name as unit_name','product_sub_units.id','product_sub_units.name as sub_unit_name','product_sub_units.status')
@@ -43,11 +42,10 @@ class ProductSubUnitController extends Controller
                 $response = APIHelpers::createAPIResponse(false,200,'',$product_sub_units);
                 return response()->json($response,200);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productSubUnitCreate(Request $request){
@@ -72,7 +70,6 @@ class ProductSubUnitController extends Controller
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse Added Successfully.',null);
             return response()->json($response,201);
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -111,7 +108,6 @@ class ProductSubUnitController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -125,7 +121,6 @@ class ProductSubUnitController extends Controller
                 return response()->json($response,404);
             }
 
-            //$delete_product_unit = DB::table("product_units")->where('id',$request->product_unit_id)->delete();
             $soft_delete_product_sub_unit = ProductSubUnit::find($request->product_sub_unit_id);
             $soft_delete_product_sub_unit->status=0;
             $affected_row = $soft_delete_product_sub_unit->update();
@@ -138,7 +133,6 @@ class ProductSubUnitController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }

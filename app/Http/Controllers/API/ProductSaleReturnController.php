@@ -2,28 +2,17 @@
 
 namespace App\Http\Controllers\API;
 
-use App\ChartOfAccount;
-use App\ChartOfAccountTransaction;
-use App\ChartOfAccountTransactionDetail;
 use App\Customer;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductSaleReturnCollection;
-use App\Party;
-use App\PaymentCollection;
 use App\PaymentType;
 use App\Product;
 use App\ProductSale;
-use App\ProductSaleDetail;
 use App\ProductSaleReturn;
 use App\ProductSaleReturnDetail;
 use App\Stock;
-use App\Store;
-use App\Transaction;
-use App\VoucherType;
-use App\WarehouseCurrentStock;
 use App\WarehouseStoreCurrentStock;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +44,6 @@ class ProductSaleReturnController extends Controller
     }
 
     public function productSaleDetails(Request $request){
-        //dd($request->all());
         $this->validate($request, [
             'product_sale_invoice_no'=> 'required',
         ]);
@@ -153,16 +141,9 @@ class ProductSaleReturnController extends Controller
     }
 
     public function productSaleReturnCreate(Request $request){
-        //dd($request->all());
         $this->validate($request, [
-            //'product_sale_invoice_no'=> 'required',
             'store_id'=> 'required',
             'customer_id'=> 'required',
-            //'payment_type_id'=> 'required',
-            //'paid_amount'=> 'required',
-            //'due_amount'=> 'required',
-            //'sub_total_amount'=> 'required',
-            //'grand_total_amount'=> 'required',
         ]);
 
         $get_invoice_no = ProductSaleReturn::latest('id','desc')->pluck('invoice_no')->first();
@@ -182,16 +163,11 @@ class ProductSaleReturnController extends Controller
         $warehouse_id = NULL;
         $product_sale_invoice_no = $request->product_sale_invoice_no ? $request->product_sale_invoice_no : NULL;
         $customer_id = $request->customer_id;
-        $payment_type_id = $request->payment_type_id ? $request->payment_type_id : NULL;
         $sub_total_amount = $request->sub_total_amount;
         $discount_type = $request->discount_type ? $request->discount_type : NULL;
         $discount_amount = $request->discount_amount ? $request->discount_amount : 0;
         $grand_total_amount = $request->grand_total_amount;
-        //$sale_invoice_no = $request->sale_invoice_no;
         $products = json_decode($request->products);
-
-        $product_sale_info = ProductSale::where('invoice_no',$product_sale_invoice_no)->first();
-        //$product_sale_id = $product_sale_info->id;
 
         // product sale return
         $productSaleReturn = new ProductSaleReturn();
@@ -233,12 +209,6 @@ class ProductSaleReturnController extends Controller
                 $purchase_sale_return_detail->price = $price;
                 $purchase_sale_return_detail->sub_total = $qty*$price;
                 $purchase_sale_return_detail->save();
-
-//                $sale_type = ProductSale::where('invoice_no',$sale_invoice_no)->pluck('sale_type')->first();
-//
-//                if($sale_type === 'whole_sale') {
-//                    $check_previous_stock = Stock::where('store_id', $store_id)->where('stock_where', 'store')->where('product_id', $product_id)->latest()->pluck('current_stock')->first();
-//                }
 
                 $check_previous_stock = Stock::where('store_id', $store_id)->where('stock_where', 'store')->where('product_id', $product_id)->latest()->pluck('current_stock')->first();
 
@@ -352,11 +322,6 @@ class ProductSaleReturnController extends Controller
 //                chartOfAccountTransactionDetails($insert_id, $final_invoice, $user_id, 2, $final_voucher_no, 'Sales', $date, $transaction_date_time, $year, $month, NULL, $store_id, $payment_type_id, NULL, NULL, NULL, $mobile_banking_chart_of_account_info->id, $mobile_banking_chart_of_account_info->head_code, $mobile_banking_chart_of_account_info->head_name, $cheque_chart_of_account_info->parent_head_name, $mobile_banking_chart_of_account_info->head_type, $grand_total_amount, NULL, $description, 'Approved');
 //            }
 
-
-
-
-
-
             $response = APIHelpers::createAPIResponse(false,201,'Product Sale Return Added Successfully.',null);
             return response()->json($response,201);
         }else{
@@ -378,7 +343,6 @@ class ProductSaleReturnController extends Controller
                 'product_sale_returns.product_sale_invoice_no',
                 'product_sale_returns.discount_type',
                 'product_sale_returns.discount_amount',
-                //'product_sale_returns.total_vat_amount',
                 'product_sale_returns.grand_total_amount',
                 'product_sale_returns.paid_amount',
                 'product_sale_returns.due_amount',
@@ -440,7 +404,6 @@ class ProductSaleReturnController extends Controller
                 'product_sale_returns.sub_total_amount',
                 'product_sale_returns.discount_type',
                 'product_sale_returns.discount_amount',
-                //'product_sale_returns.total_vat_amount',
                 'product_sale_returns.grand_total_amount',
                 'product_sale_returns.paid_amount',
                 'product_sale_returns.due_amount',
@@ -471,73 +434,70 @@ class ProductSaleReturnController extends Controller
     }
 
     public function productSaleReturnDetails(Request $request){
-//        try {
-//        $response = APIHelpers::createAPIResponse(false,200,'','come here');
-//        return response()->json($response,200);
-        $product_sale_details = DB::table('product_sale_returns')
-            ->join('product_sale_return_details','product_sale_returns.id','product_sale_return_details.product_sale_return_id')
-            ->join('products','product_sale_return_details.product_id','products.id')
-            ->where('product_sale_returns.id',$request->product_sale_return_id)
-            ->select(
-                'product_sale_returns.store_id',
-                'products.id as product_id',
-                'products.name as product_name',
-                'products.product_code',
-                'product_sale_return_details.qty',
-                'product_sale_return_details.id as product_sale_detail_id',
-                'product_sale_return_details.purchase_price',
-                //'product_sale_return_details.vat_amount',
-                'products.product_unit_id',
-                'products.product_category_id',
-                'products.product_size_id',
-                'products.product_sub_unit_id'
-            )
-            ->get();
+        try {
+            $product_sale_details = DB::table('product_sale_returns')
+                ->join('product_sale_return_details','product_sale_returns.id','product_sale_return_details.product_sale_return_id')
+                ->join('products','product_sale_return_details.product_id','products.id')
+                ->where('product_sale_returns.id',$request->product_sale_return_id)
+                ->select(
+                    'product_sale_returns.store_id',
+                    'products.id as product_id',
+                    'products.name as product_name',
+                    'products.product_code',
+                    'product_sale_return_details.qty',
+                    'product_sale_return_details.id as product_sale_detail_id',
+                    'product_sale_return_details.purchase_price',
+                    'products.product_unit_id',
+                    'products.product_category_id',
+                    'products.product_size_id',
+                    'products.product_sub_unit_id'
+                )
+                ->get();
 
-        $sale_product = [];
-        if(count($product_sale_details) > 0){
-            foreach ($product_sale_details as $product_sale_detail){
-                $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
-                $product = Product::find($product_sale_detail->product_id);
+            $sale_product = [];
+            if(count($product_sale_details) > 0){
+                foreach ($product_sale_details as $product_sale_detail){
+                    $current_stock = warehouseStoreProductCurrentStock($product_sale_detail->store_id,$product_sale_detail->product_id);
+                    $product = Product::find($product_sale_detail->product_id);
 
-                $nested_data['product_id']=$product_sale_detail->product_id;
-                $nested_data['product_name']=$product_sale_detail->product_name;
-                $nested_data['product_code']=$product_sale_detail->product_code;
-                $nested_data['product_category_id'] = $product_sale_detail->product_category_id;
-                $nested_data['product_category_name'] = $product->category->name;
-                $nested_data['product_unit_id'] = $product_sale_detail->product_unit_id;
-                $nested_data['product_unit_name'] = $product->unit->name;
-                $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
-                $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_id ? $product->sub_unit->name : '';
-                $nested_data['product_size_id'] = $product_sale_detail->product_size_id;
-                $nested_data['product_size_name'] = $product_sale_detail->product_size_id ? $product->size->name : '';
-                $nested_data['qty']=$product_sale_detail->qty;
-                $nested_data['product_sale_detail_id']=$product_sale_detail->product_sale_detail_id;
-                $nested_data['purchase_price']=$product_sale_detail->purchase_price;
-                //$nested_data['vat_amount']=$product_sale_detail->vat_amount;
-                $nested_data['current_stock']=$current_stock;
+                    $nested_data['product_id']=$product_sale_detail->product_id;
+                    $nested_data['product_name']=$product_sale_detail->product_name;
+                    $nested_data['product_code']=$product_sale_detail->product_code;
+                    $nested_data['product_category_id'] = $product_sale_detail->product_category_id;
+                    $nested_data['product_category_name'] = $product->category->name;
+                    $nested_data['product_unit_id'] = $product_sale_detail->product_unit_id;
+                    $nested_data['product_unit_name'] = $product->unit->name;
+                    $nested_data['product_sub_unit_id']=$product_sale_detail->product_sub_unit_id;
+                    $nested_data['product_sub_unit_name']=$product_sale_detail->product_sub_unit_id ? $product->sub_unit->name : '';
+                    $nested_data['product_size_id'] = $product_sale_detail->product_size_id;
+                    $nested_data['product_size_name'] = $product_sale_detail->product_size_id ? $product->size->name : '';
+                    $nested_data['qty']=$product_sale_detail->qty;
+                    $nested_data['product_sale_detail_id']=$product_sale_detail->product_sale_detail_id;
+                    $nested_data['purchase_price']=$product_sale_detail->purchase_price;
+                    //$nested_data['vat_amount']=$product_sale_detail->vat_amount;
+                    $nested_data['current_stock']=$current_stock;
 
-                array_push($sale_product, $nested_data);
+                    array_push($sale_product, $nested_data);
+                }
             }
-        }
 
-        if($product_sale_details === null){
-            $response = APIHelpers::createAPIResponse(true,404,'No Product POS Sale Detail Found.',null);
-            return response()->json($response,404);
-        }else{
-            $response = APIHelpers::createAPIResponse(false,200,'',$sale_product);
-            return response()->json($response,200);
+            if($product_sale_details === null){
+                $response = APIHelpers::createAPIResponse(true,404,'No Product POS Sale Detail Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$sale_product);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
         }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
     }
 
 
     public function productSaleReturnDetailsPrint(Request $request){
 
-//        try {
+        try {
             $product_sale_details = DB::table('product_sale_returns')
                 ->join('product_sale_return_details','product_sale_returns.id','product_sale_return_details.product_sale_return_id')
                 ->join('products','product_sale_return_details.product_id','products.id')
@@ -604,42 +564,41 @@ class ProductSaleReturnController extends Controller
                 $response = APIHelpers::createAPIResponse(true,404,'No Sale Found.',null);
                 return response()->json($response,404);
             }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
-
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productSearchForSaleByStoreId(Request $request){
-//        try {
-        $validator = Validator::make($request->all(), [
-            'type' => 'required',
-            'product_category_id'=> 'required',
-            'product_unit_id'=> 'required',
-            'product_size_id'=> 'required',
-            'store_id'=> 'required',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'type' => 'required',
+                'product_category_id'=> 'required',
+                'product_unit_id'=> 'required',
+                'product_size_id'=> 'required',
+                'store_id'=> 'required',
+            ]);
 
-        if ($validator->fails()) {
-            $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
-            return response()->json($response,400);
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
+
+
+            $product_info = productSearchForSaleByStoreId($request->store_id,$request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+
+            if(count($product_info) === 0){
+                $response = APIHelpers::createAPIResponse(true,404,'No Store Product Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$product_info);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
         }
-
-
-        $product_info = productSearchForSaleByStoreId($request->store_id,$request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
-
-        if(count($product_info) === 0){
-            $response = APIHelpers::createAPIResponse(true,404,'No Store Product Found.',null);
-            return response()->json($response,404);
-        }else{
-            $response = APIHelpers::createAPIResponse(false,200,'',$product_info);
-            return response()->json($response,200);
-        }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
     }
 
 

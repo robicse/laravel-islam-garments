@@ -4,18 +4,15 @@ namespace App\Http\Controllers\API;
 
 use App\ChartOfAccount;
 use App\ChartOfAccountTransaction;
-use App\ChartOfAccountTransactionDetail;
 use App\Customer;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CustomerSaleCollection;
 use App\Product;
 use App\ProductSale;
 use App\ProductSaleDetail;
 use App\Stock;
 use App\VoucherType;
 use App\WarehouseStoreCurrentStock;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,10 +20,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductSaleController extends Controller
 {
-
-
     public function productWholeSaleCreate(Request $request){
-
         try {
             $validator = Validator::make($request->all(), [
                 'customer_id'=> 'required',
@@ -51,7 +45,6 @@ class ProductSaleController extends Controller
             }
             $final_invoice = 'sale-'.$invoice_no;
 
-            //$date = $request->date;
             $date = date('Y-m-d');
             $date_time = $date." ".date('h:i:s');
 
@@ -308,7 +301,6 @@ class ProductSaleController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -368,66 +360,7 @@ class ProductSaleController extends Controller
 
         $product_sale_data = $product_pos_sales->latest('product_sales.id', 'desc')->paginate(12);
 
-
-//        if($role == 'Super Admin') {
-//            if ($request->search) {
-//                $product_pos_sales = DB::table('product_sales')
-//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-//                    ->where('product_sales.sale_type', 'Whole Sale')
-//                    ->where('product_sales.invoice_no', 'like', '%' . $request->search . '%')
-//                    ->orWhere('product_sales.total_amount', 'like', '%' . $request->search . '%')
-//                    ->orWhere('customers.name', 'like', '%' . $request->search . '%')
-//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-//                    ->orderBy('product_sales.id', 'desc')
-//                    ->paginate(12);
-//
-//
-//            } else {
-//                $product_pos_sales = DB::table('product_sales')
-//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-//                    ->where('product_sales.sale_type', 'Whole Sale')
-//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-//                    ->orderBy('product_sales.id', 'desc')
-//                    ->paginate(12);
-//            }
-//        }else{
-//            if ($request->search) {
-//                $product_pos_sales = DB::table('product_sales')
-//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-//                    ->where('product_sales.store_id',$store_id)
-//                    ->where('product_sales.sale_type', 'Whole Sale')
-//                    ->where('product_sales.invoice_no', 'like', '%' . $request->search . '%')
-//                    ->orWhere('product_sales.total_amount', 'like', '%' . $request->search . '%')
-//                    ->orWhere('customers.name', 'like', '%' . $request->search . '%')
-//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-//                    ->orderBy('product_sales.id', 'desc')
-//                    ->paginate(12);
-//
-//
-//            } else {
-//                $product_pos_sales = DB::table('product_sales')
-//                    ->leftJoin('users', 'product_sales.user_id', 'users.id')
-//                    ->leftJoin('customers', 'product_sales.customer_id', 'customers.id')
-//                    ->leftJoin('stores', 'product_sales.store_id', 'stores.id')
-//                    ->leftJoin('payment_types', 'product_sales.payment_type_id', 'payment_types.id')
-//                    ->where('product_sales.store_id',$store_id)
-//                    ->where('product_sales.sale_type', 'Whole Sale')
-//                    ->select('product_sales.id', 'product_sales.invoice_no', 'product_sales.discount_type', 'product_sales.discount_percent', 'product_sales.discount_amount', 'product_sales.total_vat_amount', 'product_sales.after_discount_amount', 'product_sales.grand_total_amount', 'payment_types.name as payment_type', 'product_sales.paid_amount', 'product_sales.due_amount', 'product_sales.sale_date_time as date_time', 'users.name as user_name', 'customers.id as customer_id', 'customers.name as customer_name', 'stores.id as store_id', 'stores.name as store_name', 'stores.address as store_address', 'stores.phone')
-//                    ->orderBy('product_sales.id', 'desc')
-//                    ->paginate(12);
-//            }
-//        }
-
-        if($product_pos_sales === null){
+        if($product_sale_data === null){
             $response = APIHelpers::createAPIResponse(true,404,'No Product POS SaleFound.',null);
             return response()->json($response,404);
         }else{
@@ -576,9 +509,7 @@ class ProductSaleController extends Controller
 
 
     public function productSaleDetails(Request $request){
-//        try {
-//        $response = APIHelpers::createAPIResponse(false,200,'','come here');
-//        return response()->json($response,200);
+        try {
             $product_sale_details = DB::table('product_sales')
                 ->join('product_sale_details','product_sales.id','product_sale_details.product_sale_id')
                 ->join('products','product_sale_details.product_id','products.id')
@@ -633,10 +564,10 @@ class ProductSaleController extends Controller
                 $response = APIHelpers::createAPIResponse(false,200,'',$sale_product);
                 return response()->json($response,200);
             }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productSaleDetailsPrint(Request $request){
@@ -709,7 +640,6 @@ class ProductSaleController extends Controller
                 return response()->json($response,404);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -717,7 +647,7 @@ class ProductSaleController extends Controller
     }
 
     public function productSearchForSaleByStoreId(Request $request){
-//        try {
+        try {
         $validator = Validator::make($request->all(), [
             'type' => 'required',
             'product_category_id'=> 'required',
@@ -741,11 +671,9 @@ class ProductSaleController extends Controller
             $response = APIHelpers::createAPIResponse(false,200,'',$product_info);
             return response()->json($response,200);
         }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
-
-
 }

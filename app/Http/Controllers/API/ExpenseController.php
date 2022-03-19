@@ -9,65 +9,42 @@ use App\Expense;
 use App\ExpenseCategory;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
-use App\Supplier;
-use App\User;
 use App\VoucherType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class ExpenseController extends Controller
 {
     public function expenseListPaginationWithSearch(Request $request){
         try {
-            if($request->search){
-                $expenses = Expense::join('expense_categories','expenses.expense_category_id','expense_categories.id')
-//                    ->where('product_purchases.purchase_type','whole_purchase')
-//                    ->where(function ($q) use ($request){
-//                        $q->where('product_purchases.invoice_no','like','%'.$request->search.'%')
-//                            ->orWhere('suppliers.name','like','%'.$request->search.'%');
-//                    })
-                    ->leftJoin('warehouses','expenses.warehouse_id','warehouses.id')
-                    ->leftJoin('stores','expenses.store_id','stores.id')
-//                    ->where('expenses.invoice_no','like','%'.$request->search.'%')
-                    ->where('expenses.amount','like','%'.$request->search.'%')
-                    ->orWhere('warehouses.name','like','%'.$request->search.'%')
-                    ->orWhere('stores.name','like','%'.$request->search.'%')
-                    ->select(
-                        'expenses.id as expense_id',
-                        'expenses.amount',
-                        'expenses.expense_from',
-                        'warehouses.id as warehouse_id',
-                        'warehouses.name as warehouse_name',
-                        'stores.id as store_id',
-                        'stores.name as store_name',
-                        'expense_categories.id as expense_category_id',
-                        'expense_categories.name as expense_category_name',
-                        'expenses.date'
-                    )
-                    ->latest('expenses.id','desc')->paginate(12);
+            $expenses = Expense::join('expense_categories','expenses.expense_category_id','expense_categories.id')
+                ->leftJoin('warehouses','expenses.warehouse_id','warehouses.id')
+                ->leftJoin('stores','expenses.store_id','stores.id')
+                ->where('expenses.amount','like','%'.$request->search.'%')
+                ->orWhere('warehouses.name','like','%'.$request->search.'%')
+                ->orWhere('stores.name','like','%'.$request->search.'%')
+                ->select(
+                    'expenses.id as expense_id',
+                    'expenses.amount',
+                    'expenses.expense_from',
+                    'warehouses.id as warehouse_id',
+                    'warehouses.name as warehouse_name',
+                    'stores.id as store_id',
+                    'stores.name as store_name',
+                    'expense_categories.id as expense_category_id',
+                    'expense_categories.name as expense_category_name',
+                    'expenses.date'
+                );
 
-            }else{
-                $expenses = Expense::join('expense_categories','expenses.expense_category_id','expense_categories.id')
-                    ->leftJoin('warehouses','expenses.warehouse_id','warehouses.id')
-                    ->leftJoin('stores','expenses.store_id','stores.id')
-                    ->select(
-                        'expenses.id as expense_id',
-                        'expenses.amount',
-                        'expenses.expense_from',
-                        'warehouses.id as warehouse_id',
-                        'warehouses.name as warehouse_name',
-                        'stores.id as store_id',
-                        'stores.name as store_name',
-                        'expense_categories.id as expense_category_id',
-                        'expense_categories.name as expense_category_name',
-                        'expenses.date'
-                    )
-                    ->latest('expenses.id','desc')->paginate(12);
+            if($request->search){
+                $expenses->where('expenses.amount','like','%'.$request->search.'%')
+                    ->orWhere('warehouses.name','like','%'.$request->search.'%')
+                    ->orWhere('stores.name','like','%'.$request->search.'%');
             }
+
+            $expenses->latest('expenses.id','desc')->paginate(12);
+
             if(count($expenses) === 0){
                 $response = APIHelpers::createAPIResponse(true,404,'No Expenses Found.',null);
                 return response()->json($response,404);
@@ -82,7 +59,7 @@ class ExpenseController extends Controller
     }
 
     public function expenseCreate(Request $request){
-//        try {
+        try {
             $expense_category_id = $request->expense_category_id;
             $payment_type_id = $request->payment_type_id;
             $amount = $request->amount;
@@ -99,7 +76,6 @@ class ExpenseController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
                 return response()->json($response,400);
             }
-
 
             // posting
             $date = date('Y-m-d');
@@ -148,23 +124,20 @@ class ExpenseController extends Controller
                     // expense credit
                     $description = $expense_chart_of_account_info->head_name . ' Expense Credited For Expense Paid';
                     chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 9, $final_voucher_no, 'Expense Paid', $date, $transaction_date_time, $year, $month, $warehouse_id, $store_id, $payment_type_id, NULL, NULL, NULL, $expense_chart_of_account_info->id, $expense_chart_of_account_info->head_code, $expense_chart_of_account_info->head_name, $expense_chart_of_account_info->parent_head_name, $expense_chart_of_account_info->head_type, NULL, $amount, $description, 'Approved');
-
                 }
 
                 $response = APIHelpers::createAPIResponse(false,200,'Expense Created Successfully.',null);
                 return response()->json($response,200);
-            }else{
-
             }
 
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function expenseEdit(Request $request){
-//        try {
+        try {
             $amount = $request->amount;
 
             // required
@@ -177,7 +150,6 @@ class ExpenseController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
                 return response()->json($response,400);
             }
-
 
             // posting
             $user_id = Auth::user()->id;
@@ -198,28 +170,6 @@ class ExpenseController extends Controller
                 if ($affected_row2) {
                     // expense head
                     $code = ExpenseCategory::where('id', $expense->expense_category_id)->pluck('code')->first();
-
-                    // expense debit
-//                    $chart_of_account_transaction_details = ChartOfAccountTransactionDetail::where('chart_of_account_transaction_id',$chart_of_account_transaction->id)
-//                        ->where('chart_of_account_name',$code)
-//                        ->where('debit','>',0)
-//                        ->first();
-//                    if(!empty($chart_of_account_transaction_details)){
-//                        $chart_of_account_transaction_details->debit = $amount;
-//                        $chart_of_account_transaction_details->payment_type_id=1;
-//                        $chart_of_account_transaction_details->save();
-//                    }
-
-                    // Cash In Hand credit
-//                    $chart_of_account_transaction_details = ChartOfAccountTransactionDetail::where('chart_of_account_transaction_id',$chart_of_account_transaction->id)
-//                        ->where('chart_of_account_name','Cash In Hand')
-//                        ->where('credit','>',0)
-//                        ->first();
-//                    if(!empty($chart_of_account_transaction_details)){
-//                        $chart_of_account_transaction_details->credit = $amount;
-//                        $chart_of_account_transaction_details->payment_type_id=1;
-//                        $chart_of_account_transaction_details->save();
-//                    }
 
                     // Cash In Hand debit
                     $chart_of_account_transaction_details = ChartOfAccountTransactionDetail::where('chart_of_account_transaction_id',$chart_of_account_transaction->id)
@@ -248,9 +198,9 @@ class ExpenseController extends Controller
                 return response()->json($response,200);
             }
 
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 }

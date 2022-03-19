@@ -5,21 +5,15 @@ namespace App\Http\Controllers\API;
 use App\ChartOfAccount;
 use App\ChartOfAccountTransaction;
 use App\ChartOfAccountTransactionDetail;
-use App\Employee;
 use App\Helpers\APIHelpers;
+use App\Helpers\ImageHelpers;
 use App\Http\Controllers\Controller;
 use App\Supplier;
 use App\VoucherType;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
 
 class SupplierController extends Controller
 {
@@ -84,7 +78,6 @@ class SupplierController extends Controller
             return response()->json($response,200);
 
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -125,104 +118,42 @@ class SupplierController extends Controller
             $supplier->current_total_due = $request->initial_due;
             $supplier->note = $request->note;
 
-            $image = $request->file('nid_front');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_front))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_front);
-
-                }
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->nid_front = $imagename;
-
+            // nid_front
+            $nid_front = $request->file('nid_front');
+            if (isset($nid_front)) {
+                $path = 'uploads/suppliers/';
+                $field = $supplier->nid_front;
+                $supplier->nid_front = ImageHelpers::imageUpload($nid_front,$path,$field);
             }else{
                 $supplier->nid_front = 'default.png';
             }
 
-            $image = $request->file('nid_back');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_back))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_back);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->nid_back = $imagename;
-
+            // nid_back
+            $nid_back = $request->file('nid_back');
+            if (isset($nid_back)) {
+                $path = 'uploads/suppliers/';
+                $field = $supplier->nid_back;
+                $supplier->nid_back = ImageHelpers::imageUpload($nid_back,$path,$field);
             }else{
                 $supplier->nid_back = 'default.png';
             }
 
+            // image
             $image = $request->file('image');
             if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->image = $imagename;
-
+                $path = 'uploads/suppliers/';
+                $field = $supplier->image;
+                $supplier->image = ImageHelpers::imageUpload($image,$path,$field);
             }else{
                 $supplier->image = 'default.png';
             }
 
-            $image = $request->file('bank_detail_image');
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->bank_detail_image))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->bank_detail_image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->bank_detail_image = $imagename;
-
+            // $bank_detail_image
+            $bank_detail_image = $request->file('bank_detail_image');
+            if (isset($bank_detail_image)) {
+                $path = 'uploads/suppliers/';
+                $field = $supplier->bank_detail_image;
+                $supplier->bank_detail_image = ImageHelpers::imageUpload($bank_detail_image,$path,$field);
             }else{
                 $supplier->bank_detail_image = 'default.png';
             }
@@ -266,8 +197,6 @@ class SupplierController extends Controller
                 $coa->updated_by              = Auth::User()->id;
                 $coa->save();
 
-
-
                 // supplier initial due
                 if($request->initial_due > 0){
                     $get_voucher_name = 'Previous Balance';
@@ -296,7 +225,6 @@ class SupplierController extends Controller
                     chartOfAccountTransactionDetails($insert_id, NULL, $user_id, 8, $final_voucher_no, 'Previous Balance', $date, $date_time, $year, $month, NULL, NULL, 1, NULL, NULL, NULL, $supplier_account->id, $supplier_account->head_code, $supplier_account->head_name, $supplier_account->parent_head_name, $supplier_account->head_type, NULL, $request->initial_due, $description, 'Approved');
                 }
 
-
                 $response = APIHelpers::createAPIResponse(false,201,'Supplier Added Successfully.',null);
                 return response()->json($response,201);
             }else{
@@ -304,7 +232,6 @@ class SupplierController extends Controller
                 return response()->json($response,500);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -322,7 +249,6 @@ class SupplierController extends Controller
             $response = APIHelpers::createAPIResponse(false,200,'',$supplier);
             return response()->json($response,200);
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -370,106 +296,44 @@ class SupplierController extends Controller
             $supplier->current_total_due = $update_current_total_due;
             $supplier->note = $request->note;
 
-            $image = $request->file('nid_front');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_front))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_front);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->nid_front = $imagename;
-
+            // nid_front
+            $nid_front = $request->file('nid_front');
+            if (isset($nid_front)) {
+                $path = 'uploads/suppliers/';
+                $field = $supplier->nid_front;
+                $supplier->nid_front = ImageHelpers::imageUpload($nid_front,$path,$field);
             }else{
-                $supplier->nid_front = Supplier::where('id',$request->supplier_id)->pluck('nid_front')->first();
+                $supplier->nid_front = Supplier::where('id',$supplier->id)->pluck('nid_front')->first();
             }
 
-            $image = $request->file('nid_back');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid_back))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid_back);
-
-                }
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->nid_back = $imagename;
-
+            // nid_back
+            $nid_back = $request->file('nid_back');
+            if (isset($nid_back)) {
+                $path = 'uploads/suppliers/';
+                $field = $supplier->nid_back;
+                $supplier->nid_back = ImageHelpers::imageUpload($nid_back,$path,$field);
             }else{
-                $supplier->nid_back = Supplier::where('id',$request->supplier_id)->pluck('nid_back')->first();
+                $supplier->nid_back = Supplier::where('id',$supplier->id)->pluck('nid_back')->first();
             }
 
+            // image
             $image = $request->file('image');
             if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->image = $imagename;
-
+                $path = 'uploads/suppliers/';
+                $field = $supplier->image;
+                $supplier->image = ImageHelpers::imageUpload($image,$path,$field);
             }else{
-                $supplier->image = Supplier::where('id',$request->supplier_id)->pluck('image')->first();
+                $supplier->image = Supplier::where('id',$supplier->id)->pluck('image')->first();
             }
 
-            $image = $request->file('bank_detail_image');
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->bank_detail_image))
-                {
-                    Storage::disk('public')->delete('uploads/suppliers/'.$supplier->bank_detail_image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-                // update image db
-                $supplier->bank_detail_image = $imagename;
-
+            // $bank_detail_image
+            $bank_detail_image = $request->file('bank_detail_image');
+            if (isset($bank_detail_image)) {
+                $path = 'uploads/suppliers/';
+                $field = $supplier->bank_detail_image;
+                $supplier->bank_detail_image = ImageHelpers::imageUpload($bank_detail_image,$path,$field);
             }else{
-                $supplier->bank_detail_image = Supplier::where('id',$request->supplier_id)->pluck('bank_detail_image')->first();
+                $supplier->bank_detail_image = Supplier::where('id',$supplier->id)->pluck('bank_detail_image')->first();
             }
 
             $update_supplier = $supplier->save();
@@ -532,7 +396,6 @@ class SupplierController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -558,90 +421,10 @@ class SupplierController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
     }
-
-
-    public function supplierImage(Request $request)
-    {
-        $supplier=Supplier::find($request->supplier_id);
-        //dd($supplier);
-        $image = $request->file('nid_image');
-        //dd($image);
-        if (isset($image)) {
-            //make unique name for image
-            $currentDate = Carbon::now()->toDateString();
-            $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-            // delete old image.....
-            if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->nid))
-            {
-                Storage::disk('public')->delete('uploads/suppliers/'.$supplier->nid);
-
-            }
-
-//            resize image for hospital and upload
-            //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-            $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-            Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-
-            // update image db
-            $supplier->nid = $imagename;
-            $supplier->update();
-
-            $success['supplier'] = $supplier;
-            return response()->json(['response' => $success], 200);
-
-        }else{
-            return response()->json(['response'=>'failed'], 400);
-        }
-
-    }
-
-//    public function supplierImage(Request $request)
-//    {
-//        //return response()->json(['success'=>true,'response' => 'sdfsdf'], 200);
-////        return response()->json(['success'=>true,'response' => $request->all()], 200);
-//        $supplier=Supplier::find($request->supplier_id);
-//        //dd($request->all());
-//        //return response()->json(['success'=>true,'response' => $supplier], 200);
-//        $image = $request->file('nid');
-//        return response()->json(['success'=>true,'response' => $image], 200);
-//        if (isset($image)) {
-//            //make unique name for image
-//            $currentDate = Carbon::now()->toDateString();
-//            $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-//
-//            // delete old image.....
-//            if(Storage::disk('public')->exists('uploads/suppliers/'.$supplier->image))
-//            {
-//                Storage::disk('public')->delete('uploads/suppliers/'.$supplier->image);
-//
-//            }
-//
-////            resize image for hospital and upload
-//            $proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-//            Storage::disk('public')->put('uploads/suppliers/'. $imagename, $proImage);
-//
-//            // update image db
-//            $supplier->nid = $imagename;
-//            $supplier->update();
-//
-//            //$success['supplier'] = $supplier;
-//            //return response()->json(['response' => $success], $this-> successStatus);
-//            $response = APIHelpers::createAPIResponse(false,200,'',$supplier);
-//            return response()->json($response,200);
-//
-//        }else{
-//            //return response()->json(['response'=>'failed'], $this-> failStatus);
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
-//
-//    }
 
     public function supplierCurrentTotalDueBySupplierId(Request $request){
         try {
@@ -660,7 +443,7 @@ class SupplierController extends Controller
     }
 
     public function supplierDuePaid(Request $request){
-//        try {
+        try {
             $supplier_id = $request->supplier_id;
             $payment_type_id = $request->payment_type_id;
             $paid_amount = $request->paid_amount;
@@ -747,10 +530,10 @@ class SupplierController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,'Supplier Updated Failed.',null);
                 return response()->json($response,400);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 }

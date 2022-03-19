@@ -7,19 +7,14 @@ use App\ChartOfAccountTransaction;
 use App\ChartOfAccountTransactionDetail;
 use App\Customer;
 use App\Helpers\APIHelpers;
+use App\Helpers\ImageHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CustomerCollection;
 use App\VoucherType;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
 
 class CustomerController extends Controller
 {
@@ -42,7 +37,6 @@ class CustomerController extends Controller
             return response()->json($response,200);
 
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -67,7 +61,6 @@ class CustomerController extends Controller
             return response()->json($response,200);
 
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -112,15 +105,13 @@ class CustomerController extends Controller
             return response()->json($response,200);
 
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
     }
 
     public function posCustomerCreate(Request $request){
-
-//        try {
+        try {
             // required
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
@@ -153,104 +144,42 @@ class CustomerController extends Controller
             $customer->initial_due = 0;
             $customer->current_total_due = 0;
 
-            $image = $request->file('nid_front');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->nid_front))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->nid_front);
-
-                }
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->nid_front = $imagename;
-
+            // nid_front
+            $nid_front = $request->file('nid_front');
+            if (isset($nid_front)) {
+                $path = 'uploads/customers/';
+                $field = $customer->nid_front;
+                $customer->nid_front = ImageHelpers::imageUpload($nid_front,$path,$field);
             }else{
                 $customer->nid_front = 'default.png';
             }
 
-            $image = $request->file('nid_back');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->nid_back))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->nid_back);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->nid_back = $imagename;
-
+            // nid_back
+            $nid_back = $request->file('nid_back');
+            if (isset($nid_back)) {
+                $path = 'uploads/customers/';
+                $field = $customer->nid_back;
+                $customer->nid_back = ImageHelpers::imageUpload($nid_back,$path,$field);
             }else{
                 $customer->nid_back = 'default.png';
             }
 
+            // image
             $image = $request->file('image');
             if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->image))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->image = $imagename;
-
+                $path = 'uploads/customers/';
+                $field = $customer->image;
+                $customer->image = ImageHelpers::imageUpload($image,$path,$field);
             }else{
                 $customer->image = 'default.png';
             }
 
-            $image = $request->file('bank_detail_image');
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->bank_detail_image))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->bank_detail_image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->bank_detail_image = $imagename;
-
+            // $bank_detail_image
+            $bank_detail_image = $request->file('bank_detail_image');
+            if (isset($bank_detail_image)) {
+                $path = 'uploads/customers/';
+                $field = $customer->bank_detail_image;
+                $customer->bank_detail_image = ImageHelpers::imageUpload($bank_detail_image,$path,$field);
             }else{
                 $customer->bank_detail_image = 'default.png';
             }
@@ -324,15 +253,14 @@ class CustomerController extends Controller
                 $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
                 return response()->json($response,500);
             }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function wholeCustomerCreate(Request $request){
-
-//        try {
+        try {
             // required
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
@@ -365,104 +293,43 @@ class CustomerController extends Controller
             $customer->initial_due = $request->initial_due;
             $customer->current_total_due = $request->initial_due;
             $customer->note = $request->note;
-            $image = $request->file('nid_front');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
 
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->nid_front))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->nid_front);
-
-                }
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->nid_front = $imagename;
-
+            // nid_front
+            $nid_front = $request->file('nid_front');
+            if (isset($nid_front)) {
+                $path = 'uploads/customers/';
+                $field = $customer->nid_front;
+                $customer->nid_front = ImageHelpers::imageUpload($nid_front,$path,$field);
             }else{
                 $customer->nid_front = 'default.png';
             }
 
-            $image = $request->file('nid_back');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->nid_back))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->nid_back);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->nid_back = $imagename;
-
+            // nid_back
+            $nid_back = $request->file('nid_back');
+            if (isset($nid_back)) {
+                $path = 'uploads/customers/';
+                $field = $customer->nid_back;
+                $customer->nid_back = ImageHelpers::imageUpload($nid_back,$path,$field);
             }else{
                 $customer->nid_back = 'default.png';
             }
 
+            // image
             $image = $request->file('image');
             if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->image))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->image = $imagename;
-
+                $path = 'uploads/customers/';
+                $field = $customer->image;
+                $customer->image = ImageHelpers::imageUpload($image,$path,$field);
             }else{
                 $customer->image = 'default.png';
             }
 
-            $image = $request->file('bank_detail_image');
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->bank_detail_image))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->bank_detail_image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->bank_detail_image = $imagename;
-
+            // $bank_detail_image
+            $bank_detail_image = $request->file('bank_detail_image');
+            if (isset($bank_detail_image)) {
+                $path = 'uploads/customers/';
+                $field = $customer->bank_detail_image;
+                $customer->bank_detail_image = ImageHelpers::imageUpload($bank_detail_image,$path,$field);
             }else{
                 $customer->bank_detail_image = 'default.png';
             }
@@ -542,11 +409,10 @@ class CustomerController extends Controller
                 $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
                 return response()->json($response,500);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function customerDetails(Request $request){
@@ -561,14 +427,13 @@ class CustomerController extends Controller
             $response = APIHelpers::createAPIResponse(false,200,'',$customer);
             return response()->json($response,200);
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
     }
 
     public function customerUpdate(Request $request){
-//        try {
+        try {
             $check_exists_customer = DB::table("customers")->where('id',$request->customer_id)->pluck('id')->first();
             if($check_exists_customer == null){
                 $response = APIHelpers::createAPIResponse(true,404,'No Customer Found.',null);
@@ -599,8 +464,6 @@ class CustomerController extends Controller
                 $update_current_total_due = $previous_current_total_due + $decrease_current_total_due;
             }
 
-
-            //$customer->customer_type = $request->customer_type;
             $customer->name = $request->name;
             $customer->shop_name = $request->shop_name;
             $customer->phone = $request->phone;
@@ -609,107 +472,47 @@ class CustomerController extends Controller
             $customer->initial_due = $request->initial_due;
             $customer->current_total_due = $update_current_total_due;
             $customer->note = $request->note;
-            $image = $request->file('nid_front');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
 
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->nid_front))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->nid_front);
-
-                }
-
-                //            resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->nid_front = $imagename;
-
+            // nid_front
+            $nid_front = $request->file('nid_front');
+            if (isset($nid_front)) {
+                $path = 'uploads/customers/';
+                $field = $customer->nid_front;
+                $customer->nid_front = ImageHelpers::imageUpload($nid_front,$path,$field);
             }else{
                 $customer->nid_front = Customer::where('id',$customer->id)->pluck('nid_front')->first();
             }
 
-            $image = $request->file('nid_back');
-            //dd($image);
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->nid_back))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->nid_back);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->nid_back = $imagename;
-
+            // nid_back
+            $nid_back = $request->file('nid_back');
+            if (isset($nid_back)) {
+                $path = 'uploads/customers/';
+                $field = $customer->nid_back;
+                $customer->nid_back = ImageHelpers::imageUpload($nid_back,$path,$field);
             }else{
                 $customer->nid_back = Customer::where('id',$customer->id)->pluck('nid_back')->first();
             }
 
+            // image
             $image = $request->file('image');
             if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->image))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->image = $imagename;
-
+                $path = 'uploads/customers/';
+                $field = $customer->image;
+                $customer->image = ImageHelpers::imageUpload($image,$path,$field);
             }else{
                 $customer->image = Customer::where('id',$customer->id)->pluck('image')->first();
             }
 
-            $image = $request->file('bank_detail_image');
-            if (isset($image)) {
-                //make unique name for image
-                $currentDate = Carbon::now()->toDateString();
-                $imagename = $currentDate.'-'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                // delete old image.....
-                if(Storage::disk('public')->exists('uploads/customers/'.$customer->bank_detail_image))
-                {
-                    Storage::disk('public')->delete('uploads/customers/'.$customer->bank_detail_image);
-
-                }
-
-                //resize image for hospital and upload
-                //$proImage = Image::make($image)->resize(100, 100)->save($image->getClientOriginalExtension());
-                $proImage = Image::make($image)->save($image->getClientOriginalExtension());
-                Storage::disk('public')->put('uploads/customers/'. $imagename, $proImage);
-
-                // update image db
-                $customer->bank_detail_image = $imagename;
-
+            // $bank_detail_image
+            $bank_detail_image = $request->file('bank_detail_image');
+            if (isset($bank_detail_image)) {
+                $path = 'uploads/customers/';
+                $field = $customer->bank_detail_image;
+                $customer->bank_detail_image = ImageHelpers::imageUpload($bank_detail_image,$path,$field);
             }else{
                 $customer->bank_detail_image = Customer::where('id',$customer->id)->pluck('bank_detail_image')->first();
             }
+
             $update_customer = $customer->save();
 
             if($update_customer){
@@ -796,11 +599,11 @@ class CustomerController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,'Customer Updated Failed.',null);
                 return response()->json($response,400);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function customerDelete(Request $request){
@@ -823,7 +626,6 @@ class CustomerController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -878,7 +680,7 @@ class CustomerController extends Controller
     }
 
     public function customerDuePaid(Request $request){
-//        try {
+        try {
         $customer_id = $request->customer_id;
         $payment_type_id = $request->payment_type_id;
         $paid_amount = $request->paid_amount;
@@ -967,9 +769,9 @@ class CustomerController extends Controller
             $response = APIHelpers::createAPIResponse(true,400,'Supplier Updated Failed.',null);
             return response()->json($response,400);
         }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 }

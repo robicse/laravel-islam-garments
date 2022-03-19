@@ -5,9 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
 use App\Warehouse;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -25,7 +23,6 @@ class WarehouseController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -43,7 +40,6 @@ class WarehouseController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -75,7 +71,6 @@ class WarehouseController extends Controller
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse Added Successfully.',null);
             return response()->json($response,201);
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -118,7 +113,6 @@ class WarehouseController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -132,7 +126,6 @@ class WarehouseController extends Controller
                 return response()->json($response,404);
             }
 
-            //$delete_warehouse = DB::table("warehouses")->where('id',$request->warehouse_id)->delete();
             $soft_delete_warehouse = Warehouse::find($request->warehouse_id);
             $soft_delete_warehouse->status=0;
             $affected_row = $soft_delete_warehouse->update();
@@ -145,7 +138,6 @@ class WarehouseController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }

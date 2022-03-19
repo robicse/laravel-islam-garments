@@ -23,7 +23,7 @@ class StockTransferRequestController extends Controller
 {
 
     public function storeToWarehouseStockRequestCreate(Request $request){
-//        try {
+        try {
             // required and unique
             $validator = Validator::make($request->all(), [
                 'request_from_store_id'=> 'required',
@@ -36,7 +36,6 @@ class StockTransferRequestController extends Controller
             }
 
             $date = date('Y-m-d');
-            $date_time = date('Y-m-d h:i:s');
 
             $user_id = Auth::user()->id;
             $request_to_warehouse_id = $request->request_to_warehouse_id;
@@ -101,14 +100,14 @@ class StockTransferRequestController extends Controller
 
             $response = APIHelpers::createAPIResponse(false,201,'Stock Transfer Request Added Successfully.',null);
             return response()->json($response,201);
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function storeToWarehouseStockRequestListPaginationWithSearch(Request $request){
-//        try {
+        try {
             if($request->search){
                 $stock_transfer_request_lists = DB::table('stock_transfer_requests')
                     ->leftJoin('users','stock_transfer_requests.request_by_user_id','users.id')
@@ -137,10 +136,10 @@ class StockTransferRequestController extends Controller
                 $response = APIHelpers::createAPIResponse(false,200,'',$stock_transfer_request_lists);
                 return response()->json($response,200);
             }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function storeToWarehouseStockRequestDetails(Request $request){
@@ -200,14 +199,13 @@ class StockTransferRequestController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
     }
 
     public function storeToWarehouseStockRequestDetailsPrint(Request $request){
-//        try {
+        try {
             $stock_transfer_request_details = DB::table('stock_transfer_requests')
                 ->join('stock_transfer_request_details','stock_transfer_requests.id','stock_transfer_request_details.stock_transfer_request_id')
                 ->leftJoin('products','stock_transfer_request_details.product_id','products.id')
@@ -278,11 +276,11 @@ class StockTransferRequestController extends Controller
 
                 return response()->json(['success' => true,'code' => 200,'data' => $store_stock_request_arr, 'info' => $store_and_warehouse_details], 200);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            //return $e->getMessage();
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function storeToWarehouseStockRequestDelete(Request $request){
@@ -307,11 +305,9 @@ class StockTransferRequestController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
     }
-
 
 }

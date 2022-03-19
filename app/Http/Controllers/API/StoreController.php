@@ -6,7 +6,6 @@ use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
 use App\Store;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -25,7 +24,6 @@ class StoreController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -45,7 +43,6 @@ class StoreController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -78,7 +75,6 @@ class StoreController extends Controller
             return response()->json($response,201);
 
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -119,7 +115,6 @@ class StoreController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -133,7 +128,6 @@ class StoreController extends Controller
                 return response()->json($response,404);
             }
 
-            //$delete_store = DB::table("stores")->where('id',$request->store_id)->delete();
             $store_soft_delete = Store::find($request->store_id);
             $store_soft_delete->status=0;
             $affected_row = $store_soft_delete->update();
@@ -146,7 +140,6 @@ class StoreController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }

@@ -6,13 +6,10 @@ use App\ChartOfAccount;
 use App\ExpenseCategory;
 use App\Helpers\APIHelpers;
 use App\Http\Controllers\Controller;
-use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class ExpenseCategoryController extends Controller
 {
@@ -29,7 +26,6 @@ class ExpenseCategoryController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -48,7 +44,6 @@ class ExpenseCategoryController extends Controller
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
@@ -97,7 +92,6 @@ class ExpenseCategoryController extends Controller
                     $head_code="40201";
                 }
 
-
                 $chart_of_accounts = new ChartOfAccount();
                 $chart_of_accounts->head_debit_or_credit  = 'Cr';
                 $chart_of_accounts->head_code = $head_code;
@@ -125,7 +119,7 @@ class ExpenseCategoryController extends Controller
     }
 
     public function expenseCategoryEdit(Request $request){
-//        try {
+        try {
             $validator = Validator::make($request->all(), [
                 'expense_category_id'=> 'required',
                 'name' => 'required|unique:expense_categories,name,'.$request->expense_category_id,
@@ -164,11 +158,10 @@ class ExpenseCategoryController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,'Expense Category Updated Failed.',null);
                 return response()->json($response,400);
             }
-//        } catch (\Exception $e) {
-//            //return $e->getMessage();
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function expenseCategoryDelete(Request $request){
@@ -179,7 +172,6 @@ class ExpenseCategoryController extends Controller
                 return response()->json($response,404);
             }
 
-            //$delete_party = DB::table("expense_categories")->where('id',$request->expense_category_id)->delete();
             $soft_delete_expense_category = ExpenseCategory::find($request->expense_category_id);
             $soft_delete_expense_category->status=0;
             $affected_row = $soft_delete_expense_category->update();
@@ -192,7 +184,6 @@ class ExpenseCategoryController extends Controller
                 return response()->json($response,400);
             }
         } catch (\Exception $e) {
-            //return $e->getMessage();
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
         }
