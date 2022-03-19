@@ -17,8 +17,8 @@ class CreateStockTransfersTable extends Migration
             $table->bigIncrements('id');
             $table->string('invoice_no');
             $table->bigInteger('user_id');
-            $table->bigInteger('warehouse_id')->unsigned()->nullable();
-            $table->bigInteger('store_id')->unsigned();
+            $table->bigInteger('transfer_from_warehouse_id')->nullable();
+            $table->bigInteger('transfer_to_store_id')->unsigned();
             $table->bigInteger('purchase_type_id')->nullable();
             $table->string('cheque_date')->nullable();
             $table->string('cheque_approved_status')->nullable();
@@ -33,8 +33,6 @@ class CreateStockTransfersTable extends Migration
             $table->string('issue_date');
             $table->string('due_date')->nullable();
             $table->timestamps();
-            $table->foreign('warehouse_id')->references('id')->on('warehouses')->onDelete('cascade');
-            $table->foreign('store_id')->references('id')->on('stores')->onDelete('cascade');
         });
     }
 

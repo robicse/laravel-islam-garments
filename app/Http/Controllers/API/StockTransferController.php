@@ -72,8 +72,8 @@ class StockTransferController extends Controller
             $stock_transfer->invoice_no=$final_invoice;
             $stock_transfer->user_id=Auth::user()->id;
             $stock_transfer->payment_type_id = $payment_type_id;
-            $stock_transfer->warehouse_id = $warehouse_id;
-            $stock_transfer->store_id = $store_id;
+            $stock_transfer->transfer_from_warehouse_id = $warehouse_id;
+            $stock_transfer->transfer_to_store_id = $store_id;
             $stock_transfer->sub_total_amount = $sub_total;
             $stock_transfer->total_vat_amount = 0;
             $stock_transfer->miscellaneous_comment = $miscellaneous_comment;
@@ -263,8 +263,8 @@ class StockTransferController extends Controller
 
 
             $stock_transfer_lists = StockTransfer::leftJoin('users', 'stock_transfers.user_id', 'users.id')
-                ->leftJoin('warehouses', 'stock_transfers.warehouse_id', 'warehouses.id')
-                ->leftJoin('stores', 'stock_transfers.store_id', 'stores.id')
+                ->leftJoin('warehouses', 'stock_transfers.transfer_from_warehouse_id', 'warehouses.id')
+                ->leftJoin('stores', 'stock_transfers.transfer_to_store_id', 'stores.id')
                 ->select(
                     'stock_transfers.id',
                     'stock_transfers.invoice_no',
@@ -280,14 +280,14 @@ class StockTransferController extends Controller
                     'stock_transfers.miscellaneous_charge',
                     'stock_transfers.total_vat_amount',
                     'stock_transfers.user_id',
-                    'stock_transfers.warehouse_id',
-                    'stock_transfers.store_id'
+                    'stock_transfers.transfer_from_warehouse_id as warehouse_id',
+                    'stock_transfers.transfer_to_store_id as store_id'
                 );
 
-            $stock_transfer_lists->where('stock_transfers.warehouse_id',$warehouse_id)
-                ->where('stock_transfers.store_id',$store_id);
+
             if($role !== 'Super Admin'){
-                $stock_transfer_lists->where('stock_transfers.store_id',$store_id);
+                $stock_transfer_lists->where('stock_transfers.transfer_from_warehouse_id',$warehouse_id)
+                    ->where('stock_transfers.transfer_to_store_id',$store_id);
             }
 
             if(!empty($request->search)){
@@ -319,7 +319,7 @@ class StockTransferController extends Controller
                     'products.id as product_id',
                     'products.name as product_name',
                     'products.product_code',
-                    'stock_transfers.warehouse_id',
+                    'stock_transfers.transfer_from_warehouse_id as warehouse_id',
                     'products.product_unit_id',
                     'products.product_category_id',
                     'products.product_size_id',
@@ -379,7 +379,7 @@ class StockTransferController extends Controller
                     'products.id as product_id',
                     'products.name as product_name',
                     'products.product_code',
-                    'stock_transfers.warehouse_id',
+                    'stock_transfers.transfer_from_warehouse_id as warehouse_id',
                     'products.product_unit_id',
                     'products.product_category_id',
                     'products.product_size_id',
@@ -422,18 +422,18 @@ class StockTransferController extends Controller
             }
 
             $info = DB::table('stock_transfers')
-                ->join('warehouses','stock_transfers.warehouse_id','warehouses.id')
-                ->join('stores','stock_transfers.store_id','stores.id')
+                ->join('warehouses','stock_transfers.transfer_from_warehouse_id','warehouses.id')
+                ->join('stores','stock_transfers.transfer_to_store_id','stores.id')
                 ->where('stock_transfers.id',$request->stock_transfer_id)
                 ->select(
                     'warehouses.id as warehouse_id',
                     'warehouses.name as warehouse_name',
                     'warehouses.phone as warehouse_phone',
                     'warehouses.address as warehouse_address',
-                    'store.id as stores_id',
-                    'store.name as stores_name',
-                    'store.phone as stores_phone',
-                    'store.address as stores_address'
+                    'stores.id as store_id',
+                    'stores.name as store_name',
+                    'stores.phone as store_phone',
+                    'stores.address as store_address'
                 )
                 ->first();
 

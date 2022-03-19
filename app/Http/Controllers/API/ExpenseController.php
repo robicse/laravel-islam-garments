@@ -43,13 +43,13 @@ class ExpenseController extends Controller
                     ->orWhere('stores.name','like','%'.$request->search.'%');
             }
 
-            $expenses->latest('expenses.id','desc')->paginate(12);
+            $expenses_data = $expenses->latest('expenses.id','desc')->paginate(12);
 
-            if(count($expenses) === 0){
+            if(count($expenses_data) === 0){
                 $response = APIHelpers::createAPIResponse(true,404,'No Expenses Found.',null);
                 return response()->json($response,404);
             }else{
-                $response = APIHelpers::createAPIResponse(false,200,'',$expenses);
+                $response = APIHelpers::createAPIResponse(false,200,'',$expenses_data);
                 return response()->json($response,200);
             }
         } catch (\Exception $e) {

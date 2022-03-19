@@ -832,26 +832,26 @@ class AccountController extends Controller
         $from_date = $request->from_date;
         $to_date = $request->to_date;
 
-        $gl_pre_valance_data = DB::table('chart_of_account_transaction_details')
+        $gl_pre_valance = DB::table('chart_of_account_transaction_details')
             ->select('chart_of_account_transaction_details.chart_of_account_name', DB::raw('SUM(chart_of_account_transaction_details.debit) as debit, SUM(chart_of_account_transaction_details.credit) as credit'));
 
-        $gl_pre_valance_data->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
+        $gl_pre_valance->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
                             ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name);
 
         if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $gl_pre_valance_data->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
+            $gl_pre_valance->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
                                 ->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
         if($warehouse_id !== ''){
-            $gl_pre_valance_data->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
+            $gl_pre_valance->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
         if($store_id !== ''){
-            $gl_pre_valance_data->where('chart_of_account_transaction_details.store_id',$store_id);
+            $gl_pre_valance->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
-        $gl_pre_valance_data->groupBy('chart_of_account_transaction_details.chart_of_account_name')->first();
+        $gl_pre_valance_data = $gl_pre_valance->groupBy('chart_of_account_transaction_details.chart_of_account_name')->first();
 
         $PreBalance=0;
         $preDebCre = 'De/Cr';
@@ -904,10 +904,10 @@ class AccountController extends Controller
 
         $chart_of_account_transaction->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name);
 
-        $chart_of_account_transaction->get();
+        $chart_of_account_transaction_data = $chart_of_account_transaction->get();
 
         $ledger_data = [
-            'chart_of_account_transaction' => $chart_of_account_transaction,
+            'chart_of_account_transaction' => $chart_of_account_transaction_data,
             'PreBalance' => $PreBalance,
             'preDebCre' => $preDebCre,
             'pre_debit' => $pre_debit,
