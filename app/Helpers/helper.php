@@ -1036,9 +1036,12 @@ if (! function_exists('productSearchForSaleByStoreId')) {
                     'back_image'
                 );
 
-            if( (!empty($product_sub_unit_id)) && (!empty($product_code)) ){
-                $product_infos->where('product_sub_unit_id',$product_sub_unit_id)
-                    ->where('product_code',$product_code);
+            if(!empty($product_sub_unit_id)){
+                $product_infos->where('product_sub_unit_id',$product_sub_unit_id);
+            }
+
+            if(!empty($product_code)){
+                $product_infos->where('product_code',$product_code);
             }
 
             $product_infos_data = $product_infos->latest('id')->get();
