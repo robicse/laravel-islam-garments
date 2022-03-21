@@ -173,7 +173,7 @@ class StockTransferRequestController extends Controller
             }else{
                 $store_stock_request_arr = [];
                 foreach ($stock_transfer_request_details as $stock_transfer_request_detail){
-                    $current_stock = warehouseProductCurrentStock($stock_transfer_request_detail->request_to_warehouse_id,$stock_transfer_request_detail->product_id);
+                    $current_stock = warehouseProductCurrentStockByWarehouseAndProduct($stock_transfer_request_detail->request_to_warehouse_id,$stock_transfer_request_detail->product_id);
                     $product = Product::find($stock_transfer_request_detail->product_id);
 
                     $nested_data['product_id']=$stock_transfer_request_detail->product_id;
@@ -235,7 +235,7 @@ class StockTransferRequestController extends Controller
             }else{
                 $store_stock_request_arr = [];
                 foreach ($stock_transfer_request_details as $stock_transfer_request_detail){
-                    $current_stock = warehouseProductCurrentStock($stock_transfer_request_detail->request_to_warehouse_id,$stock_transfer_request_detail->product_id);
+                    $current_stock = warehouseProductCurrentStockByWarehouseAndProduct($stock_transfer_request_detail->request_to_warehouse_id,$stock_transfer_request_detail->product_id);
                     $product = Product::find($stock_transfer_request_detail->product_id);
 
                     $nested_data['product_id']=$stock_transfer_request_detail->product_id;

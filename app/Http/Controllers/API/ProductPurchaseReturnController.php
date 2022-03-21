@@ -472,7 +472,7 @@ class ProductPurchaseReturnController extends Controller
             $purchase_product = [];
             if(count($product_purchase_details) > 0){
                 foreach ($product_purchase_details as $product_purchase_detail){
-                    $current_stock = warehouseProductCurrentStock($product_purchase_detail->warehouse_id,$product_purchase_detail->product_id);
+                    $current_stock = warehouseProductCurrentStockByWarehouseAndProduct($product_purchase_detail->warehouse_id,$product_purchase_detail->product_id);
                     $product = Product::find($product_purchase_detail->product_id);
 
                     $nested_data['product_id']=$product_purchase_detail->product_id;
@@ -534,7 +534,7 @@ class ProductPurchaseReturnController extends Controller
             $purchase_product = [];
             if(count($product_purchase_details) > 0){
                 foreach ($product_purchase_details as $product_purchase_detail){
-                    $current_stock = warehouseProductCurrentStock($product_purchase_detail->warehouse_id,$product_purchase_detail->product_id);
+                    $current_stock = warehouseProductCurrentStockByWarehouseAndProduct($product_purchase_detail->warehouse_id,$product_purchase_detail->product_id);
                     $product = Product::find($product_purchase_detail->product_id);
 
                     $nested_data['product_id']=$product_purchase_detail->product_id;

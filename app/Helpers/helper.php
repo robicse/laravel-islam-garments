@@ -501,8 +501,8 @@ if (! function_exists('get_head_debit_or_credit')) {
 }
 
 // warehouse and product current stock
-if (! function_exists('warehouseProductCurrentStock')) {
-    function warehouseProductCurrentStock($warehouse_id,$product_id) {
+if (! function_exists('warehouseProductCurrentStockByWarehouseAndProduct')) {
+    function warehouseProductCurrentStockByWarehouseAndProduct($warehouse_id,$product_id) {
         $warehouse_current_stock = DB::table('warehouse_current_stocks')
             ->where('warehouse_id',$warehouse_id)
             ->where('product_id',$product_id)
@@ -519,10 +519,9 @@ if (! function_exists('warehouseProductCurrentStock')) {
 
 // warehouse and product current stock amount
 if (! function_exists('warehouseProductCurrentStockAmount')) {
-    function warehouseProductCurrentStockAmount($warehouse_id=NULL) {
+    function warehouseProductCurrentStockAmount() {
         $warehouse_current_stocks = DB::table('warehouse_current_stocks')
             ->join('products','warehouse_current_stocks.product_id','products.id')
-            //->where('warehouse_id',$warehouse_id)
             ->select('warehouse_current_stocks.current_stock','products.purchase_price')
             ->get();
 
@@ -536,12 +535,28 @@ if (! function_exists('warehouseProductCurrentStockAmount')) {
     }
 }
 
+// store and product current stock
+if (! function_exists('storeProductCurrentStockByStoreAndProduct')) {
+    function storeProductCurrentStockByStoreAndProduct($store_id,$product_id) {
+        $store_current_stock = DB::table('warehouse_store_current_stocks')
+            ->where('store_id',$store_id)
+            ->where('product_id',$product_id)
+            ->latest('id')
+            ->pluck('current_stock')
+            ->first();
+
+        if($store_current_stock == NULL){
+            $store_current_stock = 0;
+        }
+        return $store_current_stock;
+    }
+}
+
 // store and product current stock amount
 if (! function_exists('storeProductCurrentStockAmount')) {
-    function storeProductCurrentStockAmount($store_id=NULL) {
+    function storeProductCurrentStockAmount() {
         $store_current_stocks = DB::table('warehouse_store_current_stocks')
             ->join('products','warehouse_store_current_stocks.product_id','products.id')
-            //->where('warehouse_id',$warehouse_id)
             ->select('warehouse_store_current_stocks.current_stock','products.purchase_price')
             ->get();
 
@@ -632,8 +647,6 @@ if (! function_exists('warehouseWiseInformation')) {
                     ->where('warehouse_id',$warehouse->id)
                     ->get()->count();
 
-
-
                 $nested_data['warehouse_name']=$warehouse->name;
                 $nested_data['warehouse_staff']=$staff;
                 $nested_data['warehouse_today_purchase_amount']=$today_purchase_amount;
@@ -642,7 +655,6 @@ if (! function_exists('warehouseWiseInformation')) {
                 $nested_data['warehouse_total_cash_purchase_amount']=$total_cash_purchase_amount;
                 $nested_data['warehouse_current_stock']=$total_stock;
                 $nested_data['warehouse_current_stock_amount']=$total_stock_amount;
-
 
                 array_push($warehouse_arr,$nested_data);
             }

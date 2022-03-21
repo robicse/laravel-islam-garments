@@ -193,6 +193,12 @@ Route::middleware('auth:api')->post('/warehouse_to_warehouse_stock_transfer_list
 Route::middleware('auth:api')->post('/warehouse_to_warehouse_stock_transfer_details', 'API\StockTransferController@warehouseToWarehouseStockTransferDetails');
 Route::middleware('auth:api')->post('/warehouse_to_warehouse_stock_transfer_details_print', 'API\StockTransferController@warehouseToWarehouseStockTransferDetailsPrint');
 
+// stock transfer from store to store
+Route::middleware('auth:api')->post('/store_to_store_stock_create', 'API\StockTransferController@storeToStoreStockCreate');
+Route::middleware('auth:api')->post('/store_to_store_stock_transfer_list_with_search', 'API\StockTransferController@storeToStoreStockTransferListWithSearch');
+Route::middleware('auth:api')->post('/store_to_store_stock_transfer_details', 'API\StockTransferController@storeToStoreStockTransferDetails');
+Route::middleware('auth:api')->post('/store_to_store_stock_transfer_details_print', 'API\StockTransferController@storeToStoreStockTransferDetailsPrint');
+
 
 // store stock list
 Route::middleware('auth:api')->post('/store_current_stock_by_id', 'API\StockController@storeCurrentStockById');
