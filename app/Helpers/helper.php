@@ -3,6 +3,7 @@
 use App\ChartOfAccountTransaction;
 use App\ChartOfAccountTransactionDetail;
 use App\LeaveApplication;
+use App\Product;
 use App\Stock;
 use App\User;
 
@@ -1059,37 +1060,41 @@ if (! function_exists('productSearchForSaleByStoreId')) {
             $product_infos_data = $product_infos->latest('id')->get();
 
             $product_data = [];
-            foreach($product_infos_data as $product_info){
+            if(count($product_infos_data) > 0){
+                foreach($product_infos_data as $product_info){
 
-                $current_stock = \App\WarehouseStoreCurrentStock::where('store_id',$store_id)
-                    ->where('product_id',$product_info['id'])
-                    ->pluck('current_stock')
-                    ->first();
+                    $current_stock = \App\WarehouseStoreCurrentStock::where('store_id',$store_id)
+                        ->where('product_id',$product_info['id'])
+                        ->pluck('current_stock')
+                        ->first();
 
-                $nested_data['id']=$product_info['id'];
-                $nested_data['type']=$product_info['type'];
-                $nested_data['category_id']=$product_info['product_category_id'];
-                $nested_data['category_name']=$product_info->category->name;
-                $nested_data['size_id']=$product_info['product_size_id'];
-                $nested_data['size_name']=$product_info->size->name;
-                $nested_data['unit_id']=$product_info['product_unit_id'];
-                $nested_data['unit_name']=$product_info->unit->name;
-                $nested_data['sub_unit_id']=$product_info['product_sub_unit_id'];
-                $nested_data['sub_unit_name']=$product_info['product_sub_unit_id'] ? $product_info->sub_unit->name : '';
-                $nested_data['product_code']=$product_info['product_code'];
-                $nested_data['name']=$product_info['name'];
-                $nested_data['barcode']=$product_info['barcode'];
-                $nested_data['purchase_price']=$product_info['purchase_price'];
-                $nested_data['note']=$product_info['note'];
-                $nested_data['color']=$product_info['color'];
-                $nested_data['design']=$product_info['design'];
-                $nested_data['status']=$product_info['status'];
-                $nested_data['front_image']=$product_info['front_image'];
-                $nested_data['back_image']=$product_info['back_image'];
-                $nested_data['qty']= 0;
-                $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+                    $product = Product::find($product_info['id']);
 
-                array_push($product_data, $nested_data);
+                    $nested_data['id']=$product_info['id'];
+                    $nested_data['type']=$product_info['type'];
+                    $nested_data['category_id']=$product_info['product_category_id'];
+                    $nested_data['category_name']=$product_info->category->name;
+                    $nested_data['size_id']=$product_info['product_size_id'];
+                    $nested_data['size_name']=$product->size->name;
+                    $nested_data['unit_id']=$product_info['product_unit_id'];
+                    $nested_data['unit_name']=$product->unit->name;
+                    $nested_data['sub_unit_id']=$product_info['product_sub_unit_id'];
+                    $nested_data['sub_unit_name']=$product_info['product_sub_unit_id'] ? $product->sub_unit->name : '';
+                    $nested_data['product_code']=$product_info['product_code'];
+                    $nested_data['name']=$product_info['name'];
+                    $nested_data['barcode']=$product_info['barcode'];
+                    $nested_data['purchase_price']=$product_info['purchase_price'];
+                    $nested_data['note']=$product_info['note'];
+                    $nested_data['color']=$product_info['color'];
+                    $nested_data['design']=$product_info['design'];
+                    $nested_data['status']=$product_info['status'];
+                    $nested_data['front_image']=$product_info['front_image'];
+                    $nested_data['back_image']=$product_info['back_image'];
+                    $nested_data['qty']= 0;
+                    $nested_data['current_stock']=!empty($current_stock) ? $current_stock : 0;
+
+                    array_push($product_data, $nested_data);
+                }
             }
         }
         return $product_data;
