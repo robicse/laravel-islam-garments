@@ -15,7 +15,11 @@ class ProductSubUnitController extends Controller
     // product unit
     public function productSubUnitActiveList(){
         try {
-            $product_sub_units = DB::table('product_sub_units')->select('id','name','status')->where('status',1)->get();
+            $product_sub_units = DB::table('product_sub_units')
+                ->join('product_units','product_sub_units.product_unit_id','product_units.id')
+                ->select('product_units.name as unit_name','product_sub_units.id','product_sub_units.name as sub_unit_name','product_sub_units.status')
+                ->where('product_sub_units.status',1)
+                ->get();
             if($product_sub_units === null){
                 $response = APIHelpers::createAPIResponse(true,404,'No Product Sub Unit Found.',null);
                 return response()->json($response,404);

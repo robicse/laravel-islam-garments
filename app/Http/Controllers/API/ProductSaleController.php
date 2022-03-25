@@ -647,34 +647,31 @@ class ProductSaleController extends Controller
     }
 
     public function productSearchForSaleByStoreId(Request $request){
-//        try {
-        $validator = Validator::make($request->all(), [
-            'type' => 'required',
-            'product_category_id'=> 'required',
-            'product_unit_id'=> 'required',
-            'store_id'=> 'required',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'type' => 'required',
+                'product_category_id'=> 'required',
+                'product_unit_id'=> 'required',
+                'store_id'=> 'required',
+            ]);
 
+            if ($validator->fails()) {
+                $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
+                return response()->json($response,400);
+            }
 
-        if ($validator->fails()) {
-            $response = APIHelpers::createAPIResponse(true,400,$validator->errors(),null);
-            return response()->json($response,400);
+            $product_info = productSearchForSaleByStoreId($request->store_id,$request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+
+            if(empty($product_info)){
+                $response = APIHelpers::createAPIResponse(true,404,'No Store Product Found.',null);
+                return response()->json($response,404);
+            }else{
+                $response = APIHelpers::createAPIResponse(false,200,'',$product_info);
+                return response()->json($response,200);
+            }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
         }
-
-
-        $product_info = productSearchForSaleByStoreId($request->store_id,$request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
-        //return response()->json(['success'=>true,'response' => $product_info], 200);
-
-        if(count($product_info) === 0){
-            $response = APIHelpers::createAPIResponse(true,404,'No Store Product Found.',null);
-            return response()->json($response,404);
-        }else{
-            $response = APIHelpers::createAPIResponse(false,200,'',$product_info);
-            return response()->json($response,200);
-        }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
     }
 }
