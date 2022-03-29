@@ -516,7 +516,7 @@ class ProductController extends Controller
     }
 
     public function productEdit(Request $request){
-        try {
+//        try {
             $validator = Validator::make($request->all(), [
                 'product_id'=> 'required',
             ]);
@@ -526,6 +526,8 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
 
+//            return response()->json(['success'=>true,'response' => $request->all()], 200);
+
             $check_exists_product = DB::table("products")->where('id',$request->product_id)->pluck('id')->first();
             if($check_exists_product == null){
                 $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Found.',null);
@@ -533,6 +535,11 @@ class ProductController extends Controller
             }
 
             $product = Product::find($request->product_id);
+//            $product->type = $request->type ? $request->type : $product->type;
+            $product->product_category_id = $request->product_category_id ? $request->product_category_id : $product->product_category_id;
+            $product->product_size_id = $request->product_size_id ? $request->product_size_id : $product->product_size_id;
+            $product->product_unit_id = $request->product_unit_id ? $request->product_unit_id : $product->product_unit_id;
+            $product->product_sub_unit_id = $request->product_sub_unit_id ? $request->product_sub_unit_id : $product->product_sub_unit_id;
             $product->product_code = $request->product_code ? $request->product_code : $product->product_code;
             $product->purchase_price = $request->purchase_price;
             $product->whole_sale_price = $request->purchase_price;
@@ -570,10 +577,10 @@ class ProductController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,'Product Updated Failed.',null);
                 return response()->json($response,400);
             }
-        } catch (\Exception $e) {
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function productDelete(Request $request){
