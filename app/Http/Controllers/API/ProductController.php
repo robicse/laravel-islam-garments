@@ -516,7 +516,7 @@ class ProductController extends Controller
     }
 
     public function productEdit(Request $request){
-//        try {
+        try {
             $validator = Validator::make($request->all(), [
                 'product_id'=> 'required',
             ]);
@@ -526,30 +526,25 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
 
-            //return response()->json(['success'=>true,'response' => $request->all()], 200);
-
-            $check_exists_product = DB::table("products")->where('id',$request->product_id)->pluck('id')->first();
-            if($check_exists_product == null){
-                $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Found.',null);
-                return response()->json($response,404);
+            $check_exists_product = checkExistsProduct($request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+            if($check_exists_product !== null){
+                $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
+                return response()->json($response,409);
             }
-
-
-
 
             $product = Product::find($request->product_id);
             $product->type = $request->type ? $request->type : $product->type;
             $product->product_category_id = $request->product_category_id ? $request->product_category_id : $product->product_category_id;
 
             if($request->product_unit_id == '1'){
-                $product_sub_unit_id = '';
+                $product_sub_unit_id = NULL;
             }else{
                 $product_sub_unit_id = $request->product_sub_unit_id ? $request->product_sub_unit_id : $product->product_sub_unit_id;
             }
 
             if($request->type == 'Buy'){
-                $product_size_id = '';
-                $product_code = '';
+                $product_size_id = NULL;
+                $product_code = NULL;
             }else{
                 $product_size_id = $request->product_size_id ? $request->product_size_id : $product->product_size_id;
                 $product_code = $request->product_code ? $request->product_code : $product->product_code;
@@ -585,7 +580,7 @@ class ProductController extends Controller
             }else{
                 $product->back_image = Product::where('id',$request->product_id)->pluck('back_image')->first();
             }
-            return response()->json(['success'=>true,'response' => $product], 200);
+
             $update_product = $product->save();
 
             if($update_product){
@@ -595,10 +590,10 @@ class ProductController extends Controller
                 $response = APIHelpers::createAPIResponse(true,400,'Product Updated Failed.',null);
                 return response()->json($response,400);
             }
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function productDelete(Request $request){
