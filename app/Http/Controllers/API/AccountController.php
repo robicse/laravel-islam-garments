@@ -838,16 +838,11 @@ class AccountController extends Controller
         $gl_pre_valance->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
                             ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name);
 
-        if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $gl_pre_valance->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
-                                ->where('chart_of_account_transaction_details.store_id',$store_id);
-        }
-
-        if($warehouse_id !== ''){
+        if($warehouse_id !== null){
             $gl_pre_valance->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
-        if($store_id !== ''){
+        if($store_id !== null){
             $gl_pre_valance->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
@@ -889,16 +884,11 @@ class AccountController extends Controller
                                             ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date);
         }
 
-        if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $chart_of_account_transaction->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
-                ->where('chart_of_account_transaction_details.store_id',$store_id);
-        }
-
-        if($warehouse_id !== ''){
+        if($warehouse_id !== null){
             $chart_of_account_transaction->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
-        if($store_id !== ''){
+        if($store_id !== null){
             $chart_of_account_transaction->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
@@ -951,16 +941,11 @@ class AccountController extends Controller
         $gl_pre_valance_data->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
             ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name);
 
-        if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $gl_pre_valance_data->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
-                ->where('chart_of_account_transaction_details.store_id',$store_id);
-        }
-
-        if($warehouse_id !== ''){
+        if($warehouse_id !== null){
             $gl_pre_valance_data->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
-        if($store_id !== ''){
+        if($store_id !== null){
             $gl_pre_valance_data->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
@@ -997,16 +982,11 @@ class AccountController extends Controller
                 ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date);
         }
 
-        if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $sale_info->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
-                ->where('chart_of_account_transaction_details.store_id',$store_id);
-        }
-
-        if($warehouse_id !== ''){
+        if($warehouse_id !== null){
             $sale_info->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
-        if($store_id !== ''){
+        if($store_id !== null){
             $sale_info->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
@@ -1025,16 +1005,11 @@ class AccountController extends Controller
                 ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date);
         }
 
-        if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $sale_return_info->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
-                ->where('chart_of_account_transaction_details.store_id',$store_id);
-        }
-
-        if($warehouse_id !== ''){
+        if($warehouse_id !== null){
             $sale_return_info->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
-        if($store_id !== ''){
+        if($store_id !== null){
             $sale_return_info->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
@@ -1089,16 +1064,11 @@ class AccountController extends Controller
         $gl_pre_valance_data->where('chart_of_account_transaction_details.transaction_date', '<',$from_date)
             ->where('chart_of_account_transaction_details.chart_of_account_name',$chart_of_account_name);
 
-        if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $gl_pre_valance_data->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
-                ->where('chart_of_account_transaction_details.store_id',$store_id);
-        }
-
-        if($warehouse_id !== ''){
+        if($warehouse_id !== null){
             $gl_pre_valance_data->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
-        if($store_id !== ''){
+        if($store_id !== null){
             $gl_pre_valance_data->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 
@@ -1135,16 +1105,11 @@ class AccountController extends Controller
                 ->where('chart_of_account_transaction_details.transaction_date','<=',$to_date);
         }
 
-        if( ($warehouse_id !== '') && ($store_id !== '') ){
-            $sale_info->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id)
-                ->where('chart_of_account_transaction_details.store_id',$store_id);
-        }
-
-        if($warehouse_id !== ''){
+        if($warehouse_id !== null){
             $sale_info->where('chart_of_account_transaction_details.warehouse_id',$warehouse_id);
         }
 
-        if($store_id !== ''){
+        if($store_id !== null){
             $sale_info->where('chart_of_account_transaction_details.store_id',$store_id);
         }
 

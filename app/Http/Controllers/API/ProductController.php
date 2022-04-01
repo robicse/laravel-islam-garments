@@ -441,23 +441,7 @@ class ProductController extends Controller
                 return response()->json($response,409);
             }
 
-            if($type === 'Buy'){
-                if(!empty($product_sub_unit)){
-                    $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit;
-                }else{
-                    $name = $product_category.'-'.$product_unit;
-                }
-            }else{
-                if( (!empty($product_sub_unit)) && (!empty($product_code)) ){
-                    $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit.'-'.$product_size.'-'.$product_code;
-                }elseif( (empty($product_sub_unit)) && (!empty($product_code)) ){
-                    $name = $product_category.'-'.$product_unit.'-'.$product_size.'-'.$product_code;
-                }elseif( (!empty($product_sub_unit)) && (empty($product_code)) ){
-                    $name = $product_category.'-'.$product_unit.'-'.$product_sub_unit.'-'.$product_size;
-                }else{
-                    $name = $product_category.'-'.$product_unit.'-'.$product_size;
-                }
-            }
+            $name = createProductName($type,$product_category,$product_unit,$product_sub_unit,$product_size,$product_code);
 
             $product = new Product();
             $product->type = $type;
@@ -526,32 +510,36 @@ class ProductController extends Controller
                 return response()->json($response,400);
             }
 
-            $check_exists_product = checkExistsProduct($request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
+            $check_exists_product = checkExistsProductForEdit($request->product_id,$request->type,$request->product_category_id,$request->product_size_id,$request->product_unit_id,$request->product_sub_unit_id,$request->product_code);
             if($check_exists_product !== null){
                 $response = APIHelpers::createAPIResponse(true,409,'Product Already Exists.',null);
                 return response()->json($response,409);
             }
 
             $product = Product::find($request->product_id);
-            $product->type = $request->type ? $request->type : $product->type;
-            $product->product_category_id = $request->product_category_id ? $request->product_category_id : $product->product_category_id;
-
+            $type = $request->type ? $request->type : $product->type;
+            $product_category_id = $request->product_category_id ? $request->product_category_id : $product->product_category_id;
+            $product_unit_id = $request->product_unit_id ? $request->product_unit_id : $product->product_unit_id;
+            $product_sub_unit_id = $request->product_sub_unit_id ? $request->product_sub_unit_id : $product->product_sub_unit_id;
+            $product_size_id = $request->product_size_id ? $request->product_size_id : $product->product_size_id;
+            $product_code = $request->product_code ? $request->product_code : $product->product_code;
             if($request->product_unit_id == '1'){
                 $product_sub_unit_id = NULL;
-            }else{
-                $product_sub_unit_id = $request->product_sub_unit_id ? $request->product_sub_unit_id : $product->product_sub_unit_id;
             }
-
             if($request->type == 'Buy'){
                 $product_size_id = NULL;
                 $product_code = NULL;
-            }else{
-                $product_size_id = $request->product_size_id ? $request->product_size_id : $product->product_size_id;
-                $product_code = $request->product_code ? $request->product_code : $product->product_code;
             }
+            $product_category = ProductCategory::where('id',$product_category_id)->pluck('name')->first();
+            $product_size = ProductSize::where('id',$product_size_id)->pluck('name')->first();
+            $product_unit = ProductUnit::where('id',$product_unit_id)->pluck('name')->first();
+            $product_sub_unit = ProductSubUnit::where('id',$product_sub_unit_id)->pluck('name')->first();
+            $product->name = createProductName($type,$product_category,$product_unit,$product_sub_unit,$product_size,$product_code);
 
+            $product->type = $type;
+            $product->product_category_id = $product_category_id;
             $product->product_size_id = $product_size_id;
-            $product->product_unit_id = $request->product_unit_id ? $request->product_unit_id : $product->product_unit_id;
+            $product->product_unit_id = $product_unit_id;
             $product->product_sub_unit_id = $product_sub_unit_id;
             $product->product_code = $product_code;
             $product->purchase_price = $request->purchase_price;

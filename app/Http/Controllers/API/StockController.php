@@ -102,15 +102,17 @@ class StockController extends Controller
                 ->leftJoin('warehouses','warehouse_current_stocks.warehouse_id','warehouses.id')
                 ->leftJoin('product_categories','products.product_category_id','product_categories.id')
                 ->leftJoin('product_units','products.product_unit_id','product_units.id')
+                ->leftJoin('product_sub_units','products.product_sub_unit_id','product_sub_units.id')
                 ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
                 ->where('warehouse_current_stocks.warehouse_id',$request->warehouse_id)
                 ->select(
                     'warehouses.name as warehouse_name',
-                    'product_categories.name as product_category_name',
-                    'product_units.name as product_unit_name',
-                    'product_sizes.name as product_size_name',
                     'products.type',
                     'products.name as product_name',
+                    'product_categories.name as product_category_name',
+                    'product_units.name as product_unit_name',
+                    'product_sub_units.name as product_sub_unit_name',
+                    'product_sizes.name as product_size_name',
                     'products.purchase_price as purchase_price',
                     'products.product_code as product_code',
                     'products.name as product_name',
@@ -139,7 +141,7 @@ class StockController extends Controller
                 ->leftJoin('product_categories','products.product_category_id','product_categories.id')
                 ->leftJoin('product_units','products.product_unit_id','product_units.id')
                 ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
-                ->where('warehouse_store_current_stocks.product_id',$request->store_id)
+                ->where('warehouse_store_current_stocks.store_id',$request->store_id)
                 ->select(
                     'stores.name as store_name',
                     'product_categories.name as product_category_name',
