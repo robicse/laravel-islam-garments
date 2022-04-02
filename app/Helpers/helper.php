@@ -161,7 +161,7 @@ if (! function_exists('totalPurchase')) {
 
 
         $total_purchase = 0;
-        $total_purchase_history = \App\ProductPurchase::select(DB::raw('SUM(grand_total_amount) as today_purchase'));
+        $total_purchase_history = \App\ProductPurchase::select(DB::raw('SUM(grand_total_amount) as total_purchase'));
 
         $total_purchase_history->whereBetween('product_purchases.purchase_date',[$from_date_this_month, $current_date_this_month]);
 
@@ -170,7 +170,7 @@ if (! function_exists('totalPurchase')) {
         }
         $total_purchase_data = $total_purchase_history->first();
         if(!empty($total_purchase_data)){
-            $total_purchase = $total_purchase_data->today_purchase;
+            $total_purchase = $total_purchase_data->total_purchase;
         }
 
 
@@ -339,8 +339,7 @@ if (! function_exists('totalSale')) {
         $store_id = $currentUserDetails['store_id'];
 
         $total_sale = 0;
-        $total_sale_history = \App\ProductSale::select(DB::raw('SUM(grand_total_amount) as total_sale'))
-            ->where('product_sales.sale_date',date('Y-m-d'));
+        $total_sale_history = \App\ProductSale::select(DB::raw('SUM(grand_total_amount) as total_sale'));
 
         if($role !== 'Super Admin'){
             $total_sale_history->where('product_sales.store_id',$store_id);
