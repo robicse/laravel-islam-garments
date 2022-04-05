@@ -185,7 +185,7 @@ class StockTransferRequestController extends Controller
                     $nested_data['product_sub_unit_id']=$stock_transfer_request_detail->product_sub_unit_id;
                     $nested_data['product_sub_unit_name']=$stock_transfer_request_detail->product_sub_unit_id ? $product->sub_unit->name : '';
                     $nested_data['product_size_id'] = $stock_transfer_request_detail->product_size_id;
-                    $nested_data['product_size_name'] = $product->size->name;
+                    $nested_data['product_size_name'] = $product->size ? $product->size->name : '';
                     $nested_data['qty']=$stock_transfer_request_detail->qty;
                     $nested_data['stock_transfer_request_detail_id']=$stock_transfer_request_detail->stock_transfer_request_detail_id;
                     $nested_data['purchase_price']=$stock_transfer_request_detail->purchase_price;
@@ -247,7 +247,7 @@ class StockTransferRequestController extends Controller
                     $nested_data['product_sub_unit_id']=$stock_transfer_request_detail->product_sub_unit_id;
                     $nested_data['product_sub_unit_name']=$stock_transfer_request_detail->product_sub_unit_id ? $product->sub_unit->name : '';
                     $nested_data['product_size_id'] = $stock_transfer_request_detail->product_size_id;
-                    $nested_data['product_size_name'] = $product->size->name;
+                    $nested_data['product_size_name'] = $product->size ? $product->size->name : '';
                     $nested_data['qty']=$stock_transfer_request_detail->qty;
                     $nested_data['stock_transfer_request_detail_id']=$stock_transfer_request_detail->stock_transfer_request_detail_id;
                     $nested_data['purchase_price']=$stock_transfer_request_detail->purchase_price;

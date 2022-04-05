@@ -21,6 +21,7 @@ class CustomerCollection extends ResourceCollection
                     'email' => $data->email,
                     'address' => $data->address,
                     'initial_due' => $data->initial_due,
+                    'current_total_due' => $data->current_total_due,
                     'nid_front' => $data->nid_front,
                     'nid_back' => $data->nid_back,
                     'image' => $data->image,
