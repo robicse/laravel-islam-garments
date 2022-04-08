@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Validator;
 class StockTransferController extends Controller
 {
     public function warehouseToStoreStockCreate(Request $request){
-        try {
+//        try {
             // required and unique
             $validator = Validator::make($request->all(), [
                 'warehouse_id'=> 'required',
@@ -247,10 +247,10 @@ class StockTransferController extends Controller
 
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse To Store Stock Added Successfully.',null);
             return response()->json($response,201);
-        } catch (\Exception $e) {
-            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-            return response()->json($response,500);
-        }
+//        } catch (\Exception $e) {
+//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+//            return response()->json($response,500);
+//        }
     }
 
     public function stockTransferListWithSearch(Request $request){
@@ -482,7 +482,7 @@ class StockTransferController extends Controller
 
     // warehouse to warehouse stock transfer
     public function warehouseToWarehouseStockCreate(Request $request){
-//        try {
+        try {
             // required and unique
             $validator = Validator::make($request->all(), [
                 'transfer_from_warehouse_id'=> 'required',
@@ -704,10 +704,10 @@ class StockTransferController extends Controller
 
             $response = APIHelpers::createAPIResponse(false,201,'Warehouse To Warehouse Stock Added Successfully.',null);
             return response()->json($response,201);
-//        } catch (\Exception $e) {
-//            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
-//            return response()->json($response,500);
-//        }
+        } catch (\Exception $e) {
+            $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
+            return response()->json($response,500);
+        }
     }
 
     public function warehouseToWarehouseStockTransferListWithSearch(Request $request){

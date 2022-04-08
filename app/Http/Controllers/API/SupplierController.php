@@ -107,6 +107,12 @@ class SupplierController extends Controller
             }
             $final_supplier_code = 'SC-'.$supplier_code;
 
+            if(!empty($request->initial_due)){
+                $initial_due = $request->initial_due;
+            }else{
+                $initial_due = 0;
+            }
+
             $supplier = new Supplier();
             $supplier->name = $request->name;
             $supplier->shop_name = $request->shop_name;
@@ -114,8 +120,8 @@ class SupplierController extends Controller
             $supplier->phone = $request->phone;
             $supplier->email = $request->email;
             $supplier->address = $request->address;
-            $supplier->initial_due = $request->initial_due;
-            $supplier->current_total_due = $request->initial_due;
+            $supplier->initial_due = $initial_due;
+            $supplier->current_total_due = $initial_due;
             $supplier->note = $request->note;
 
             // nid_front

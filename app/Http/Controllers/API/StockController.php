@@ -98,6 +98,8 @@ class StockController extends Controller
 
     public function warehouseCurrentStockById(Request $request){
         try {
+            $search = $request->search;
+
             $warehouse_current_stock = WarehouseCurrentStock::join('products','warehouse_current_stocks.product_id','products.id')
                 ->leftJoin('warehouses','warehouse_current_stocks.warehouse_id','warehouses.id')
                 ->leftJoin('product_categories','products.product_category_id','product_categories.id')
@@ -117,17 +119,22 @@ class StockController extends Controller
                     'products.product_code as product_code',
                     'products.name as product_name',
                     'warehouse_current_stocks.current_stock'
-                )
-                ->latest('warehouse_current_stocks.id')
-                ->paginate(12);
-            if(count($warehouse_current_stock) == 0){
+                );
+            if($search){
+                $warehouse_current_stock->where(function($query) use ($search){
+                    $query->orWhere('products.name','like','%'.$search.'%')
+                        ->orWhere('products.type','like','%'.$search.'%');
+                });
+            }
+
+            $warehouse_current_stock_data = $warehouse_current_stock->orderBy('warehouse_current_stocks.id')->paginate(12);
+            if(count($warehouse_current_stock_data) == 0){
                 $response = APIHelpers::createAPIResponse(true,404,'No Warehouse Current Stock Found.',null);
                 return response()->json($response,404);
             }else{
-                $response = APIHelpers::createAPIResponse(false,200,'',$warehouse_current_stock);
+                $response = APIHelpers::createAPIResponse(false,200,'',$warehouse_current_stock_data);
                 return response()->json($response,200);
             }
-
         } catch (\Exception $e) {
             $response = APIHelpers::createAPIResponse(false,500,'Internal Server Error.',null);
             return response()->json($response,500);
@@ -136,6 +143,8 @@ class StockController extends Controller
 
     public function storeCurrentStockById(Request $request){
         try {
+            $search = $request->search;
+
             $warehouse_store_current_stock = WarehouseStoreCurrentStock::join('products','warehouse_store_current_stocks.product_id','products.id')
                 ->leftJoin('stores','warehouse_store_current_stocks.warehouse_id','stores.id')
                 ->leftJoin('product_categories','products.product_category_id','product_categories.id')
@@ -153,14 +162,19 @@ class StockController extends Controller
                     'products.product_code as product_code',
                     'products.name as product_name',
                     'warehouse_store_current_stocks.current_stock'
-                )
-                ->latest('warehouse_store_current_stocks.id')
-                ->paginate(12);
-            if(count($warehouse_store_current_stock) == 0){
+                );
+            if($search){
+                $warehouse_store_current_stock->where(function($query) use ($search){
+                    $query->orWhere('products.name','like','%'.$search.'%')
+                        ->orWhere('products.type','like','%'.$search.'%');
+                });
+            }
+            $warehouse_store_current_stock_data = $warehouse_store_current_stock->orderBy('warehouse_store_current_stocks.id')->paginate(12);
+            if(count($warehouse_store_current_stock_data) == 0){
                 $response = APIHelpers::createAPIResponse(true,404,'No Store Current Stock Found.',null);
                 return response()->json($response,404);
             }else{
-                $response = APIHelpers::createAPIResponse(false,200,'',$warehouse_store_current_stock);
+                $response = APIHelpers::createAPIResponse(false,200,'',$warehouse_store_current_stock_data);
                 return response()->json($response,200);
             }
 

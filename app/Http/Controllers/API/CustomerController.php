@@ -282,6 +282,12 @@ class CustomerController extends Controller
             }
             $final_customer_code = 'CC-'.$customer_code;
 
+            if(!empty($request->initial_due)){
+                $initial_due = $request->initial_due;
+            }else{
+                $initial_due = 0;
+            }
+
             $customer = new Customer();
             $customer->customer_type = 'Whole Sale';
             $customer->name = $request->name;
@@ -290,8 +296,8 @@ class CustomerController extends Controller
             $customer->phone = $request->phone;
             $customer->email = $request->email;
             $customer->address = $request->address;
-            $customer->initial_due = $request->initial_due;
-            $customer->current_total_due = $request->initial_due;
+            $customer->initial_due = $initial_due;
+            $customer->current_total_due = $initial_due;
             $customer->note = $request->note;
 
             // nid_front
@@ -653,8 +659,10 @@ class CustomerController extends Controller
             $customers = Customer::where('customer_type','Whole Sale')
                 ->where(function ($query) use ($search) {
                     $query->where('name','like','%'.$search.'%')
+                        ->orWhere('shop_name', 'like', '%'.$search.'%')
                         ->orWhere('phone', 'like', '%'.$search.'%')
-                        ->orWhere('code', 'like', '%'.$search.'%');
+                        ->orWhere('code', 'like', '%'.$search.'%')
+                        ->orWhere('address', 'like', '%'.$search.'%');
                 })
                 ->latest()->paginate(12);
             return new CustomerCollection($customers);

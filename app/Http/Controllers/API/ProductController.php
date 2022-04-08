@@ -134,18 +134,45 @@ class ProductController extends Controller
 
     public function productListWithSearch(Request $request){
         try {
-            $products = Product::where('type', $request->type);
 
-            if($request->search) {
-                $products->where('name','like','%'.$request->search.'%')
-                    ->orWhere('name','like','%'.$request->search.'%')
-                    ->orWhere('product_code','like','%'.$request->search.'%')
-                    ->orWhere('barcode','like','%'.$request->search.'%')
-                    ->orWhere('whole_sale_price','like','%'.$request->search.'%')
-                    ->orWhere('selling_price','like','%'.$request->search.'%');
+            if($request->search){
+                $search = $request->search;
+                $product_data = Product::leftJoin('product_categories','products.product_category_id','product_categories.id')
+                    ->leftJoin('product_units','products.product_unit_id','product_units.id')
+                    ->leftJoin('product_sub_units','products.product_sub_unit_id','product_sub_units.id')
+                    ->leftJoin('product_sizes','products.product_size_id','product_sizes.id')
+                    ->where('products.type', $request->type)
+                    ->where(function ($query) use ($search) {
+                        $query->orWhere('products.product_code','like','%'.$search.'%')
+                            ->orWhere('products.purchase_price','like','%'.$search.'%')
+                            ->orWhere('products.color','like','%'.$search.'%')
+                            ->orWhere('products.design','like','%'.$search.'%')
+                            ->orWhere('product_categories.name','like','%'.$search.'%')
+                            ->orWhere('product_units.name','like','%'.$search.'%')
+                            ->orWhere('product_sub_units.name','like','%'.$search.'%')
+                            ->orWhere('product_sizes.name','like','%'.$search.'%');
+                    })
+                    ->select(
+                        'products.id',
+                        'products.type',
+                        'products.name',
+                        'products.product_category_id',
+                        'products.product_unit_id',
+                        'products.product_sub_unit_id',
+                        'products.product_size_id',
+                        'products.product_code',
+                        'products.barcode',
+                        'products.purchase_price',
+                        'products.color',
+                        'products.design',
+                        'products.note',
+                        'products.front_image',
+                        'products.back_image'
+                    )
+                    ->orderBy('products.id')->paginate(12);
+            }else{
+                $product_data = Product::where('type', $request->type)->orderBy('id')->paginate(12);
             }
-
-            $product_data = $products->latest()->paginate(12);
 
             if($product_data === null){
                 $response = APIHelpers::createAPIResponse(true,404,'No Product Found.',null);
