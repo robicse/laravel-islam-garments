@@ -569,24 +569,40 @@ class AccountController extends Controller
         }
     }
 
-    public function chartOfAccountTransactionList(){
+    public function chartOfAccountTransactionList(Request $request){
         $user = User::find(Auth::id());
         $user_role = $user->getRoleNames()[0];
         $warehouse_id = $user->warehouse_id;
         $store_id = $user->store_id;
 
-        $chart_of_account_transactions = DB::table("chart_of_account_transaction_details")
-            ->leftJoin('voucher_types','chart_of_account_transaction_details.voucher_type_id','=','voucher_types.id')
-            ->select(
-                'voucher_types.name as voucher_type_name',
-                'chart_of_account_transaction_details.voucher_no',
-                'chart_of_account_transaction_details.chart_of_account_name',
-                'chart_of_account_transaction_details.debit',
-                'chart_of_account_transaction_details.credit',
-                'chart_of_account_transaction_details.description',
-                'chart_of_account_transaction_details.transaction_date',
-                'chart_of_account_transaction_details.transaction_date_time'
-            );
+        if($request->search) {
+            $search = $request->search;
+            $chart_of_account_transactions = DB::table("chart_of_account_transaction_details")
+                ->leftJoin('voucher_types','chart_of_account_transaction_details.voucher_type_id','=','voucher_types.id')
+                ->where(function ($query) use ($search) {
+                    $query->where('chart_of_account_transaction_details.transaction_date','like','%'.$search.'%')
+                        ->orWhere('chart_of_account_transaction_details.voucher_no','like','%'.$search.'%')
+                        ->orWhere('chart_of_account_transaction_details.chart_of_account_name','like','%'.$search.'%')
+                        ->orWhere('chart_of_account_transaction_details.description','like','%'.$search.'%')
+                        ->orWhere('chart_of_account_transaction_details.debit','like','%'.$search.'%')
+                        ->orWhere('chart_of_account_transaction_details.credit','like','%'.$search.'%')
+                        ->orWhere('voucher_types.name','like','%'.$search.'%');
+                });
+        }else{
+            $chart_of_account_transactions = DB::table("chart_of_account_transaction_details")
+                ->leftJoin('voucher_types','chart_of_account_transaction_details.voucher_type_id','=','voucher_types.id');
+        }
+
+        $chart_of_account_transactions->select(
+            'voucher_types.name as voucher_type_name',
+            'chart_of_account_transaction_details.voucher_no',
+            'chart_of_account_transaction_details.chart_of_account_name',
+            'chart_of_account_transaction_details.debit',
+            'chart_of_account_transaction_details.credit',
+            'chart_of_account_transaction_details.description',
+            'chart_of_account_transaction_details.transaction_date',
+            'chart_of_account_transaction_details.transaction_date_time'
+        );
 
         if( ($user_role !== 'Super Admin') && ($store_id != null) ){
             $chart_of_account_transactions->where('chart_of_account_transaction_details.store_id','=',$store_id);

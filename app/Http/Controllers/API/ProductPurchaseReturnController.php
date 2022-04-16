@@ -458,10 +458,12 @@ class ProductPurchaseReturnController extends Controller
                     'product_purchase_returns.warehouse_id',
                     'products.id as product_id',
                     'products.name as product_name',
+                    'products.type',
                     'products.product_code',
                     'product_purchase_return_details.qty',
                     'product_purchase_return_details.id as product_purchase_detail_id',
                     'product_purchase_return_details.purchase_price',
+                    'product_purchase_return_details.price',
                     'products.product_unit_id',
                     'products.product_category_id',
                     'products.product_size_id',
@@ -478,6 +480,7 @@ class ProductPurchaseReturnController extends Controller
                     $nested_data['product_id']=$product_purchase_detail->product_id;
                     $nested_data['product_name']=$product_purchase_detail->product_name;
                     $nested_data['product_code']=$product_purchase_detail->product_code;
+                    $nested_data['type']=$product_purchase_detail->type;
                     $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
                     $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
@@ -489,6 +492,7 @@ class ProductPurchaseReturnController extends Controller
                     $nested_data['qty']=$product_purchase_detail->qty;
                     $nested_data['product_purchase_detail_id']=$product_purchase_detail->product_purchase_detail_id;
                     $nested_data['purchase_price']=$product_purchase_detail->purchase_price;
+                    $nested_data['purchase_price']=$product_purchase_detail->price;
                     $nested_data['current_stock']=$current_stock;
 
                     array_push($purchase_product, $nested_data);
@@ -520,10 +524,12 @@ class ProductPurchaseReturnController extends Controller
                     'product_purchase_returns.warehouse_id',
                     'products.id as product_id',
                     'products.name as product_name',
+                    'products.type',
                     'products.product_code',
                     'product_purchase_return_details.qty',
                     'product_purchase_return_details.id as product_purchase_detail_id',
                     'product_purchase_return_details.purchase_price',
+                    'product_purchase_return_details.price',
                     'products.product_unit_id',
                     'products.product_category_id',
                     'products.product_size_id',
@@ -540,6 +546,7 @@ class ProductPurchaseReturnController extends Controller
                     $nested_data['product_id']=$product_purchase_detail->product_id;
                     $nested_data['product_name']=$product_purchase_detail->product_name;
                     $nested_data['product_code']=$product_purchase_detail->product_code;
+                    $nested_data['type']=$product_purchase_detail->type;
                     $nested_data['product_category_id'] = $product_purchase_detail->product_category_id;
                     $nested_data['product_category_name'] = $product->category->name;
                     $nested_data['product_unit_id'] = $product_purchase_detail->product_unit_id;
@@ -551,6 +558,7 @@ class ProductPurchaseReturnController extends Controller
                     $nested_data['qty']=$product_purchase_detail->qty;
                     $nested_data['product_purchase_detail_id']=$product_purchase_detail->product_purchase_detail_id;
                     $nested_data['purchase_price']=$product_purchase_detail->purchase_price;
+                    $nested_data['purchase_price']=$product_purchase_detail->price;
                     $nested_data['current_stock']=$current_stock;
 
                     array_push($purchase_product, $nested_data);
