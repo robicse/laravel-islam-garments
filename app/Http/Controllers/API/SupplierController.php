@@ -513,11 +513,15 @@ class SupplierController extends Controller
 
                 // supplier head
                 $code = Supplier::where('id', $supplier_id)->pluck('code')->first();
-                //$supplier_chart_of_account_info = ChartOfAccount::where('name_code', $code)->first();
+                $supplier_chart_of_account_info = ChartOfAccount::where('name_code', $code)->first();
+
+                // Supplier Debit
+                $description = $supplier_chart_of_account_info->head_name.' Supplier Debited For Paid Amount Purchases Due';
+                chartOfAccountTransactionDetails(NULL, NULL, $user_id, 1, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $supplier_chart_of_account_info->id, $supplier_chart_of_account_info->head_code, $supplier_chart_of_account_info->head_name, $supplier_chart_of_account_info->parent_head_name, $supplier_chart_of_account_info->head_type,$paid_amount, NULL, $description, 'Approved');
 
                 // Account Payable
-                $description = $description ? $description : $account_payable_info->head_name . ' Debited For Due Amount Paid';
-                chartOfAccountTransactionDetails(NULL, NULL, $user_id, 1, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $account_payable_info->id, $account_payable_info->head_code, $account_payable_info->head_name, $account_payable_info->parent_head_name, $account_payable_info->head_type, $paid_amount, NULL, $description, 'Approved');
+                //$description = $description ? $description : $account_payable_info->head_name . ' Debited For Due Amount Paid';
+                //chartOfAccountTransactionDetails(NULL, NULL, $user_id, 1, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $account_payable_info->id, $account_payable_info->head_code, $account_payable_info->head_name, $account_payable_info->parent_head_name, $account_payable_info->head_type, $paid_amount, NULL, $description, 'Approved');
                 if($payment_type_id == '1') {
                     // Cash In Hand credit
                     $description = $description ? $description : $cash_chart_of_account_info->head_name . ' Credited For Due Amount Paid';

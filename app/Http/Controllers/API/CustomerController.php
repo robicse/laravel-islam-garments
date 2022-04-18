@@ -730,9 +730,9 @@ class CustomerController extends Controller
             $year = date('Y');
             $transaction_date_time = date('Y-m-d H:i:s');
 
-            // supplier head
+            // customer head
             $code = Customer::where('id',$customer_id)->pluck('code')->first();
-            //$customer_chart_of_account_info = ChartOfAccount::where('name_code',$code)->first();
+            $customer_chart_of_account_info = ChartOfAccount::where('name_code',$code)->first();
 
             // Cash In Hand For Paid Amount
             $get_voucher_name = VoucherType::where('id',2)->pluck('name')->first();
@@ -768,8 +768,12 @@ class CustomerController extends Controller
             }
 
             // Account Receivable credit
-            $description = $description ? $description : $account_receivable_info->head_name . ' Credited For Due Amount Paid';
-            chartOfAccountTransactionDetails(NULL, NULL, $user_id, 2, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $account_receivable_info->id, $account_receivable_info->head_code, $account_receivable_info->head_name, $account_receivable_info->parent_head_name, $account_receivable_info->head_type, NULL, $paid_amount, $description, 'Approved');
+            //$description = $description ? $description : $account_receivable_info->head_name . ' Credited For Due Amount Paid';
+            //chartOfAccountTransactionDetails(NULL, NULL, $user_id, 2, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $account_receivable_info->id, $account_receivable_info->head_code, $account_receivable_info->head_name, $account_receivable_info->parent_head_name, $account_receivable_info->head_type, NULL, $paid_amount, $description, 'Approved');
+
+            // Customer Credit
+            $description = $customer_chart_of_account_info->head_name.' Customer Debited For Paid Amount Sales Due';
+            chartOfAccountTransactionDetails(NULL, NULL, $user_id, 2, $final_voucher_no, 'Due Paid', $date, $transaction_date_time, $year, $month, NULL, NULL, $payment_type_id, NULL, NULL, NULL, $customer_chart_of_account_info->id, $customer_chart_of_account_info->head_code, $customer_chart_of_account_info->head_name, $customer_chart_of_account_info->parent_head_name, $customer_chart_of_account_info->head_type, NULL, $paid_amount, $description, 'Approved');
 
             $response = APIHelpers::createAPIResponse(false,200,'Supplier Updated Successfully.',null);
             return response()->json($response,200);
